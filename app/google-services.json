@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "347704872995",
+    "project_id": "hand-shop-fc390",
+    "storage_bucket": "hand-shop-fc390.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:347704872995:android:b9c77802f1c137ac47a196",
+        "android_client_info": {
+          "package_name": "denis.and.co.handshop"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAGm-qtuWxW-Kv2K8SnbQlf0iwjpwzSBF4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
