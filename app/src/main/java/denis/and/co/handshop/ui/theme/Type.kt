@@ -8,8 +8,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import denis.and.co.handshop.R
 
-val Comfortaa = FontFamily(Font(R.font.Comfortaa))
-val Onest = FontFamily(Font(R.font.Onest))
+val Comfortaa = FontFamily(Font(R.font.comfortaa))
+val Onest = FontFamily(Font(R.font.onest))
 val Typography = Typography(
     bodyLarge = TextStyle(
         fontFamily = Comfortaa,

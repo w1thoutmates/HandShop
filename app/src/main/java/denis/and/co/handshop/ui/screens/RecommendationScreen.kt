@@ -2,11 +2,13 @@ package denis.and.co.handshop.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,6 +17,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -32,7 +37,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -43,11 +47,22 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import denis.and.co.handshop.R
+import denis.and.co.handshop.ui.components.ProductListItem
 import denis.and.co.handshop.ui.theme.*
+import java.math.BigDecimal
+import kotlin.random.Random
 
 @Composable
 fun RecommendationScreen() {
-
+    Scaffold(
+        topBar = { Header() },
+        bottomBar = { Footer() },
+        modifier = Modifier
+            .background(SoftBack)
+            .fillMaxSize()
+    ) { padding ->
+        Content(modifier = Modifier.padding(padding))
+    }
 }
 
 @Preview(showBackground = true)
@@ -59,8 +74,8 @@ fun RecommendationScreenPreview() {
         modifier = Modifier
         .background(SoftBack)
         .fillMaxSize()
-    ) {
-        Content()
+    ) { padding ->
+        Content(modifier = Modifier.padding(padding))
     }
 }
 
@@ -188,12 +203,28 @@ fun Header() {
 }
 
 @Composable
-fun Content() {
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxWidth()
-    ) {
+fun Content(modifier: Modifier = Modifier) {
+    val products = listOf(
+        "Картина", "Плюшевая игрушка", "Картинка абстрактная",
+        "Шахматные фигуры из эпоксидной смолы", "Кольцо из монет"
+    )
 
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
+        contentPadding = PaddingValues(8.dp),
+        modifier = modifier.fillMaxWidth()
+    ) {
+        items(products.size) { index ->
+            val product = products[index]
+            ProductListItem(
+                title = product,
+                description = "Описание для $product ручной работы",
+                imageResId = R.drawable.product_image_example,
+                cost = BigDecimal(1499),
+                currency = '₽',
+                rate = Random.nextInt(1, 6)
+            )
+        }
     }
 }
 
@@ -211,87 +242,63 @@ fun Footer() {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            Button(
-                onClick = {   },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                contentPadding = PaddingValues(0.dp),
-                shape = RectangleShape
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.home_nav),
-                    contentDescription = "Домой навигация",
-                    modifier = Modifier.size(30.dp, 30.dp),
-                    contentScale = ContentScale.FillBounds
-                )
-            }
+            Image(
+                painter = painterResource(R.drawable.home_nav),
+                contentDescription = "Домой навигация",
+                modifier = Modifier
+                    .size(30.dp, 30.dp)
+                    .clickable { /* click */ },
+                contentScale = ContentScale.FillBounds
+            )
 
-//            Spacer(Modifier.width(45.dp))
+            Spacer(Modifier.width(45.dp))
 
-            Button(
-                onClick = {   },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                contentPadding = PaddingValues(0.dp),
-                shape = RectangleShape
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.search_nav),
-                    contentDescription = "Поиск навигация",
-                    modifier = Modifier.size(30.dp, 30.dp),
-                    contentScale = ContentScale.FillBounds,
-                    alpha = 0.5f
-                )
-            }
+            Image(
+                painter = painterResource(R.drawable.search_nav),
+                contentDescription = "Поиск навигация",
+                modifier = Modifier
+                    .size(30.dp, 30.dp)
+                    .clickable { /* click */ },
+                contentScale = ContentScale.FillBounds,
+                alpha = 0.5f
+            )
 
-//            Spacer(Modifier.width(45.dp))
+            Spacer(Modifier.width(45.dp))
 
-            Button(
-                onClick = {   },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                contentPadding = PaddingValues(0.dp),
-                shape = RectangleShape
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.cart_nav),
-                    contentDescription = "Корзина навигация",
-                    modifier = Modifier.size(30.dp, 30.dp),
-                    contentScale = ContentScale.FillBounds,
-                    alpha = 0.5f
-                )
-            }
+            Image(
+                painter = painterResource(R.drawable.cart_nav),
+                contentDescription = "Корзина навигация",
+                modifier = Modifier
+                    .size(30.dp, 30.dp)
+                    .clickable { /* click */ },
+                contentScale = ContentScale.FillBounds,
+                alpha = 0.5f
+            )
 
-//            Spacer(Modifier.width(45.dp))
+            Spacer(Modifier.width(45.dp))
 
-            Button(
-                onClick = {   },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                contentPadding = PaddingValues(0.dp),
-                shape = RectangleShape
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.liked_nav),
-                    contentDescription = "Избранное навигация",
-                    modifier = Modifier.size(30.dp, 30.dp),
-                    contentScale = ContentScale.FillBounds,
-                    alpha = 0.5f
-                )
-            }
+            Image(
+                painter = painterResource(R.drawable.liked_nav),
+                contentDescription = "Избранное навигация",
+                modifier = Modifier
+                    .size(30.dp, 30.dp)
+                    .clickable { /* click */ },
+                contentScale = ContentScale.FillBounds,
+                alpha = 0.5f
+            )
 
-//            Spacer(Modifier.width(45.dp))
+            Spacer(Modifier.width(45.dp))
 
-            Button(
-                onClick = {   },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                contentPadding = PaddingValues(0.dp),
-                shape = RectangleShape
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.profile_nav),
-                    contentDescription = "Профиль навигация",
-                    modifier = Modifier.size(30.dp, 30.dp),
-                    contentScale = ContentScale.FillBounds,
-                    alpha = 0.5f
-                )
-            }
+            Image(
+                painter = painterResource(R.drawable.profile_nav),
+                contentDescription = "Профиль навигация",
+                modifier = Modifier
+                    .size(30.dp, 30.dp)
+                    .clickable { /* click */ },
+                contentScale = ContentScale.FillBounds,
+                alpha = 0.5f
+            )
+
         }
     }
 }
