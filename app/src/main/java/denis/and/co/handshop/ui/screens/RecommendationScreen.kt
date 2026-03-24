@@ -16,10 +16,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -61,7 +59,25 @@ fun RecommendationScreen() {
             .background(SoftBack)
             .fillMaxSize()
     ) { padding ->
-        Content(modifier = Modifier.padding(padding))
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+        ) {
+            Text(
+                text = "Рекомендуем сегодня",
+                style = TextStyle(
+                    fontFamily = Comfortaa,
+                    color = BlackText,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 16.sp
+                ),
+                maxLines = 1,
+                modifier = Modifier.padding(start = 15.dp, top = 15.dp)
+            )
+
+            Content(modifier = Modifier.weight(1f))
+        }
     }
 }
 
@@ -75,7 +91,25 @@ fun RecommendationScreenPreview() {
         .background(SoftBack)
         .fillMaxSize()
     ) { padding ->
-        Content(modifier = Modifier.padding(padding))
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+        ) {
+            Text(
+                text = "Рекомендуем сегодня",
+                style = TextStyle(
+                    fontFamily = Comfortaa,
+                    color = BlackText,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 16.sp
+                ),
+                maxLines = 1,
+                modifier = Modifier.padding(start = 15.dp, top = 15.dp)
+            )
+
+            Content(modifier = Modifier.weight(1f))
+        }
     }
 }
 
@@ -205,8 +239,15 @@ fun Header() {
 @Composable
 fun Content(modifier: Modifier = Modifier) {
     val products = listOf(
-        "Картина", "Плюшевая игрушка", "Картинка абстрактная",
+        "Картина", "Плюшевая игрушка", "Картина абстрактная",
         "Шахматные фигуры из эпоксидной смолы", "Кольцо из монет"
+    )
+
+    val stockImageIds = listOf(
+        R.drawable.vaza_image_example, R.drawable.table_image_example,
+        R.drawable.smola_leaf_image_example, R.drawable.shess_image_example,
+        R.drawable.ring_image_example, R.drawable.plush_toy_image_example,
+        R.drawable.paint_image_example, R.drawable.chair_image_example
     )
 
     LazyVerticalGrid(
@@ -218,11 +259,13 @@ fun Content(modifier: Modifier = Modifier) {
             val product = products[index]
             ProductListItem(
                 title = product,
-                description = "Описание для $product ручной работы",
-                imageResId = R.drawable.product_image_example,
-                cost = BigDecimal(1499),
+                imageResId = stockImageIds.get(Random.nextInt(0, stockImageIds.count() + 1)),
+                cost = if (index % 3 == 0) BigDecimal(1499) else null,
                 currency = '₽',
-                rate = Random.nextInt(1, 6)
+                rate = Random.nextInt(0, 6),
+                viewsCount = Random.nextLong(0L,1050L),
+                time = "Сегодня",
+                city = "Москва"
             )
         }
     }

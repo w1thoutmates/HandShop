@@ -1,12 +1,10 @@
 package denis.and.co.handshop.ui.components
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -20,10 +18,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.dropShadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.shadow.Shadow
-import androidx.compose.ui.graphics.shadow.ShadowContext
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -40,11 +36,13 @@ import java.math.BigDecimal
 @Composable
 fun ProductListItem(
     title: String,
-    description: String,
     imageResId: Int,
-    cost: BigDecimal,
-    currency: Char,
-    rate: Int = Math.clamp(1, 1, 5)
+    cost: BigDecimal?,
+    currency: Char?,
+    rate: Int = 1,
+    viewsCount: Long,
+    time: String,
+    city: String
 ) {
     Card(
         modifier = Modifier
@@ -52,6 +50,7 @@ fun ProductListItem(
             .padding(8.dp),
         elevation = CardDefaults.cardElevation(5.dp),
         shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = WhiteText)
     ) {
         Column(
 
@@ -82,26 +81,145 @@ fun ProductListItem(
 
                 Spacer(Modifier.height(2.dp))
 
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = if(cost != null && currency != null) "$cost $currency".uppercase() else "не указана",
+                        style = TextStyle(
+                            fontFamily = Onest,
+                            color = if(cost != null && currency != null) BlackText else LowAlphaBlackText,
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = if(cost != null && currency != null) 16.sp else 10.sp,
+                        ),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.End,
+                        modifier = Modifier.padding(2.dp)
+                    ) {
+                        val remain = 5 - rate;
+                        for (i in 1..rate) {
+                            Image(
+                                painter = painterResource(
+                                    R.drawable.star
+                                ),
+                                contentDescription = "Закрашенная звездочка",
+                                colorFilter = ColorFilter.tint(StarFilled),
+                                modifier = Modifier.size(15.dp)
+                            )
+                        }
+                        if (remain != 0) {
+                            for(i in 1..remain) {
+                                Image(
+                                    painter = painterResource(
+                                        R.drawable.star
+                                    ),
+                                    contentDescription = "Не закрашенная звездочка",
+                                    colorFilter = ColorFilter.tint(StarEmpty),
+                                    modifier = Modifier.size(15.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(Modifier.height(4.dp))
+
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        listOf(
+                            R.drawable.eye to viewsCount.toString(),
+                            R.drawable.clock to time,
+                            R.drawable.mark to city
+                        ).forEach { (iconRes, textValue) ->
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Image(
+                                    painter = painterResource(iconRes),
+                                    contentDescription = null,
+                                    contentScale = ContentScale.FillBounds,
+                                    modifier = Modifier.size(15.dp)
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = textValue,
+                                    style = TextStyle(
+                                        fontFamily = Onest,
+                                        color = BlackText,
+                                        fontWeight = FontWeight.Normal,
+                                        fontSize = 10.sp
+                                    ),
+                                    maxLines = if (textValue == city) 2 else 1,
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ProductListItemPreview() {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        elevation = CardDefaults.cardElevation(5.dp),
+        shape = RoundedCornerShape(16.dp),
+    ) {
+        Column(
+
+        ) {
+            Image(
+                painter = painterResource(R.drawable.ring_image_example),
+                contentDescription = "Изображение в карточке товара",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp)
+            )
+
+            Column(
+                Modifier.padding(12.dp)
+            ) {
                 Text(
-                    text = description,
+                    text = "Title",
                     style = TextStyle(
                         fontFamily = Onest,
-                        color = LowAlphaBlackText,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 12.sp
+                        color = BlackText,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
                     ),
-                    maxLines = 2,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
 
-                Spacer(Modifier.height(2.dp))
+                Spacer(Modifier.height(4.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "$cost $currency".uppercase(),
+                        text = "1499 ₽".uppercase(),
                         style = TextStyle(
                             fontFamily = Onest,
                             color = BlackText,
@@ -118,8 +236,8 @@ fun ProductListItem(
                         horizontalArrangement = Arrangement.End,
                         modifier = Modifier.padding(2.dp)
                     ) {
-                        val remain = 5 - rate;
-                        for (i in 1..rate) {
+                        val remain = 5 - 4;
+                        for (i in 1..4) {
                             Image(
                                 painter = painterResource(
                                     R.drawable.star
@@ -156,6 +274,48 @@ fun ProductListItem(
                                                 alpha = 0.15f
                                             )
                                         )
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(Modifier.height(4.dp))
+
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        listOf(
+                            R.drawable.eye to "24",
+                            R.drawable.clock to "Сегодня",
+                            R.drawable.mark to "Ростов-на-Дону"
+                        ).forEach { (iconRes, textValue) ->
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Image(
+                                    painter = painterResource(iconRes),
+                                    contentDescription = null,
+                                    contentScale = ContentScale.FillBounds,
+                                    modifier = Modifier.size(15.dp)
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = textValue,
+                                    style = TextStyle(
+                                        fontFamily = Onest,
+                                        color = BlackText,
+                                        fontWeight = FontWeight.Normal,
+                                        fontSize = 10.sp
+                                    ),
+                                    maxLines = if (textValue == "Ростов-на-Дону") 2 else 1,
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
                                 )
                             }
                         }
