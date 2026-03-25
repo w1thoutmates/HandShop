@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import denis.and.co.handshop.R
+import denis.and.co.handshop.data.model.Product
 import denis.and.co.handshop.ui.components.ProductListItem
 import denis.and.co.handshop.ui.theme.*
 import java.math.BigDecimal
@@ -258,21 +259,22 @@ fun Content(modifier: Modifier = Modifier) {
         items(products.size) { index ->
             val product = products[index]
             ProductListItem(
-                title = product,
-                imageResId = stockImageIds.get(Random.nextInt(0, stockImageIds.count() + 1)),
-                cost = if (index % 3 == 0) BigDecimal(1499) else null,
-                currency = '₽',
-                rate = Random.nextInt(0, 6),
-                viewsCount = Random.nextLong(0L,1050L),
-                time = "Сегодня",
-                city = "Москва"
+                Product(
+                    title = product,
+                    imageUrls = listOf(stockImageIds.get(Random.nextInt(0, stockImageIds.count() + 1))),
+                    cost = if (index % 3 == 0) BigDecimal(1499) else null,
+                    currency = "₽",
+                    rate = Random.nextDouble(0.0, 5.1),
+                    viewsCount = Random.nextLong(0L,1050L),
+                    targetCity = "Москва"
+                )
             )
         }
     }
 }
 
 @Composable
-fun Footer() {
+public fun Footer() {
     Box(
         modifier = Modifier
             .fillMaxWidth()

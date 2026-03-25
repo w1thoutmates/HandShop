@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.dropShadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.layout.ContentScale
@@ -30,19 +31,12 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import denis.and.co.handshop.R
+import denis.and.co.handshop.data.model.Product
 import denis.and.co.handshop.ui.theme.*
-import java.math.BigDecimal
 
 @Composable
 fun ProductListItem(
-    title: String,
-    imageResId: Int,
-    cost: BigDecimal?,
-    currency: Char?,
-    rate: Int = 1,
-    viewsCount: Long,
-    time: String,
-    city: String
+    product: Product
 ) {
     Card(
         modifier = Modifier
@@ -50,13 +44,13 @@ fun ProductListItem(
             .padding(8.dp),
         elevation = CardDefaults.cardElevation(5.dp),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = WhiteText)
+        colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Column(
 
         ) {
             Image(
-                painter = painterResource(imageResId),
+                painter = painterResource(product.imageUrls.first()),
                 contentDescription = "Изображение в карточке товара",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -68,7 +62,7 @@ fun ProductListItem(
                 Modifier.padding(12.dp)
             ) {
                 Text(
-                    text = title,
+                    text = product.title,
                     style = TextStyle(
                         fontFamily = Onest,
                         color = BlackText,
@@ -86,12 +80,12 @@ fun ProductListItem(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = if(cost != null && currency != null) "$cost $currency".uppercase() else "не указана",
+                        text = if(product.cost != null && product.currency != null) "${product.cost} ${product.currency}".uppercase() else "не указана",
                         style = TextStyle(
                             fontFamily = Onest,
-                            color = if(cost != null && currency != null) BlackText else LowAlphaBlackText,
+                            color = if(product.cost != null && product.currency != null) BlackText else LowAlphaBlackText,
                             fontWeight = FontWeight.ExtraBold,
-                            fontSize = if(cost != null && currency != null) 16.sp else 10.sp,
+                            fontSize = if(product.cost != null && product.currency != null) 16.sp else 10.sp,
                         ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -103,8 +97,8 @@ fun ProductListItem(
                         horizontalArrangement = Arrangement.End,
                         modifier = Modifier.padding(2.dp)
                     ) {
-                        val remain = 5 - rate;
-                        for (i in 1..rate) {
+                        val remain = 5 - product.rate;
+                        for (i in 1..product.rate.toInt()) {
                             Image(
                                 painter = painterResource(
                                     R.drawable.star
@@ -114,8 +108,8 @@ fun ProductListItem(
                                 modifier = Modifier.size(15.dp)
                             )
                         }
-                        if (remain != 0) {
-                            for(i in 1..remain) {
+                        if (remain != 0.toDouble()) {
+                            for(i in 1..remain.toInt()) {
                                 Image(
                                     painter = painterResource(
                                         R.drawable.star
@@ -139,9 +133,9 @@ fun ProductListItem(
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
                         listOf(
-                            R.drawable.eye to viewsCount.toString(),
-                            R.drawable.clock to time,
-                            R.drawable.mark to city
+                            R.drawable.eye to product.viewsCount.toString(),
+                            R.drawable.clock to product.postedTime.toString(), // заменить на преобразования времени в "Сегодня"/"Вчера"/"21 марта" и тд.
+                            R.drawable.mark to product.targetCity
                         ).forEach { (iconRes, textValue) ->
                             Column(
                                 modifier = Modifier.weight(1f),
@@ -163,7 +157,7 @@ fun ProductListItem(
                                         fontWeight = FontWeight.Normal,
                                         fontSize = 10.sp
                                     ),
-                                    maxLines = if (textValue == city) 2 else 1,
+                                    maxLines = if (textValue == product.targetCity) 2 else 1,
                                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
                                 )
                             }
