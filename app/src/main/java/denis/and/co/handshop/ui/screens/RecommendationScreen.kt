@@ -51,8 +51,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.currentBackStackEntryAsState
 import denis.and.co.handshop.R
 import denis.and.co.handshop.data.model.CatalogState
+import denis.and.co.handshop.ui.components.AppFooter
 import denis.and.co.handshop.ui.components.ProductListItem
 import denis.and.co.handshop.ui.navigation.CreateProductRoute
 import denis.and.co.handshop.ui.navigation.LikedRoute
@@ -70,7 +74,7 @@ fun RecommendationScreen(
     ) {
     Scaffold(
         topBar = { Header() },
-        bottomBar = { Footer(navController) },
+        bottomBar = { AppFooter(navController) },
         modifier = Modifier
             .background(SoftBack)
             .fillMaxSize()
@@ -275,7 +279,7 @@ fun Content(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(text = state.message, color = Color.Red)
-                    Button(onClick = { viewModel.loadProducts() }) {
+                    Button(onClick = { viewModel.loadRecommendations() }) {
                         Text("Повторить")
                     }
                 }
@@ -286,6 +290,9 @@ fun Content(
 
 @Composable
 public fun Footer(navController: NavController) {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -303,7 +310,19 @@ public fun Footer(navController: NavController) {
                 contentDescription = "Домой навигация",
                 modifier = Modifier
                     .size(30.dp, 30.dp)
-                    .clickable { navController.navigate(RecommendationRoute) },
+                    .clickable {
+                        val isAlreadyOnRecommendation = currentDestination?.hasRoute<RecommendationRoute>() == true
+
+                        if (!isAlreadyOnRecommendation) {
+                            navController.navigate(RecommendationRoute) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    },
                 contentScale = ContentScale.FillBounds
             )
 

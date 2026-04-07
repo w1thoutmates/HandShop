@@ -16,5 +16,7 @@ data class Product(
     val category: String = "",
     val sellerId: String = "",
     val status: ProductStatus = ProductStatus.ACTIVE,
-    val addedToLikedCount: Long = 0
+    val addedToLikedCount: Long = 0,
+    val tags: List<String> = emptyList(),
+    val searchIndex: List<String> = emptyList()
 ) { }

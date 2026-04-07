@@ -9,6 +9,7 @@ import denis.and.co.handshop.data.model.Seller
 import denis.and.co.handshop.data.repository.ImageRepository
 import denis.and.co.handshop.data.repository.ProductRepository
 import denis.and.co.handshop.data.repository.SellerRepository
+import denis.and.co.handshop.utils.SearchIndexer
 import kotlinx.coroutines.launch
 
 class CreateProductViewModel(
@@ -23,12 +24,20 @@ class CreateProductViewModel(
         viewModelScope.launch {
             isSaving.value = true
 
+            val index = SearchIndexer.createIndex(
+                product.title,
+                product.description,
+                product.category,
+                product.tags
+            )
+
             val urls = imageRepo.uploadProductImages(imageUris)
 
             val newProduct = sellerRepo.getCurrentUserId()?.let {
                 product.copy(
                     imageUrls = urls,
-                    sellerId = it
+                    sellerId = it,
+                    searchIndex = index
                 )
             }
 
@@ -39,4 +48,6 @@ class CreateProductViewModel(
             onComplete()
         }
     }
+
+    // fun updateProduct
 }

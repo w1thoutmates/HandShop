@@ -19,8 +19,10 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.Send
@@ -59,6 +61,7 @@ import denis.and.co.handshop.data.enums.ProductStatus
 import denis.and.co.handshop.data.model.Product
 import denis.and.co.handshop.data.model.Seller
 import denis.and.co.handshop.data.model.WorkSample
+import denis.and.co.handshop.ui.components.AppFooter
 import denis.and.co.handshop.ui.components.ProductListItem
 import denis.and.co.handshop.ui.components.WorkSampleCard
 import denis.and.co.handshop.ui.navigation.EditProductRoute
@@ -86,6 +89,8 @@ fun SellerProfileScreen(
         viewModel.loadProfile(sellerId)
     }
 
+    val scrollState = rememberScrollState()
+
     seller?.let {currentSeller ->
         val pagerState = rememberPagerState(pageCount = { currentSeller.workSamples.size })
         Column(
@@ -93,102 +98,129 @@ fun SellerProfileScreen(
                 .fillMaxSize()
                 .background(SoftBack)
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(220.dp)
-            ) {
-                AsyncImage(
-                    model = currentSeller.coverImageUrl,
-                    contentDescription = "Обложка профиля",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(160.dp)
-                        .background(Color.LightGray)
-                )
-                AsyncImage(
-                    model = currentSeller.profileImage.ifEmpty { painterResource(R.drawable.user_profile_avatar_mock) },
-                    contentDescription = "Аватар продавца",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(100.dp)
-                        .align(Alignment.BottomStart)
-                        .offset(x = 16.dp, y = 0.dp)
-                        .clip(CircleShape)
-                        .background(Color.White)
-                )
-
-                Box(modifier = Modifier
-                    .padding(top = 40.dp, start = 16.dp)
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .clickable { navController.popBackStack() },
-                    contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                        contentDescription = "Кнопка назад",
-                        tint = Color.Black,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-            }
             Column(
                 modifier = Modifier
+                    .weight(1f)
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .verticalScroll(scrollState)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = currentSeller.sellerName,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = BlackText,
-                        fontFamily = Comfortaa,
-                        modifier = Modifier.weight(1f)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(220.dp)
+                ) {
+                    AsyncImage(
+                        model = currentSeller.coverImageUrl,
+                        contentDescription = "Обложка профиля",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(160.dp)
+                            .background(Color.LightGray)
                     )
-                    if (isMyProfile) {
+                    AsyncImage(
+                        model = currentSeller.profileImage.ifEmpty { painterResource(R.drawable.user_profile_avatar_mock) },
+                        contentDescription = "Аватар продавца",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(100.dp)
+                            .align(Alignment.BottomStart)
+                            .offset(x = 16.dp, y = 0.dp)
+                            .clip(CircleShape)
+                            .background(Color.White)
+                    )
+
+                    Box(modifier = Modifier
+                        .padding(top = 40.dp, start = 16.dp)
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .clickable { navController.popBackStack() },
+                        contentAlignment = Alignment.Center) {
                         Icon(
-                            imageVector = Icons.Outlined.Edit,
-                            contentDescription = null,
-                            tint = BlackText,
-                            modifier = Modifier
-                                .size(20.dp)
-                                .clickable {
-                                    navController.navigate("edit_profile")
-                                }
+                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                            contentDescription = "Кнопка назад",
+                            tint = Color.Black,
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                 }
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = currentSeller.sellerName,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = BlackText,
+                            fontFamily = Comfortaa,
+                            modifier = Modifier.weight(1f)
+                        )
+                        if (isMyProfile) {
+                            Icon(
+                                imageVector = Icons.Outlined.Edit,
+                                contentDescription = null,
+                                tint = BlackText,
+                                modifier = Modifier
+                                    .size(20.dp)
+                                    .clickable {
+                                        navController.navigate("edit_profile")
+                                    }
+                            )
+                        }
+                    }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                Text(
-                    text = currentSeller.description,
-                    fontSize = 14.sp,
-                    color = LowAlphaBlackText,
-                    lineHeight = 20.sp,
-                    fontFamily = Comfortaa
+                    Text(
+                        text = currentSeller.description,
+                        fontSize = 14.sp,
+                        color = LowAlphaBlackText,
+                        lineHeight = 20.sp,
+                        fontFamily = Comfortaa
+                    )
+                }
+
+                HorizontalDivider(
+                    thickness = 2.dp,
+                    color = BlackText.copy(alpha = 0.2f),
+                    modifier = Modifier.padding(15.dp)
                 )
-            }
 
-            HorizontalDivider(
-                thickness = 2.dp,
-                color = BlackText.copy(alpha = 0.2f),
-                modifier = Modifier.padding(15.dp)
-            )
+                ContactInfoBlock(currentSeller.contacts)
 
-            ContactInfoBlock(currentSeller.contacts)
+                HorizontalDivider(
+                    thickness = 2.dp,
+                    color = BlackText.copy(alpha = 0.2f),
+                    modifier = Modifier.padding(15.dp)
+                )
 
-            HorizontalDivider(
-                thickness = 2.dp,
-                color = BlackText.copy(alpha = 0.2f),
-                modifier = Modifier.padding(15.dp)
-            )
+                if (currentSeller.workSamples.isNotEmpty()) {
+                    Text(
+                        text = "Портфолио",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = BlackText,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        fontFamily = Comfortaa
+                    )
 
-            if (currentSeller.workSamples.isNotEmpty()) {
+                    HorizontalPager(
+                        state = pagerState,
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        pageSpacing = 12.dp,
+                        modifier = Modifier.padding(top = 10.dp).fillMaxWidth()
+                    ) { page ->
+                        WorkSampleCard(workSample = currentSeller.workSamples[page])
+                    }
+                }
+
+                HorizontalDivider(thickness = 2.dp, color = BlackText.copy(alpha = 0.2f), modifier = Modifier.padding(15.dp))
+
                 Text(
-                    text = "Портфолио",
+                    text = "Опубликованные товары",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = BlackText,
@@ -196,72 +228,54 @@ fun SellerProfileScreen(
                     fontFamily = Comfortaa
                 )
 
-                HorizontalPager(
-                    state = pagerState,
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    pageSpacing = 12.dp,
-                    modifier = Modifier.padding(top = 10.dp).fillMaxWidth()
-                ) { page ->
-                    WorkSampleCard(workSample = currentSeller.workSamples[page])
+                val visibleProducts = if (isMyProfile) {
+                    sellerProducts
+                } else {
+                    sellerProducts.filter { it?.status == ProductStatus.ACTIVE }
                 }
-            }
 
-            HorizontalDivider(thickness = 2.dp, color = BlackText.copy(alpha = 0.2f), modifier = Modifier.padding(15.dp))
+                if (visibleProducts.isEmpty()) {
+                    Text(
+                        text = "Нет товаров",
+                        fontFamily = Comfortaa,
+                        color = LowAlphaBlackText,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                } else {
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        items(visibleProducts) { product ->
+                            val isInactive = product?.status != ProductStatus.ACTIVE
 
-            Text(
-                text = "Опубликованные товары",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = BlackText,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                fontFamily = Comfortaa
-            )
-
-            val visibleProducts = if (isMyProfile) {
-                sellerProducts
-            } else {
-                sellerProducts.filter { it?.status == ProductStatus.ACTIVE }
-            }
-
-            if (visibleProducts.isEmpty()) {
-                Text(
-                    text = "Нет товаров",
-                    fontFamily = Comfortaa,
-                    color = LowAlphaBlackText,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-            } else {
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    items(visibleProducts) { product ->
-                        val isInactive = product?.status != ProductStatus.ACTIVE
-
-                        if (product != null) {
-                            Box(modifier = Modifier.alpha(if (isInactive) 0.5f else 1f)) {
-                                ProductListItem(
-                                    product = product,
-                                    onClick = {
-                                        if (isMyProfile) {
-                                            navController.navigate(EditProductRoute(product.id))
-                                        } else {
-                                            navController.navigate(ProductDetailsRoute(product.id))
-                                        }
-                                    },
-                                    seller = seller
-                                )
+                            if (product != null) {
+                                Box(modifier = Modifier.alpha(if (isInactive) 0.5f else 1f)) {
+                                    ProductListItem(
+                                        product = product,
+                                        onClick = {
+                                            if (isMyProfile) {
+                                                navController.navigate(EditProductRoute(product.id))
+                                            } else {
+                                                navController.navigate(ProductDetailsRoute(product.id))
+                                            }
+                                        },
+                                        seller = seller
+                                    )
+                                }
                             }
                         }
                     }
                 }
+
+                RatingBlock(currentSeller.rate, currentSeller.reviewsCount)
+
+                // Список отзывов и переместить кнопку "Оценить"
+
             }
 
-            RatingBlock(currentSeller.rate, currentSeller.reviewsCount)
-
-            // Список отзывов и переместить кнопку "Оценить"
-
+            AppFooter(navController)
         }
     } ?: Box(Modifier.fillMaxSize()) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }
 }

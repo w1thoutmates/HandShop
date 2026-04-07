@@ -42,6 +42,7 @@ import denis.and.co.handshop.ui.screens.LoginScreen
 import denis.and.co.handshop.ui.screens.ProductCreatingScreen
 import denis.and.co.handshop.ui.screens.ProductDetailsScreen
 import denis.and.co.handshop.ui.screens.RecommendationScreen
+import denis.and.co.handshop.ui.screens.SearchingScreen
 import denis.and.co.handshop.ui.screens.SellerProfileScreen
 import denis.and.co.handshop.ui.theme.Accent
 import denis.and.co.handshop.viewmodel.AuthViewModel
@@ -107,7 +108,7 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
-                composable("main_flow") {
+                composable<RecommendationRoute> {
                     val catalogViewModel: CatalogViewModel = viewModel(
                         factory = object : ViewModelProvider.Factory {
                             override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -198,7 +199,7 @@ class MainActivity : ComponentActivity() {
                 }
                 composable<LikedRoute> { Text("Избранное") }
                 composable<SearchByCategoryRoute> {
-                    Text("Поиск по категории")
+                    SearchingScreen(navController)
                 }
 
                 composable("edit_profile") { backStackEntry ->

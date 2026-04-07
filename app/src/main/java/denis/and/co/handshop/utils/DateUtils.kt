@@ -1,4 +1,4 @@
-package denis.and.co.handshop.data
+package denis.and.co.handshop.utils
 
 import java.time.Instant
 import java.time.LocalDate

@@ -29,8 +29,6 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material.icons.outlined.KeyboardArrowLeft
-import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material.icons.outlined.Send
 import androidx.compose.material3.Card
@@ -52,17 +50,14 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import denis.and.co.handshop.R
-import denis.and.co.handshop.data.enums.ProductStatus
 import denis.and.co.handshop.data.model.Product
-import denis.and.co.handshop.data.model.Seller
-import denis.and.co.handshop.data.model.WorkSample
-import denis.and.co.handshop.data.toRelativeDateString
+import denis.and.co.handshop.ui.components.AppFooter
+import denis.and.co.handshop.utils.toRelativeDateString
 import denis.and.co.handshop.ui.navigation.ProfileRoute
 import denis.and.co.handshop.ui.theme.Accent
 import denis.and.co.handshop.ui.theme.BlackText
@@ -92,7 +87,7 @@ fun ProductDetailsScreen(
     val currentSeller = seller!!
 
     Scaffold(
-        bottomBar = { Footer(navController) },
+        bottomBar = { AppFooter(navController) },
         modifier = Modifier
             .background(SoftBack)
             .fillMaxSize()

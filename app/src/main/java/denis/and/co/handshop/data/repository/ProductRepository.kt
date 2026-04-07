@@ -58,7 +58,11 @@ class ProductRepository {
 
     suspend fun saveProduct(product: Product): Result<Unit> {
         return try {
-            productsCollection.add(product).await()
+            if (product.id.isNotEmpty()) {
+                productsCollection.document(product.id).set(product).await()
+            } else {
+                productsCollection.add(product).await()
+            }
             Result.success(Unit)
         } catch (ex: Exception) {
             Log.e("FIREBASE_SAVE_ERROR", "Ошибка сохранения товара", ex)
@@ -82,6 +86,54 @@ class ProductRepository {
             }
         } catch (ex: Exception) {
             Log.e("FIREBASE_MAP_ERROR", "Ошибка загрузки товаров продавца: ", ex)
+            emptyList()
+        }
+    }
+
+    suspend fun searchProducts(query: String): List<Product> {
+        if (query.length < 2) return getProducts()
+        val searchTrigram = query.lowercase().take(3)
+
+        return try {
+            val snapshot = productsCollection
+                .whereEqualTo("status", ProductStatus.ACTIVE)
+                .whereArrayContains("searchIndex", searchTrigram)
+                .get().await()
+            snapshot.documents.mapNotNull { it.toObject(Product::class.java)?.copy(id = it.id) }
+        } catch (ex: Exception) { emptyList() }
+    }
+
+    suspend fun updateTagStats(userId: String, tags: List<String>) {
+        val userRef = db.collection("sellers").document(userId)
+        db.runTransaction { transaction ->
+            val snapshot = transaction.get(userRef)
+            val currentStats = snapshot.get("userTagStats") as? Map<String, Long> ?: emptyMap()
+            val newStats = currentStats.toMutableMap()
+            tags.forEach { tag ->
+                newStats[tag] = (newStats[tag] ?: 0L) + 1
+            }
+            transaction.update(userRef, "userTagStats", newStats)
+        }.await()
+    }
+
+    suspend fun getProductsByTags(tags: List<String>): List<Product> {
+        if (tags.isEmpty()) return emptyList()
+
+        return try {
+            val limitedTags = tags.take(10)
+
+            val snapshot = productsCollection
+                .whereEqualTo("status", ProductStatus.ACTIVE)
+                .whereArrayContainsAny("tags", limitedTags)
+                .limit(20)
+                .get()
+                .await()
+
+            snapshot.documents.mapNotNull { doc ->
+                doc.toObject(Product::class.java)?.copy(id = doc.id)
+            }
+        } catch (ex: Exception) {
+            Log.e("FIREBASE_TAG_SEARCH", "Ошибка поиска по тегам: ", ex)
             emptyList()
         }
     }

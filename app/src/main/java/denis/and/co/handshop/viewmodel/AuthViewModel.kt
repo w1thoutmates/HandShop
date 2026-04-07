@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.Firebase
 import com.google.firebase.auth.*
 import denis.and.co.handshop.data.repository.SellerRepository
+import denis.and.co.handshop.ui.navigation.RecommendationRoute
 import kotlinx.coroutines.launch
 
 class AuthViewModel(
@@ -15,7 +16,7 @@ class AuthViewModel(
 ) : ViewModel() {
     private val auth = FirebaseAuth.getInstance()
 
-    var startDestination by mutableStateOf<String?>(null)
+    var startDestination by mutableStateOf<Any?>(null)
 
     init {
         checkAuthState()
@@ -30,7 +31,7 @@ class AuthViewModel(
                 try {
                     val exists = repository.checkIfProfileExists(user.uid)
                     if (exists) {
-                        startDestination = "main_flow"
+                        startDestination = RecommendationRoute
                     } else {
                         startDestination = "create_profile"
                     }

@@ -15,7 +15,8 @@ data class Seller(
     val coverImageUrl: String = "",
     val workSamples: List<WorkSample> = emptyList(),
     val registrationDate: Long = System.currentTimeMillis(),
-    val contacts: Map<String, String> = emptyMap()
+    val contacts: Map<String, String> = emptyMap(),
+    val userTagStats: Map<String, Long> = emptyMap()
 ) {
     init {
         require(rate in 0.0..5.0) { "Рейтинг не может быть ниже 0 и больше 5. Получен рейтинг: $rate" }

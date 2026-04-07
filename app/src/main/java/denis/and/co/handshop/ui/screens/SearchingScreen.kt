@@ -5,18 +5,25 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
@@ -48,7 +55,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import denis.and.co.handshop.R
+import denis.and.co.handshop.ui.components.AppFooter
 import denis.and.co.handshop.ui.theme.Accent
 import denis.and.co.handshop.ui.theme.BlackText
 import denis.and.co.handshop.ui.theme.Comfortaa
@@ -57,15 +67,26 @@ import denis.and.co.handshop.ui.theme.Onest
 import denis.and.co.handshop.ui.theme.SoftBack
 import denis.and.co.handshop.ui.theme.WhiteText
 
-@Preview
 @Composable
-fun SearchingScreen() {
-    Scaffold(
-        topBar = {
+fun SearchingScreen(navController: NavController) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(SoftBack)
+            .verticalScroll(rememberScrollState())
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .windowInsetsPadding(WindowInsets.statusBars)
+        ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth().padding(top = 30.dp, bottom = 30.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 30.dp, bottom = 30.dp)
             ) {
                 var input by remember { mutableStateOf("") }
                 Box(
@@ -84,15 +105,13 @@ fun SearchingScreen() {
                     TextField(
                         value = input,
                         onValueChange = { newValue -> input = newValue },
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(end = 2.dp),
+                        modifier = Modifier.fillMaxSize(),
                         colors = TextFieldDefaults.colors(
                             focusedTextColor = BlackText,
                             unfocusedTextColor = GreyText,
                             focusedContainerColor = WhiteText,
                             unfocusedContainerColor = WhiteText,
-                            focusedIndicatorColor =  Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
                             focusedLabelColor = GreyText,
                             unfocusedLabelColor = GreyText
@@ -125,8 +144,7 @@ fun SearchingScreen() {
                             .align(Alignment.CenterEnd)
                             .fillMaxHeight()
                             .padding()
-                            .width(50.dp)
-                        ,
+                            .width(50.dp),
                     ) {
                         Image(
                             painterResource(R.drawable.search_icon),
@@ -137,13 +155,11 @@ fun SearchingScreen() {
                     }
                 }
             }
-        },
-        bottomBar = { Footer() },
-        modifier = Modifier
-            .fillMaxSize()
-            .background(SoftBack)
-    ) { padding ->
-        Content(padding)
+
+            SearchingScreenContent(PaddingValues(0.dp))
+        }
+
+        AppFooter(navController)
     }
 }
 
@@ -156,7 +172,7 @@ val categories = listOf(
 )
 
 @Composable
-fun Content(modifier: PaddingValues) {
+fun SearchingScreenContent(modifier: PaddingValues) {
     LazyColumn(modifier = Modifier.padding(modifier)) {
         items(
             categories + Pair("Другое", R.drawable.three_dots_icon)

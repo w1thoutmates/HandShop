@@ -3,6 +3,9 @@ package denis.and.co.handshop.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.firestore
 import denis.and.co.handshop.data.model.Product
 import denis.and.co.handshop.data.model.Seller
 import denis.and.co.handshop.data.repository.ProductRepository
@@ -27,10 +30,18 @@ class ProductDetailsVM(
 
     fun loadProduct(productId: String) {
         viewModelScope.launch {
-            productRepo.getProductById(productId).onSuccess { loadedProduct ->
-                _product.value = loadedProduct
-                if(loadedProduct?.sellerId != null)
-                    loadSeller(loadedProduct.sellerId)
+            val result = productRepo.getProductById(productId)
+            val product = result.getOrNull()
+            _product.value = product
+
+            if (product != null) {
+                val sellerResult = sellerRepo.getSeller(product.sellerId)
+                _seller.value = sellerResult.getOrNull()
+
+                val currentUid = FirebaseAuth.getInstance().currentUser?.uid
+                if (currentUid != null) {
+                    productRepo.updateTagStats(currentUid, product.tags)
+                }
             }
         }
     }

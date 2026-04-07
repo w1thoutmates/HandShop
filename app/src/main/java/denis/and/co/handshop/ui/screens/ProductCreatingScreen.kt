@@ -65,6 +65,8 @@ fun ProductCreatingScreen(
         localImages = localImages + uris
     }
 
+    var tagsString by remember { mutableStateOf(initialProduct?.tags?.joinToString(", ") ?: "") }
+
     Scaffold(
         topBar = {
             Row(
@@ -103,20 +105,23 @@ fun ProductCreatingScreen(
             ) {
                 Button(
                     onClick = {
+                        val tagsList = tagsString.split(",").map { it.trim() }.filter { it.isNotEmpty() }
                         val productToSave = initialProduct?.copy(
                             title = title,
                             description = description,
                             cost = cost.toLongOrNull() ?: 0L,
                             targetCity = targetCity,
                             category = category,
-                            imageUrls = existingImages
+                            imageUrls = existingImages,
+                            tags = tagsList
                         ) ?: Product(
                             title = title,
                             description = description,
                             cost = cost.toLongOrNull() ?: 0L,
                             targetCity = targetCity,
                             category = category,
-                            sellerId = currentUid
+                            sellerId = currentUid,
+                            tags = tagsList
                         )
 
                         viewModel.createProduct(productToSave, localImages) {
@@ -214,6 +219,13 @@ fun ProductCreatingScreen(
                     onValueChange = { targetCity = it },
                     label = "Город (опционально)"
                 )
+                ProductTextField(
+                    value = tagsString,
+                    onValueChange = { tagsString = it },
+                    label = "Теги (через запятую, например: дерево, лампа)"
+                )
+                // добавить всплывашку или при нажатии окошко с пояснением, что теги помогают персонализировать
+                // ленты для пользователей и тем самым продвигать товары с тегами которые вы указали в ленты к вашим потенциальным покупателям
 
                 Spacer(modifier = Modifier.height(30.dp))
             }
