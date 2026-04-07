@@ -1,10 +1,13 @@
 package denis.and.co.handshop.ui.components
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -13,8 +16,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.dropShadow
@@ -30,18 +36,37 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import denis.and.co.handshop.R
 import denis.and.co.handshop.data.model.Product
+import denis.and.co.handshop.data.model.Seller
+import denis.and.co.handshop.data.toRelativeDateString
+import denis.and.co.handshop.ui.navigation.ProductDetailsRoute
 import denis.and.co.handshop.ui.theme.*
+import denis.and.co.handshop.viewmodel.ProductDetailsVM
 
 @Composable
 fun ProductListItem(
-    product: Product
+    product: Product,
+    onClick: () -> Unit,
+    seller: Seller?
 ) {
+
+//    if (seller == null) {
+//        Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+//            CircularProgressIndicator(color = Accent)
+//        }
+//        return
+//    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
+            .padding(8.dp)
+            .clickable {
+                onClick()
+            },
         elevation = CardDefaults.cardElevation(5.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
@@ -49,13 +74,15 @@ fun ProductListItem(
         Column(
 
         ) {
-            Image(
-                painter = painterResource(product.imageUrls.first()),
+            AsyncImage(
+                model = product.imageUrls.firstOrNull(),
                 contentDescription = "Изображение в карточке товара",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(120.dp)
+                    .height(120.dp),
+                //placeholder = painterResource(R.drawable.mock_picture),
+                error = painterResource(R.drawable.error_picture)
             )
 
             Column(
@@ -97,28 +124,15 @@ fun ProductListItem(
                         horizontalArrangement = Arrangement.End,
                         modifier = Modifier.padding(2.dp)
                     ) {
-                        val remain = 5 - product.rate;
-                        for (i in 1..product.rate.toInt()) {
+                        val rate = seller?.rate ?: 0.0
+                        for (i in 1..5) {
+                            val isFilled = i <= rate
                             Image(
-                                painter = painterResource(
-                                    R.drawable.star
-                                ),
-                                contentDescription = "Закрашенная звездочка",
-                                colorFilter = ColorFilter.tint(StarFilled),
+                                painter = painterResource(R.drawable.star),
+                                contentDescription = if (isFilled) "Закрашенная" else "Пустая",
+                                colorFilter = ColorFilter.tint(if (isFilled) StarFilled else StarEmpty),
                                 modifier = Modifier.size(15.dp)
                             )
-                        }
-                        if (remain != 0.toDouble()) {
-                            for(i in 1..remain.toInt()) {
-                                Image(
-                                    painter = painterResource(
-                                        R.drawable.star
-                                    ),
-                                    contentDescription = "Не закрашенная звездочка",
-                                    colorFilter = ColorFilter.tint(StarEmpty),
-                                    modifier = Modifier.size(15.dp)
-                                )
-                            }
                         }
                     }
                 }
@@ -134,7 +148,7 @@ fun ProductListItem(
                     ) {
                         listOf(
                             R.drawable.eye to product.viewsCount.toString(),
-                            R.drawable.clock to product.postedTime.toString(), // заменить на преобразования времени в "Сегодня"/"Вчера"/"21 марта" и тд.
+                            R.drawable.clock to product.postedTime.toRelativeDateString(),
                             R.drawable.mark to product.targetCity
                         ).forEach { (iconRes, textValue) ->
                             Column(
@@ -157,159 +171,9 @@ fun ProductListItem(
                                         fontWeight = FontWeight.Normal,
                                         fontSize = 10.sp
                                     ),
-                                    maxLines = if (textValue == product.targetCity) 2 else 1,
-                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun ProductListItemPreview() {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        elevation = CardDefaults.cardElevation(5.dp),
-        shape = RoundedCornerShape(16.dp),
-    ) {
-        Column(
-
-        ) {
-            Image(
-                painter = painterResource(R.drawable.ring_image_example),
-                contentDescription = "Изображение в карточке товара",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp)
-            )
-
-            Column(
-                Modifier.padding(12.dp)
-            ) {
-                Text(
-                    text = "Title",
-                    style = TextStyle(
-                        fontFamily = Onest,
-                        color = BlackText,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
-                    ),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                Spacer(Modifier.height(4.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "1499 ₽".uppercase(),
-                        style = TextStyle(
-                            fontFamily = Onest,
-                            color = BlackText,
-                            fontWeight = FontWeight.ExtraBold,
-                            fontSize = 16.sp,
-                        ),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.End,
-                        modifier = Modifier.padding(2.dp)
-                    ) {
-                        val remain = 5 - 4;
-                        for (i in 1..4) {
-                            Image(
-                                painter = painterResource(
-                                    R.drawable.star
-                                ),
-                                contentDescription = "Закрашенная звездочка",
-                                colorFilter = ColorFilter.tint(StarFilled),
-                                modifier = Modifier
-                                    .size(15.dp)
-                                    .dropShadow(
-                                        shape = CircleShape,
-                                        shadow = Shadow(
-                                            radius = 4.dp,
-                                            offset = DpOffset(x = 0.dp, y = 1.dp),
-                                            alpha = 0.15f
-                                        )
-                                    )
-                            )
-                        }
-                        if (remain != 0) {
-                            for(i in 1..remain) {
-                                Image(
-                                    painter = painterResource(
-                                        R.drawable.star
-                                    ),
-                                    contentDescription = "Не закрашенная звездочка",
-                                    colorFilter = ColorFilter.tint(StarEmpty),
-                                    modifier = Modifier
-                                        .size(15.dp)
-                                        .dropShadow(
-                                            shape = CircleShape,
-                                            shadow = Shadow(
-                                                radius = 4.dp,
-                                                offset = DpOffset(x = 0.dp, y = 1.dp),
-                                                alpha = 0.15f
-                                            )
-                                        )
-                                )
-                            }
-                        }
-                    }
-                }
-
-                Spacer(Modifier.height(4.dp))
-
-                Column(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        listOf(
-                            R.drawable.eye to "24",
-                            R.drawable.clock to "Сегодня",
-                            R.drawable.mark to "Ростов-на-Дону"
-                        ).forEach { (iconRes, textValue) ->
-                            Column(
-                                modifier = Modifier.weight(1f),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Image(
-                                    painter = painterResource(iconRes),
-                                    contentDescription = null,
-                                    contentScale = ContentScale.FillBounds,
-                                    modifier = Modifier.size(15.dp)
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = textValue,
-                                    style = TextStyle(
-                                        fontFamily = Onest,
-                                        color = BlackText,
-                                        fontWeight = FontWeight.Normal,
-                                        fontSize = 10.sp
-                                    ),
-                                    maxLines = if (textValue == "Ростов-на-Дону") 2 else 1,
-                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                    maxLines = 1,
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }

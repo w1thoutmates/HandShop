@@ -1,6 +1,7 @@
 plugins {
 //    id("com.android.application")
     id("com.google.gms.google-services")
+    kotlin("plugin.serialization") version "2.0.0"
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
@@ -8,14 +9,12 @@ plugins {
 
 android {
     namespace = "denis.and.co.handshop"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "denis.and.co.handshop"
-        minSdk = 30
-        targetSdk = 36
+        minSdk = 26
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
@@ -45,8 +44,13 @@ android {
 
 dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.10.0"))
+    implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.fasterxml.uuid:java-uuid-generator:5.1.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+    implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation("androidx.navigation:navigation-compose:2.8.7")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -55,7 +59,12 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
-    implementation(libs.firebase.database)
+    implementation("com.google.firebase:firebase-database")
+    implementation(libs.androidx.compose.foundation)
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.cloudinary:cloudinary-android:3.0.2")
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.android.gms:play-services-auth:21.0.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

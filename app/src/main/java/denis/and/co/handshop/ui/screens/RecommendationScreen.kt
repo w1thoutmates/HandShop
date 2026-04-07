@@ -9,23 +9,29 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,22 +46,31 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import denis.and.co.handshop.R
-import denis.and.co.handshop.data.model.Product
+import denis.and.co.handshop.data.model.CatalogState
 import denis.and.co.handshop.ui.components.ProductListItem
+import denis.and.co.handshop.ui.navigation.CreateProductRoute
+import denis.and.co.handshop.ui.navigation.LikedRoute
+import denis.and.co.handshop.ui.navigation.ProductDetailsRoute
+import denis.and.co.handshop.ui.navigation.ProfileRoute
+import denis.and.co.handshop.ui.navigation.RecommendationRoute
+import denis.and.co.handshop.ui.navigation.SearchByCategoryRoute
 import denis.and.co.handshop.ui.theme.*
-import java.math.BigDecimal
-import kotlin.random.Random
+import denis.and.co.handshop.viewmodel.CatalogViewModel
 
 @Composable
-fun RecommendationScreen() {
+fun RecommendationScreen(
+    navController: NavController,
+    catalogViewModel: CatalogViewModel
+    ) {
     Scaffold(
         topBar = { Header() },
-        bottomBar = { Footer() },
+        bottomBar = { Footer(navController) },
         modifier = Modifier
             .background(SoftBack)
             .fillMaxSize()
@@ -77,39 +92,13 @@ fun RecommendationScreen() {
                 modifier = Modifier.padding(start = 15.dp, top = 15.dp)
             )
 
-            Content(modifier = Modifier.weight(1f))
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun RecommendationScreenPreview() {
-    Scaffold(
-        topBar = { Header() },
-        bottomBar = { Footer() },
-        modifier = Modifier
-        .background(SoftBack)
-        .fillMaxSize()
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
-        ) {
-            Text(
-                text = "Рекомендуем сегодня",
-                style = TextStyle(
-                    fontFamily = Comfortaa,
-                    color = BlackText,
-                    fontWeight = FontWeight.ExtraBold,
-                    fontSize = 16.sp
-                ),
-                maxLines = 1,
-                modifier = Modifier.padding(start = 15.dp, top = 15.dp)
+            Content(
+                modifier = Modifier.weight(1f),
+                viewModel = catalogViewModel,
+                onProductClick = { id ->
+                    navController.navigate(ProductDetailsRoute(id))
+                }
             )
-
-            Content(modifier = Modifier.weight(1f))
         }
     }
 }
@@ -122,6 +111,7 @@ fun Header() {
             .clip(RoundedCornerShape(0.dp, 0.dp, 15.dp, 15.dp))
             .padding(0.dp)
             .background(HardBack)
+            .windowInsetsPadding(WindowInsets.statusBars)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -238,43 +228,64 @@ fun Header() {
 }
 
 @Composable
-fun Content(modifier: Modifier = Modifier) {
-    val products = listOf(
-        "Картина", "Плюшевая игрушка", "Картина абстрактная",
-        "Шахматные фигуры из эпоксидной смолы", "Кольцо из монет"
-    )
+fun Content(
+    modifier: Modifier = Modifier,
+    viewModel: CatalogViewModel = viewModel(),
+    onProductClick: (String) -> Unit
+) {
+    val uiState by viewModel.state.collectAsState()
 
-    val stockImageIds = listOf(
-        R.drawable.vaza_image_example, R.drawable.table_image_example,
-        R.drawable.smola_leaf_image_example, R.drawable.shess_image_example,
-        R.drawable.ring_image_example, R.drawable.plush_toy_image_example,
-        R.drawable.paint_image_example, R.drawable.chair_image_example
-    )
-
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
-        contentPadding = PaddingValues(8.dp),
-        modifier = modifier.fillMaxWidth()
-    ) {
-        items(products.size) { index ->
-            val product = products[index]
-            ProductListItem(
-                Product(
-                    title = product,
-                    imageUrls = listOf(stockImageIds.get(Random.nextInt(0, stockImageIds.count() + 1))),
-                    cost = if (index % 3 == 0) BigDecimal(1499) else null,
-                    currency = "₽",
-                    rate = Random.nextDouble(0.0, 5.1),
-                    viewsCount = Random.nextLong(0L,1050L),
-                    targetCity = "Москва"
+    Box(modifier = modifier.fillMaxSize()) {
+        when (val state = uiState) {
+            is CatalogState.Loading -> {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = Accent
                 )
-            )
+            }
+            is CatalogState.Success -> {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    contentPadding = PaddingValues(8.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(state.items) { item ->
+                        ProductListItem(
+                            product = item.product,
+                            onClick = {
+                                onProductClick(item.product.id)
+                            },
+                            seller = item.seller
+                        )
+                    }
+                }
+            }
+            is CatalogState.Empty -> {
+                Text(
+                    text = "Ничего не найдено",
+                    modifier = Modifier.align(Alignment.Center),
+                    fontFamily = Onest,
+                    color = LowAlphaBlackText,
+                    fontSize = 20.sp
+                )
+            }
+            is CatalogState.Error -> {
+                Column(
+                    modifier = Modifier.align(Alignment.Center),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(text = state.message, color = Color.Red)
+                    Button(onClick = { viewModel.loadProducts() }) {
+                        Text("Повторить")
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
-public fun Footer() {
+public fun Footer(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -292,7 +303,7 @@ public fun Footer() {
                 contentDescription = "Домой навигация",
                 modifier = Modifier
                     .size(30.dp, 30.dp)
-                    .clickable { /* click */ },
+                    .clickable { navController.navigate(RecommendationRoute) },
                 contentScale = ContentScale.FillBounds
             )
 
@@ -303,7 +314,7 @@ public fun Footer() {
                 contentDescription = "Поиск навигация",
                 modifier = Modifier
                     .size(30.dp, 30.dp)
-                    .clickable { /* click */ },
+                    .clickable { navController.navigate(SearchByCategoryRoute) },
                 contentScale = ContentScale.FillBounds,
                 alpha = 0.5f
             )
@@ -311,11 +322,11 @@ public fun Footer() {
             Spacer(Modifier.width(45.dp))
 
             Image(
-                painter = painterResource(R.drawable.cart_nav),
-                contentDescription = "Корзина навигация",
+                painter = painterResource(R.drawable.add_image),
+                contentDescription = "Создать объявление",
                 modifier = Modifier
                     .size(30.dp, 30.dp)
-                    .clickable { /* click */ },
+                    .clickable { navController.navigate(CreateProductRoute) },
                 contentScale = ContentScale.FillBounds,
                 alpha = 0.5f
             )
@@ -327,7 +338,7 @@ public fun Footer() {
                 contentDescription = "Избранное навигация",
                 modifier = Modifier
                     .size(30.dp, 30.dp)
-                    .clickable { /* click */ },
+                    .clickable { navController.navigate(LikedRoute) },
                 contentScale = ContentScale.FillBounds,
                 alpha = 0.5f
             )
@@ -339,7 +350,7 @@ public fun Footer() {
                 contentDescription = "Профиль навигация",
                 modifier = Modifier
                     .size(30.dp, 30.dp)
-                    .clickable { /* click */ },
+                    .clickable { navController.navigate(ProfileRoute()) },
                 contentScale = ContentScale.FillBounds,
                 alpha = 0.5f
             )

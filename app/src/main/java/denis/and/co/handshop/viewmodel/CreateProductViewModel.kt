@@ -1,0 +1,42 @@
+package denis.and.co.handshop.viewmodel
+
+import android.net.Uri
+import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import denis.and.co.handshop.data.model.Product
+import denis.and.co.handshop.data.model.Seller
+import denis.and.co.handshop.data.repository.ImageRepository
+import denis.and.co.handshop.data.repository.ProductRepository
+import denis.and.co.handshop.data.repository.SellerRepository
+import kotlinx.coroutines.launch
+
+class CreateProductViewModel(
+    private val productRepo: ProductRepository,
+    private val imageRepo: ImageRepository,
+    private val sellerRepo: SellerRepository
+) : ViewModel() {
+
+    var isSaving = mutableStateOf<Boolean>(value = false)
+
+    fun createProduct(product: Product, imageUris: List<Uri>, onComplete: () -> Unit) {
+        viewModelScope.launch {
+            isSaving.value = true
+
+            val urls = imageRepo.uploadProductImages(imageUris)
+
+            val newProduct = sellerRepo.getCurrentUserId()?.let {
+                product.copy(
+                    imageUrls = urls,
+                    sellerId = it
+                )
+            }
+
+            if (newProduct != null)
+                productRepo.saveProduct(newProduct)
+
+            isSaving.value = false
+            onComplete()
+        }
+    }
+}
