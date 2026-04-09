@@ -31,3 +31,6 @@ object CreateProfileRoute
 
 @Serializable
 object EditProfileRoute
+
+@Serializable
+data class ReviewsRoute(val sellerId: String)

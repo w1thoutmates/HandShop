@@ -39,12 +39,14 @@ import denis.and.co.handshop.ui.navigation.LoginRoute
 import denis.and.co.handshop.ui.navigation.ProductDetailsRoute
 import denis.and.co.handshop.ui.navigation.ProfileRoute
 import denis.and.co.handshop.ui.navigation.RecommendationRoute
+import denis.and.co.handshop.ui.navigation.ReviewsRoute
 import denis.and.co.handshop.ui.navigation.SearchByCategoryRoute
 import denis.and.co.handshop.ui.screens.EditProfileScreen
 import denis.and.co.handshop.ui.screens.LoginScreen
 import denis.and.co.handshop.ui.screens.ProductCreatingScreen
 import denis.and.co.handshop.ui.screens.ProductDetailsScreen
 import denis.and.co.handshop.ui.screens.RecommendationScreen
+import denis.and.co.handshop.ui.screens.ReviewsScreen
 import denis.and.co.handshop.ui.screens.SearchingScreen
 import denis.and.co.handshop.ui.screens.SellerProfileScreen
 import denis.and.co.handshop.ui.theme.Accent
@@ -54,6 +56,7 @@ import denis.and.co.handshop.viewmodel.CreateProductViewModel
 import denis.and.co.handshop.viewmodel.EditProfileViewModel
 import denis.and.co.handshop.viewmodel.ProductDetailsVM
 import denis.and.co.handshop.viewmodel.ProfileViewModel
+import denis.and.co.handshop.viewmodel.ReviewsViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -273,6 +276,24 @@ class MainActivity : ComponentActivity() {
                             initialProduct = productToEdit
                         )
                     }
+                }
+
+                composable<ReviewsRoute> { backStackEntry ->
+                    val route: ReviewsRoute = backStackEntry.toRoute()
+
+                    val reviewsVm: ReviewsViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                return ReviewsViewModel(
+                                    sellerId = route.sellerId,
+                                    reviewsRepo = AppDependencies.reviewsRepository,
+                                    sellerRepo = AppDependencies.sellerRepository
+                                ) as T
+                            }
+                        }
+                    )
+
+                    ReviewsScreen(viewModel = reviewsVm, navController = navController)
                 }
             }
         }

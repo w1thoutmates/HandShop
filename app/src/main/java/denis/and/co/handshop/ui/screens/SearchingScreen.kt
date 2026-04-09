@@ -295,7 +295,7 @@ fun SearchResultsContent(
     when (state) {
         is CatalogState.Loading -> {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                androidx.compose.material3.CircularProgressIndicator()
+                androidx.compose.material3.CircularProgressIndicator(color = Accent)
             }
         }
 

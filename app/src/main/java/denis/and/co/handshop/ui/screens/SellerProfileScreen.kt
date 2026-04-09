@@ -1,5 +1,6 @@
 package denis.and.co.handshop.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -31,6 +32,8 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material.icons.outlined.Send
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -65,12 +68,16 @@ import denis.and.co.handshop.ui.components.AppFooter
 import denis.and.co.handshop.ui.components.ProductListItem
 import denis.and.co.handshop.ui.components.WorkSampleCard
 import denis.and.co.handshop.ui.navigation.EditProductRoute
+import denis.and.co.handshop.ui.navigation.EditProfileRoute
 import denis.and.co.handshop.ui.navigation.ProductDetailsRoute
+import denis.and.co.handshop.ui.navigation.ReviewsRoute
 import denis.and.co.handshop.ui.theme.Accent
 import denis.and.co.handshop.ui.theme.BlackText
 import denis.and.co.handshop.ui.theme.Comfortaa
 import denis.and.co.handshop.ui.theme.LowAlphaBlackText
 import denis.and.co.handshop.ui.theme.SoftBack
+import denis.and.co.handshop.ui.theme.StarEmpty
+import denis.and.co.handshop.ui.theme.StarFilled
 import denis.and.co.handshop.ui.theme.WhiteText
 import denis.and.co.handshop.viewmodel.ProfileViewModel
 
@@ -166,7 +173,7 @@ fun SellerProfileScreen(
                                 modifier = Modifier
                                     .size(20.dp)
                                     .clickable {
-                                        navController.navigate("edit_profile")
+                                        navController.navigate(EditProfileRoute)
                                     }
                             )
                         }
@@ -215,10 +222,9 @@ fun SellerProfileScreen(
                     ) { page ->
                         WorkSampleCard(workSample = currentSeller.workSamples[page])
                     }
+
+                    HorizontalDivider(thickness = 2.dp, color = BlackText.copy(alpha = 0.2f), modifier = Modifier.padding(15.dp))
                 }
-
-                HorizontalDivider(thickness = 2.dp, color = BlackText.copy(alpha = 0.2f), modifier = Modifier.padding(15.dp))
-
                 Text(
                     text = "Опубликованные товары",
                     fontSize = 18.sp,
@@ -269,20 +275,38 @@ fun SellerProfileScreen(
                     }
                 }
 
-                RatingBlock(currentSeller.rate, currentSeller.reviewsCount)
+                RatingBlock(currentSeller, navController)
 
-                // Список отзывов и переместить кнопку "Оценить"
+                Button(
+                    onClick = {
+                        navController.navigate(ReviewsRoute(currentSeller.id))
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+                        .height(50.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Accent),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        "Перейти к отзывам",
+                        fontFamily = Comfortaa,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        color = WhiteText
+                    )
+                }
 
             }
 
             AppFooter(navController)
         }
-    } ?: Box(Modifier.fillMaxSize()) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }
+    } ?: Box(Modifier.fillMaxSize()) { CircularProgressIndicator(Modifier.align(Alignment.Center), color = Accent) }
 }
 
 @Composable
-fun RatingBlock(rate: Double, reviewsCount: Int) {
-    var count by remember { mutableIntStateOf(reviewsCount) }
+fun RatingBlock(seller: Seller, navController: NavController) {
+    var count by remember { mutableIntStateOf(seller.reviewsCount) }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -292,31 +316,33 @@ fun RatingBlock(rate: Double, reviewsCount: Int) {
             Icon(
                 imageVector = Icons.Filled.Star,
                 contentDescription = null,
-                tint = if (index < rate.toInt()) Color(0xFFFFB400) else Color.LightGray,
-                modifier = Modifier.size(18.dp)
+                tint = if (index < seller.rate.toInt()) StarFilled else StarEmpty,
+                modifier = Modifier.size(25.dp)
             )
         }
         Text(
-            text = "$rate ($count отзывов)", // переделать на то как это реализовано в product details
-            fontSize = 14.sp,
+            text = "${seller.rate.let { String.format("%.2f", it) }} ($count отзывов)",
+            fontSize = 18.sp,
             fontFamily = Comfortaa,
             color = LowAlphaBlackText,
             modifier = Modifier.padding(start = 8.dp)
         )
-        Spacer(modifier = Modifier.weight(1f))
+//        Spacer(modifier = Modifier.weight(1f))
 
-        Text(
-            text = "Оценить",
-            fontSize = 12.sp,
-            color = WhiteText,
-            fontWeight = FontWeight.Bold,
-            fontFamily = Comfortaa,
-            modifier = Modifier
-                .clip(RoundedCornerShape(8.dp))
-                .background(Accent)
-                .clickable { count++ }
-                .padding(horizontal = 12.dp, vertical = 6.dp)
-        )
+//        Text(
+//            text = "Перейти к отзывам",
+//            fontSize = 16.sp,
+//            color = WhiteText,
+//            fontWeight = FontWeight.Bold,
+//            fontFamily = Comfortaa,
+//            modifier = Modifier
+//                .clip(RoundedCornerShape(8.dp))
+//                .background(Accent)
+//                .clickable {
+//                    navController.navigate(ReviewsRoute(seller.id))
+//                }
+//                .padding(horizontal = 12.dp, vertical = 6.dp)
+//        )
     }
 }
 

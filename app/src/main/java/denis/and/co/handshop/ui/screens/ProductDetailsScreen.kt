@@ -44,6 +44,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -65,6 +66,7 @@ import denis.and.co.handshop.ui.theme.Comfortaa
 import denis.and.co.handshop.ui.theme.LowAlphaBlackText
 import denis.and.co.handshop.ui.theme.Onest
 import denis.and.co.handshop.ui.theme.SoftBack
+import denis.and.co.handshop.ui.theme.StarFilled
 import denis.and.co.handshop.viewmodel.ProductDetailsVM
 import kotlin.collections.component1
 import kotlin.collections.component2
@@ -286,15 +288,16 @@ fun ProductDetailsScreen(
                         ) {
                             Row() {
                                 Image(
-                                    painter = painterResource(R.drawable.star_with_stroke),
+                                    painter = painterResource(R.drawable.star),
                                     contentDescription = "Рейтинг продавца",
                                     alignment = Alignment.CenterStart,
                                     modifier = Modifier.padding(end = 10.dp).size(25.dp),
                                     contentScale = ContentScale.FillBounds,
+                                    colorFilter = ColorFilter.tint(StarFilled)
                                 )
 
                                 Text(
-                                    text = currentSeller.rate.toString(),
+                                    text = currentSeller.rate.let { String.format("%.2f", it) },
                                     style = TextStyle(
                                         fontFamily = Onest,
                                         color = BlackText,

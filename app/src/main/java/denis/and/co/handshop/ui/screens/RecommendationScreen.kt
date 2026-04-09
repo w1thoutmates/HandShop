@@ -24,9 +24,12 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -96,17 +99,60 @@ fun RecommendationScreen(
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            Text(
-                text = "Рекомендуем сегодня",
-                style = TextStyle(
-                    fontFamily = Comfortaa,
-                    color = BlackText,
-                    fontWeight = FontWeight.ExtraBold,
-                    fontSize = 16.sp
-                ),
-                maxLines = 1,
-                modifier = Modifier.padding(start = 15.dp, top = 15.dp)
-            )
+            Row(
+                modifier = Modifier
+                    .padding(start = 15.dp, top = 15.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Рекомендуем сегодня",
+                    style = TextStyle(
+                        fontFamily = Comfortaa,
+                        color = BlackText,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 16.sp
+                    ),
+                    maxLines = 1,
+                    modifier = Modifier
+                        .weight(1f)
+                )
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .padding(end = 10.dp)
+                        .clickable {
+                            /*
+                                открывать менюшку где будет выбор городов.
+                                так же добавить в firebase collection
+                                города, в ней будут появляться новые города
+                                по мере создания объявлений, типо кто то создал город
+                                и он попал в эту collection и потом этот город находился бы
+                                в этом выпадающем списке. Если пользователь не нашел город
+                                - добавляет вбивает его в поиск и потом после этого открывается
+                                список с определенной фильтрацией по городу
+                            */
+                        }
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Place,
+                        contentDescription = null
+                    )
+
+                    Text(
+                        text = "выбрать город",
+                        style = TextStyle(
+                            fontFamily = Comfortaa,
+                            color = LowAlphaBlackText,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp
+                        ),
+                        maxLines = 1,
+                    )
+                }
+            }
 
             Content(
                 modifier = Modifier.weight(1f),
