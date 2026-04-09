@@ -18,24 +18,25 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowForward
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButtonDefaults.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,24 +52,33 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import denis.and.co.handshop.R
+import denis.and.co.handshop.data.model.CatalogState
 import denis.and.co.handshop.ui.components.AppFooter
+import denis.and.co.handshop.ui.components.ProductListItem
+import denis.and.co.handshop.ui.navigation.ProductDetailsRoute
 import denis.and.co.handshop.ui.theme.Accent
 import denis.and.co.handshop.ui.theme.BlackText
 import denis.and.co.handshop.ui.theme.Comfortaa
 import denis.and.co.handshop.ui.theme.GreyText
-import denis.and.co.handshop.ui.theme.Onest
+import denis.and.co.handshop.ui.theme.LowAlphaBlackText
 import denis.and.co.handshop.ui.theme.SoftBack
 import denis.and.co.handshop.ui.theme.WhiteText
+import denis.and.co.handshop.viewmodel.CatalogViewModel
 
 @Composable
-fun SearchingScreen(navController: NavController) {
+fun SearchingScreen(
+    navController: NavController,
+    catalogViewModel: CatalogViewModel
+) {
+    var input by remember { mutableStateOf("") }
+    val uiState by catalogViewModel.state.collectAsState()
+    val isSearching by catalogViewModel.isSearching.collectAsState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -86,9 +96,8 @@ fun SearchingScreen(navController: NavController) {
                 horizontalArrangement = Arrangement.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 30.dp, bottom = 30.dp)
+                    .padding(top = 30.dp, bottom = 15.dp)
             ) {
-                var input by remember { mutableStateOf("") }
                 Box(
                     modifier = Modifier
                         .fillMaxWidth(0.9f)
@@ -131,7 +140,11 @@ fun SearchingScreen(navController: NavController) {
                     )
 
                     Button(
-                        onClick = { /* search button. */ },
+                        onClick = {
+                            if (input.isNotBlank()) {
+                                catalogViewModel.search(input)
+                            }
+                        },
                         shape = RoundedCornerShape(0.dp, 14.dp, 14.dp, 0.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Accent, contentColor = WhiteText),
                         contentPadding = PaddingValues(
@@ -156,7 +169,56 @@ fun SearchingScreen(navController: NavController) {
                 }
             }
 
-            SearchingScreenContent(PaddingValues(0.dp))
+            if (isSearching) {
+                Row(
+                    modifier = Modifier
+                        .padding(start = 15.dp)
+                        .clickable {
+                        catalogViewModel.resetSearch()
+                    },
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowLeft,
+                        contentDescription = null,
+                        tint = LowAlphaBlackText
+                    )
+
+                    Text(
+                        text = "назад к категориям",
+                        style = TextStyle(
+                            fontFamily = Comfortaa,
+                            color = LowAlphaBlackText,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp
+                        ),
+                        maxLines = 1,
+                    )
+                }
+                Text(
+                    text = "Результаты запроса",
+                    style = TextStyle(
+                        fontFamily = Comfortaa,
+                        color = BlackText,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 18.sp
+                    ),
+                    maxLines = 1,
+                    modifier = Modifier.padding(start = 15.dp, top = 15.dp)
+                )
+            }
+
+            if (!isSearching)
+                SearchingScreenContent(PaddingValues(0.dp))
+            else
+                SearchResultsContent(
+                    state = uiState,
+                    onProductClick = { id ->
+                        navController.navigate(ProductDetailsRoute(id))
+                    },
+                    catalogViewModel = catalogViewModel
+                )
         }
 
         AppFooter(navController)
@@ -219,6 +281,52 @@ fun SearchingScreenContent(modifier: PaddingValues) {
                         .size(45.dp)
                         .padding(end = 15.dp)
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun SearchResultsContent(
+    state: CatalogState,
+    onProductClick: (String) -> Unit,
+    catalogViewModel: CatalogViewModel
+) {
+    when (state) {
+        is CatalogState.Loading -> {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                androidx.compose.material3.CircularProgressIndicator()
+            }
+        }
+
+        is CatalogState.Success -> {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                contentPadding = PaddingValues(8.dp),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(state.items) { item ->
+                    ProductListItem(
+                        product = item.product,
+                        seller = item.seller,
+                        onClick = {
+                            onProductClick(item.product.id)
+                            catalogViewModel.updateProductViewsCount(item.product.id)
+                        }
+                    )
+                }
+            }
+        }
+
+        is CatalogState.Empty -> {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Ничего не найдено")
+            }
+        }
+
+        is CatalogState.Error -> {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(state.message)
             }
         }
     }

@@ -106,7 +106,7 @@ fun ProductCreatingScreen(
                 Button(
                     onClick = {
                         val tagsList = tagsString.split(",").map { it.trim() }.filter { it.isNotEmpty() }
-                        val productToSave = initialProduct?.copy(
+                        val productData = initialProduct?.copy(
                             title = title,
                             description = description,
                             cost = cost.toLongOrNull() ?: 0L,
@@ -124,8 +124,14 @@ fun ProductCreatingScreen(
                             tags = tagsList
                         )
 
-                        viewModel.createProduct(productToSave, localImages) {
-                            navController.popBackStack()
+                        if (initialProduct != null) {
+                            viewModel.updateProduct(productData, localImages) {
+                                navController.popBackStack()
+                            }
+                        } else {
+                            viewModel.createProduct(productData, localImages) {
+                                navController.popBackStack()
+                            }
                         }
                     },
                     enabled = isFormValid && !isSaving,

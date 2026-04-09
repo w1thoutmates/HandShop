@@ -4,10 +4,13 @@ import android.content.Context
 import denis.and.co.handshop.data.repository.ImageRepository
 import denis.and.co.handshop.data.repository.ProductRepository
 import denis.and.co.handshop.data.repository.SellerRepository
+import denis.and.co.handshop.viewmodel.CatalogViewModel
 
 object AppDependencies {
     val sellerRepository by lazy { SellerRepository() }
     val productRepository by lazy { ProductRepository() }
+
+    var globalCatalogViewModel: CatalogViewModel? = null
 
     lateinit var imageRepository: ImageRepository
         private set

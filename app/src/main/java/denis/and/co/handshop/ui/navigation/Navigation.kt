@@ -22,3 +22,12 @@ object LikedRoute
 
 @Serializable
 data class EditProductRoute(val productId: String)
+
+@Serializable
+object LoginRoute
+
+@Serializable
+object CreateProfileRoute
+
+@Serializable
+object EditProfileRoute

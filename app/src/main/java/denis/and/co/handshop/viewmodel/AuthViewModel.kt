@@ -8,6 +8,8 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.Firebase
 import com.google.firebase.auth.*
 import denis.and.co.handshop.data.repository.SellerRepository
+import denis.and.co.handshop.ui.navigation.CreateProfileRoute
+import denis.and.co.handshop.ui.navigation.LoginRoute
 import denis.and.co.handshop.ui.navigation.RecommendationRoute
 import kotlinx.coroutines.launch
 
@@ -25,7 +27,7 @@ class AuthViewModel(
     fun checkAuthState() {
         val user = auth.currentUser
         if (user == null) {
-            startDestination = "login"
+            startDestination = LoginRoute
         } else {
             viewModelScope.launch {
                 try {
@@ -33,10 +35,10 @@ class AuthViewModel(
                     if (exists) {
                         startDestination = RecommendationRoute
                     } else {
-                        startDestination = "create_profile"
+                        startDestination = CreateProfileRoute
                     }
                 } catch (e: Exception) {
-                    startDestination = "login"
+                    startDestination = LoginRoute
                 }
             }
         }

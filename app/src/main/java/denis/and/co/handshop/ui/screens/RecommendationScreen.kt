@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -31,6 +32,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -72,8 +74,18 @@ fun RecommendationScreen(
     navController: NavController,
     catalogViewModel: CatalogViewModel
     ) {
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(catalogViewModel.scrollTrigger) {
+        if (catalogViewModel.scrollTrigger > 0) {
+            listState.animateScrollToItem(0)
+        }
+    }
+
     Scaffold(
-        topBar = { Header() },
+        topBar = { Header(onSearch = { query ->
+            catalogViewModel.search(query)
+        }) },
         bottomBar = { AppFooter(navController) },
         modifier = Modifier
             .background(SoftBack)
@@ -108,7 +120,7 @@ fun RecommendationScreen(
 }
 
 @Composable
-fun Header() {
+fun Header(onSearch: (String) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -203,7 +215,7 @@ fun Header() {
                 )
 
                 Button(
-                    onClick = { /* search button. */ },
+                    onClick = { onSearch(input) },
                     shape = RoundedCornerShape(0.dp, 14.dp, 14.dp, 0.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Accent, contentColor = WhiteText),
                     contentPadding = PaddingValues(
@@ -258,6 +270,7 @@ fun Content(
                             product = item.product,
                             onClick = {
                                 onProductClick(item.product.id)
+                                viewModel.updateProductViewsCount(item.product.id)
                             },
                             seller = item.seller
                         )

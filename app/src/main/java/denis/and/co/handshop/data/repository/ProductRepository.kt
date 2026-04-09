@@ -8,6 +8,7 @@ import com.google.firebase.firestore.firestore
 import denis.and.co.handshop.MainActivity
 import denis.and.co.handshop.data.enums.ProductStatus
 import denis.and.co.handshop.data.model.Product
+import denis.and.co.handshop.utils.SearchIndexer
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.tasks.await
 
@@ -92,15 +93,22 @@ class ProductRepository {
 
     suspend fun searchProducts(query: String): List<Product> {
         if (query.length < 2) return getProducts()
-        val searchTrigram = query.lowercase().take(3)
+
+        val trigrams = SearchIndexer.createIndex(query, "", "", emptyList())
 
         return try {
             val snapshot = productsCollection
                 .whereEqualTo("status", ProductStatus.ACTIVE)
-                .whereArrayContains("searchIndex", searchTrigram)
-                .get().await()
-            snapshot.documents.mapNotNull { it.toObject(Product::class.java)?.copy(id = it.id) }
-        } catch (ex: Exception) { emptyList() }
+                .whereArrayContainsAny("searchIndex", trigrams.take(10))
+                .get()
+                .await()
+
+            snapshot.documents.mapNotNull {
+                it.toObject(Product::class.java)?.copy(id = it.id)
+            }
+        } catch (ex: Exception) {
+            emptyList()
+        }
     }
 
     suspend fun updateTagStats(userId: String, tags: List<String>) {
@@ -136,5 +144,15 @@ class ProductRepository {
             Log.e("FIREBASE_TAG_SEARCH", "Ошибка поиска по тегам: ", ex)
             emptyList()
         }
+    }
+
+    suspend fun updateProductViewsCount(productId: String) {
+        val productRef = db.collection("products").document(productId)
+        db.runTransaction { transaction ->
+            val snapshot = transaction.get(productRef)
+            val currentViews = snapshot.get("viewsCount") as? Long ?: 0
+            val newViews = currentViews + 1
+            transaction.update(productRef, "viewsCount", newViews)
+        }.await()
     }
 }

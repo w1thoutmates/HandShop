@@ -28,6 +28,7 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import denis.and.co.handshop.R
+import denis.and.co.handshop.di.AppDependencies.globalCatalogViewModel
 import denis.and.co.handshop.ui.navigation.CreateProductRoute
 import denis.and.co.handshop.ui.navigation.LikedRoute
 import denis.and.co.handshop.ui.navigation.ProfileRoute
@@ -57,7 +58,9 @@ fun AppFooter(navController: NavController) {
                 iconRes = R.drawable.home_nav,
                 isSelected = currentDestination?.hasRoute<RecommendationRoute>() == true,
                 onClick = {
-                    if (currentDestination?.hasRoute<RecommendationRoute>() != true) {
+                    if (currentDestination?.hasRoute<RecommendationRoute>() == true) {
+                        globalCatalogViewModel?.refreshAndScroll()
+                    } else {
                         navController.navigate(RecommendationRoute) {
                             popUpTo(navController.graph.startDestinationId) {
                                 saveState = true

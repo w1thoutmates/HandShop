@@ -31,8 +31,11 @@ import androidx.navigation.toRoute
 import denis.and.co.handshop.data.model.Product
 import denis.and.co.handshop.di.AppDependencies
 import denis.and.co.handshop.ui.navigation.CreateProductRoute
+import denis.and.co.handshop.ui.navigation.CreateProfileRoute
 import denis.and.co.handshop.ui.navigation.EditProductRoute
+import denis.and.co.handshop.ui.navigation.EditProfileRoute
 import denis.and.co.handshop.ui.navigation.LikedRoute
+import denis.and.co.handshop.ui.navigation.LoginRoute
 import denis.and.co.handshop.ui.navigation.ProductDetailsRoute
 import denis.and.co.handshop.ui.navigation.ProfileRoute
 import denis.and.co.handshop.ui.navigation.RecommendationRoute
@@ -83,13 +86,11 @@ class MainActivity : ComponentActivity() {
                 startDestination = startDestination
             ) {
 
-                composable("login") {
-                    LoginScreen(
-                        onAuthSuccess = { authViewModel.checkAuthState() }
-                    )
+                composable<LoginRoute> {
+                    LoginScreen(onAuthSuccess = { authViewModel.checkAuthState() })
                 }
 
-                composable("create_profile") {
+                composable<CreateProfileRoute> {
                     val editProfileVM: EditProfileViewModel = viewModel(
                         factory = object : ViewModelProvider.Factory {
                             override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -199,10 +200,20 @@ class MainActivity : ComponentActivity() {
                 }
                 composable<LikedRoute> { Text("Избранное") }
                 composable<SearchByCategoryRoute> {
-                    SearchingScreen(navController)
+                    val catalogViewModel: CatalogViewModel = viewModel(
+                    factory = object : ViewModelProvider.Factory {
+                        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                            return CatalogViewModel(
+                                AppDependencies.productRepository,
+                                AppDependencies.sellerRepository
+                            ) as T
+                        }
+                    }
+                )
+                    SearchingScreen(navController, catalogViewModel)
                 }
 
-                composable("edit_profile") { backStackEntry ->
+                composable<EditProfileRoute> { backStackEntry ->
                     val currentUid = authViewModel.getAuth().currentUser?.uid
 
                     val editProfileVM: EditProfileViewModel = viewModel(

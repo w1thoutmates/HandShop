@@ -49,5 +49,34 @@ class CreateProductViewModel(
         }
     }
 
-    // fun updateProduct
+    fun updateProduct(product: Product, newImageUris: List<Uri>, onComplete: () -> Unit) {
+        viewModelScope.launch {
+            isSaving.value = true
+
+            val uploadedUrls = if (newImageUris.isNotEmpty()) {
+                imageRepo.uploadProductImages(newImageUris)
+            } else {
+                emptyList()
+            }
+
+            val finalUrls = product.imageUrls + uploadedUrls
+
+            val index = SearchIndexer.createIndex(
+                product.title,
+                product.description,
+                product.category,
+                product.tags
+            )
+
+            val updatedProduct = product.copy(
+                imageUrls = finalUrls,
+                searchIndex = index
+            )
+
+            productRepo.saveProduct(updatedProduct)
+
+            isSaving.value = false
+            onComplete()
+        }
+    }
 }
