@@ -42,6 +42,7 @@ import denis.and.co.handshop.ui.navigation.RecommendationRoute
 import denis.and.co.handshop.ui.navigation.ReviewsRoute
 import denis.and.co.handshop.ui.navigation.SearchByCategoryRoute
 import denis.and.co.handshop.ui.screens.EditProfileScreen
+import denis.and.co.handshop.ui.screens.LikedProductsScreen
 import denis.and.co.handshop.ui.screens.LoginScreen
 import denis.and.co.handshop.ui.screens.ProductCreatingScreen
 import denis.and.co.handshop.ui.screens.ProductDetailsScreen
@@ -54,6 +55,7 @@ import denis.and.co.handshop.viewmodel.AuthViewModel
 import denis.and.co.handshop.viewmodel.CatalogViewModel
 import denis.and.co.handshop.viewmodel.CreateProductViewModel
 import denis.and.co.handshop.viewmodel.EditProfileViewModel
+import denis.and.co.handshop.viewmodel.LikedViewModel
 import denis.and.co.handshop.viewmodel.ProductDetailsVM
 import denis.and.co.handshop.viewmodel.ProfileViewModel
 import denis.and.co.handshop.viewmodel.ReviewsViewModel
@@ -143,7 +145,19 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     )
+
                     val product by detailsVm.product.collectAsState()
+
+                    val likedViewModel: LikedViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                return LikedViewModel(
+                                    AppDependencies.productRepository,
+                                    AppDependencies.sellerRepository
+                                ) as T
+                            }
+                        }
+                    )
 
                     LaunchedEffect(route.productId) {
                         detailsVm.loadProduct(route.productId)
@@ -153,7 +167,8 @@ class MainActivity : ComponentActivity() {
                         ProductDetailsScreen(
                             product = currentProduct,
                             viewModel = detailsVm,
-                            navController = navController
+                            navController = navController,
+                            likedViewModel = likedViewModel
                         )
                     } ?: run {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -201,7 +216,23 @@ class MainActivity : ComponentActivity() {
                         viewModel = profileVm
                     )
                 }
-                composable<LikedRoute> { Text("Избранное") }
+                composable<LikedRoute> {
+                    val likedViewModel: LikedViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                return LikedViewModel(
+                                    AppDependencies.productRepository,
+                                    AppDependencies.sellerRepository
+                                ) as T
+                            }
+                        }
+                    )
+                    LikedProductsScreen(
+                        navController = navController,
+                        viewModel = likedViewModel
+                    )
+                }
+
                 composable<SearchByCategoryRoute> {
                     val catalogViewModel: CatalogViewModel = viewModel(
                     factory = object : ViewModelProvider.Factory {

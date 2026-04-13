@@ -3,6 +3,7 @@ package denis.and.co.handshop.data.repository
 import android.util.Log
 import android.widget.Toast
 import com.google.firebase.*
+import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
 import denis.and.co.handshop.MainActivity
@@ -154,5 +155,31 @@ class ProductRepository {
             val newViews = currentViews + 1
             transaction.update(productRef, "viewsCount", newViews)
         }.await()
+    }
+
+    suspend fun getLikedProducts(productIds: List<String>): List<Product> {
+        if (productIds.isEmpty()) return emptyList()
+
+        return try {
+            val chunks = productIds.chunked(10)
+            val allProducts = mutableListOf<Product>()
+
+            for (chunk in chunks) {
+                val snapshot = productsCollection
+                    .whereIn(FieldPath.documentId(), chunk)
+                    .get()
+                    .await()
+
+                val products = snapshot.documents.mapNotNull { doc ->
+                    doc.toObject(Product::class.java)?.copy(id = doc.id)
+                }
+                allProducts.addAll(products)
+            }
+
+            allProducts
+        } catch (ex: Exception) {
+            Log.e("FIREBASE_LIKED_ERROR", "Ошибка загрузки избранного:", ex)
+            emptyList()
+        }
     }
 }

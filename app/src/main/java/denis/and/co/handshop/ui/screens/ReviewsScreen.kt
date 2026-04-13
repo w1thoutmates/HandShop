@@ -135,7 +135,7 @@ fun ReviewsScreenContent(
                         Text(
                             text = "Оценки",
                             style = TextStyle(
-                                fontFamily = Comfortaa,
+                                fontFamily = Onest,
                                 color = BlackText,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 18.sp,

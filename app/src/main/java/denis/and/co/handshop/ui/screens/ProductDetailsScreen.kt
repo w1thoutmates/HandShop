@@ -1,5 +1,12 @@
 package denis.and.co.handshop.ui.screens
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.with
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -39,8 +46,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,6 +65,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import denis.and.co.handshop.R
@@ -67,7 +80,9 @@ import denis.and.co.handshop.ui.theme.LowAlphaBlackText
 import denis.and.co.handshop.ui.theme.Onest
 import denis.and.co.handshop.ui.theme.SoftBack
 import denis.and.co.handshop.ui.theme.StarFilled
+import denis.and.co.handshop.viewmodel.LikedViewModel
 import denis.and.co.handshop.viewmodel.ProductDetailsVM
+import kotlinx.coroutines.launch
 import kotlin.collections.component1
 import kotlin.collections.component2
 
@@ -75,7 +90,8 @@ import kotlin.collections.component2
 fun ProductDetailsScreen(
     product: Product,
     viewModel: ProductDetailsVM,
-    navController: NavController
+    navController: NavController,
+    likedViewModel: LikedViewModel
 ) {
     val seller by viewModel.seller.collectAsState()
 
@@ -425,13 +441,27 @@ fun ProductDetailsScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 // карточка с блоком "похожие" ( там будет небольшая подборка товаров с такой же категорией товара )
             }
-            DetailsScreenHeader(navController)
+            DetailsScreenHeader(navController, likedViewModel, product.id)
         }
     }
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun DetailsScreenHeader(navController: NavController) {
+fun DetailsScreenHeader(
+    navController: NavController,
+    viewModel: LikedViewModel,
+    productId: String
+) {
+    var isInLiked by remember { mutableStateOf<Boolean?>(null) }
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(productId) {
+        isInLiked = viewModel.isProductExistInLiked(productId)
+    }
+
+    val displayState = isInLiked ?: false
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -456,17 +486,38 @@ fun DetailsScreenHeader(navController: NavController) {
         }
 
         Box(
-            modifier = Modifier
-                .padding(20.dp),
+            modifier = Modifier.padding(20.dp),
             contentAlignment = Alignment.CenterEnd
         ) {
-            Icon(
-                imageVector = Icons.Outlined.FavoriteBorder,
-                contentDescription = "Кнопка добавить в понравившейся",
-                modifier = Modifier
-                    .size(35.dp)
-                    .clickable { /* TODO: */ }
-            )
+            AnimatedContent(
+                targetState = displayState,
+                transitionSpec = {
+                    fadeIn(animationSpec = tween(300)) togetherWith
+                            fadeOut(animationSpec = tween(300))
+                }
+            ) { liked ->
+                Icon(
+                    imageVector = if (liked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                    contentDescription = if (liked) "Удалить из избранного" else "Добавить в избранное",
+                    modifier = Modifier
+                        .size(35.dp)
+                        .clickable {
+                            scope.launch {
+                                isInLiked = !liked
+                                try {
+                                    if (liked) {
+                                        viewModel.deleteFromLiked(productId)
+                                    } else {
+                                        viewModel.addToLiked(productId)
+                                    }
+                                } catch (ex: Exception) {
+                                    isInLiked = liked
+                                }
+                            }
+                        },
+                    tint = BlackText
+                )
+            }
         }
     }
 }

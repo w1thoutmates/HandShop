@@ -1,9 +1,5 @@
 package denis.and.co.handshop.data.model
 
-import com.fasterxml.uuid.Generators
-import denis.and.co.handshop.R
-import java.util.ArrayList
-
 data class Seller(
     val id: String = "",
     val rate: Double = 0.0,
@@ -17,7 +13,8 @@ data class Seller(
     val registrationDate: Long = System.currentTimeMillis(),
     val contacts: Map<String, String> = emptyMap(),
     val userTagStats: Map<String, Long> = emptyMap(),
-    val ratingSum: Double = 0.0
+    val ratingSum: Double = 0.0,
+    val likedProductIds: List<String> = emptyList()
 ) {
     init {
         require(rate in 0.0..5.0) { "Рейтинг не может быть ниже 0 и больше 5. Получен рейтинг: $rate" }

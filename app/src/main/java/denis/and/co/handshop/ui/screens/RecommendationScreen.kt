@@ -253,7 +253,7 @@ fun Header(onSearch: (String) -> Unit) {
                             "Найти в Ручной Лавке",
                             style = TextStyle(
                                 fontFamily = Comfortaa,
-                                color = Color(0x66000000),
+                                color = LowAlphaBlackText,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 15.sp
                             ),
