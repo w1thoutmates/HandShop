@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import denis.and.co.handshop.R
+import denis.and.co.handshop.data.enums.ProductStatus
 import denis.and.co.handshop.data.model.Product
 import denis.and.co.handshop.data.model.ProductWithSeller
 import denis.and.co.handshop.data.model.Seller

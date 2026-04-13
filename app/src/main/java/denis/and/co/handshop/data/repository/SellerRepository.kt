@@ -1,7 +1,9 @@
 package denis.and.co.handshop.data.repository
 
 import android.net.Uri
+import android.util.Log
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import denis.and.co.handshop.data.model.Seller
@@ -97,6 +99,33 @@ class SellerRepository {
             }
         } catch (ex: Exception) {
             false
+        }
+    }
+
+    suspend fun getSellersByIds(sellerIds: List<String>): Map<String, Seller> {
+        if (sellerIds.isEmpty()) return emptyMap()
+
+        return try {
+            val uniqueIds = sellerIds.distinct()
+            val chunks = uniqueIds.chunked(30)
+            val sellersMap = mutableMapOf<String, Seller>()
+
+            for (chunk in chunks) {
+                val snapshot = firestore.collection("sellers")
+                    .whereIn(FieldPath.documentId(), chunk)
+                    .get()
+                    .await()
+
+                snapshot.documents.forEach { doc ->
+                    doc.toObject(Seller::class.java)?.let { seller ->
+                        sellersMap[doc.id] = seller
+                    }
+                }
+            }
+            sellersMap
+        } catch (e: Exception) {
+            Log.e("FIREBASE_ERROR", "Ошибка при загрузке продавцов", e)
+            emptyMap()
         }
     }
 }

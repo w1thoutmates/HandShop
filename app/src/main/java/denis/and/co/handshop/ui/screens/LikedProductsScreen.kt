@@ -42,6 +42,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.draw.shadow
@@ -52,11 +53,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import denis.and.co.handshop.R
+import denis.and.co.handshop.data.enums.ProductStatus
 import denis.and.co.handshop.data.model.CatalogState
 import denis.and.co.handshop.ui.components.AppFooter
 import denis.and.co.handshop.ui.components.LikedProductListItem
@@ -133,18 +136,36 @@ fun LikedScreenContent(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(state.items, key = { it.product.id }) { item ->
+                        val isInactive = item.product.status != ProductStatus.ACTIVE
                         val context = LocalContext.current
-                        LikedProductListItem(
-                            item = item,
-                            onProductClick = onProductClick,
-                            onSellerClick = onSellerClick,
-                            onDeleteClick = {
-                                onDeleteProduct(item.product.id)
-                                viewModel.loadLikedProducts()
-                                Toast.makeText(context, "Объявление [${item.product.title}] успешно удалено из избранного", Toast.LENGTH_LONG)
-                            },
-                            onShareClick = { /* sharing logic */ }
-                        )
+                        Box(modifier = Modifier.alpha(if (isInactive) 0.5f else 1f)) {
+                            LikedProductListItem(
+                                item = item,
+                                onProductClick = onProductClick,
+                                onSellerClick = onSellerClick,
+                                onDeleteClick = {
+                                    onDeleteProduct(item.product.id)
+                                    viewModel.loadLikedProducts()
+                                    Toast.makeText(context, "Объявление [${item.product.title}] успешно удалено из избранного", Toast.LENGTH_LONG)
+                                },
+                                onShareClick = { /* sharing logic */ }
+                            )
+                            if (isInactive) {
+                                Text(
+                                    text = item.product.status.value,
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .padding(top = 15.dp, end = 20.dp),
+                                    style = TextStyle(
+                                        fontFamily = Onest,
+                                        color = BlackText,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp
+                                    ),
+                                    maxLines = 1
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -264,7 +285,17 @@ fun LikedScreenHeader(
                                 painterResource(R.drawable.sort_by_asc)
                             }
 
-                            // active / hidden / sold statuses sorting
+                            "Скрытые" -> {
+                                painterResource(R.drawable.eye)
+                            }
+
+                            "Проданные" -> {
+                                painterResource(R.drawable.cart_nav)
+                            }
+
+                            "Только активные" -> {
+                                painterResource(R.drawable.mark)
+                            }
 
                             else -> {
                                 painterResource(R.drawable.sort_by_news)
@@ -317,7 +348,7 @@ fun LikedScreenHeader(
                             onClick = {
                                 sortOption = "Сначала новые"
                                 showSortMenu = false
-                                // viewModel.loadReviewsSortedByGreaterDate()
+                                viewModel.sortLikedProducts("Сначала новые")
                             },
 
                             )
@@ -347,7 +378,7 @@ fun LikedScreenHeader(
                             onClick = {
                                 sortOption = "Дороже"
                                 showSortMenu = false
-                                // viewModel.loadReviewsSortedByDesc()
+                                viewModel.sortLikedProducts("Дороже")
                             }
                         )
 
@@ -376,8 +407,95 @@ fun LikedScreenHeader(
                             onClick = {
                                 sortOption = "Дешевле"
                                 showSortMenu = false
-                                // viewModel.loadReviewsSortedByAsc()
+                                viewModel.sortLikedProducts("Дешевле")
                             }
+                        )
+
+                        DropdownMenuItem(
+                            text = {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Image(
+                                        painter = painterResource(R.drawable.eye),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Text(
+                                        text = "Скрытые",
+                                        style = TextStyle(
+                                            fontFamily = Comfortaa,
+                                            fontSize = 14.sp,
+                                            color = if (sortOption == "Скрытые") BlackText else LowAlphaBlackText
+                                        ),
+                                        modifier = Modifier.padding(start = 12.dp)
+                                    )
+                                }
+                            },
+                            onClick = {
+                                sortOption = "Скрытые"
+                                showSortMenu = false
+                                viewModel.sortLikedProducts("Скрытые")
+                            },
+                        )
+
+                        DropdownMenuItem(
+                            text = {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Image(
+                                        painter = painterResource(R.drawable.cart_nav),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Text(
+                                        text = "Проданные",
+                                        style = TextStyle(
+                                            fontFamily = Comfortaa,
+                                            fontSize = 14.sp,
+                                            color = if (sortOption == "Проданные") BlackText else LowAlphaBlackText
+                                        ),
+                                        modifier = Modifier.padding(start = 12.dp)
+                                    )
+                                }
+                            },
+                            onClick = {
+                                sortOption = "Проданные"
+                                showSortMenu = false
+                                viewModel.sortLikedProducts("Проданные")
+                            },
+                        )
+
+                        DropdownMenuItem(
+                            text = {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Image(
+                                        painter = painterResource(R.drawable.mark),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Text(
+                                        text = "Только активные",
+                                        style = TextStyle(
+                                            fontFamily = Comfortaa,
+                                            fontSize = 14.sp,
+                                            color = if (sortOption == "Только активные") BlackText else LowAlphaBlackText
+                                        ),
+                                        modifier = Modifier.padding(start = 12.dp)
+                                    )
+                                }
+                            },
+                            onClick = {
+                                sortOption = "Только активные"
+                                showSortMenu = false
+                                viewModel.sortLikedProducts("Только активные")
+                            },
                         )
                     }
                 }
@@ -394,7 +512,8 @@ fun LikedScreenHeader(
                     onValueChange = {
                         input = it
                         viewModel.searchInLiked(it)
-                    }
+                    },
+                    viewModel = viewModel
                 )
             }
         }
@@ -405,7 +524,8 @@ fun LikedScreenHeader(
 fun SearchField(
     input: String,
     onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: LikedViewModel
 ) {
     Box(
         modifier = modifier
@@ -451,7 +571,7 @@ fun SearchField(
                         .fillMaxHeight()
                         .width(50.dp)
                         .background(Accent, RoundedCornerShape(0.dp, 14.dp, 14.dp, 0.dp))
-                        .clickable { /* onSearch */ },
+                        .clickable { viewModel.searchInLiked(input) },
                     contentAlignment = Alignment.Center
                 ) {
                     Image(

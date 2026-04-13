@@ -3,6 +3,7 @@ package denis.and.co.handshop.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import denis.and.co.handshop.data.enums.ProductStatus
 import denis.and.co.handshop.data.model.CatalogState
 import denis.and.co.handshop.data.model.Product
 import denis.and.co.handshop.data.model.ProductWithSeller
@@ -29,6 +30,10 @@ class LikedViewModel(
 
     val currentUserId = sellerRepo.getCurrentUserId()
 
+    private var originalItems: List<ProductWithSeller> = emptyList()
+
+    private var referenceIds: List<String> = emptyList()
+
     init {
         loadLikedProducts()
     }
@@ -41,33 +46,26 @@ class LikedViewModel(
                 val userId = currentUserId ?: return@launch
                 val sellerResult = sellerRepo.getSeller(userId).getOrNull()
 
-                val likedIds = sellerResult?.likedProductIds ?: emptyList()
+                referenceIds = sellerResult?.likedProductIds ?: emptyList()
 
-                if (likedIds.isEmpty()) {
+                if (referenceIds.isEmpty()) {
                     _state.value = CatalogState.Empty
                     return@launch
                 }
 
-                val products = productRepo.getLikedProducts(likedIds)
+                val products = productRepo.getLikedProducts(referenceIds)
 
-                if (products.isEmpty()) {
-                    _state.value = CatalogState.Empty
-                    return@launch
+                val sellerIds = products.map { it.sellerId }
+                val sellersMap = sellerRepo.getSellersByIds(sellerIds)
+
+
+                val items = products.map { product ->
+                    ProductWithSeller(product, sellersMap[product.sellerId])
                 }
 
-                val items = coroutineScope {
-                    products.map { product ->
-                        async {
-                            val seller = sellerRepo.getSeller(product.sellerId)
-                            ProductWithSeller(
-                                product = product,
-                                seller = seller.getOrNull()
-                            )
-                        }
-                    }.awaitAll()
-                }
+                originalItems = items
 
-                _state.value = CatalogState.Success(items)
+                sortLikedProducts("Сначала новые")
             } catch (ex: Exception) {
                 Log.e("VIEWMODEL_ERROR", "Ошибка в liked view model: ", ex)
                 _state.value = CatalogState.Error(ex.message.toString())
@@ -98,7 +96,17 @@ class LikedViewModel(
     }
 
     fun searchInLiked(query: String) {
+        if (query.isBlank()) {
+            _state.value = CatalogState.Success(originalItems)
+            return
+        }
 
+        val filtered = originalItems.filter { item ->
+            item.product.title.contains(query, ignoreCase = true) ||
+                    item.product.description.contains(query, ignoreCase = true)
+        }
+
+        _state.value = if (filtered.isEmpty()) CatalogState.Empty else CatalogState.Success(filtered)
     }
 
     suspend fun isProductExistInLiked(productId: String): Boolean {
@@ -109,5 +117,25 @@ class LikedViewModel(
            Log.e("CHECK_LIKED_ERROR", "Ошибка проверки нахождения объявления в избранном: ", ex)
            false
        }
+    }
+
+    fun sortLikedProducts(option: String) {
+        val currentList = (state.value as? CatalogState.Success)?.items ?: originalItems
+
+        val sortedList = when (option) {
+            "Дороже" -> originalItems.sortedByDescending { it.product.cost }
+            "Дешевле" -> originalItems.sortedBy { it.product.cost }
+            "Сначала новые" -> {
+                originalItems.sortedByDescending { item ->
+                    referenceIds.indexOf(item.product.id)
+                }
+            }
+            "Скрытые" -> originalItems.filter { it.product.status == ProductStatus.HIDDEN }
+            "Проданные" -> originalItems.filter { it.product.status == ProductStatus.SOLD }
+            "Только активные" -> originalItems.filter { it.product.status == ProductStatus.ACTIVE }
+            else -> originalItems
+        }
+
+        _state.value = CatalogState.Success(sortedList)
     }
 }
