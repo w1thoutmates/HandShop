@@ -40,17 +40,9 @@ fun ProductListItem(
     onClick: () -> Unit,
     seller: Seller?
 ) {
-
-//    if (seller == null) {
-//        Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
-//            CircularProgressIndicator(color = Accent)
-//        }
-//        return
-//    }
-
     Card(
         modifier = Modifier
-            .fillMaxWidth()
+//            .fillMaxWidth()
             .padding(8.dp)
             .clickable {
                 onClick()
@@ -68,9 +60,8 @@ fun ProductListItem(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .aspectRatio(1f)
-                    .height(120.dp),
-                //placeholder = painterResource(R.drawable.mock_picture),
+                    .aspectRatio(1f),
+//                    .height(120.dp),
                 error = painterResource(R.drawable.error_picture)
             )
 

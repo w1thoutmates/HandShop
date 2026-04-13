@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
@@ -80,6 +81,8 @@ import denis.and.co.handshop.ui.theme.StarEmpty
 import denis.and.co.handshop.ui.theme.StarFilled
 import denis.and.co.handshop.ui.theme.WhiteText
 import denis.and.co.handshop.viewmodel.ProfileViewModel
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.count
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -225,14 +228,23 @@ fun SellerProfileScreen(
 
                     HorizontalDivider(thickness = 2.dp, color = BlackText.copy(alpha = 0.2f), modifier = Modifier.padding(15.dp))
                 }
-                Text(
-                    text = "Опубликованные товары",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = BlackText,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    fontFamily = Comfortaa
-                )
+                Row(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                    Text(
+                        text = "Опубликованные товары ",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = BlackText,
+                        fontFamily = Comfortaa
+                    )
+
+                    Text(
+                        text = "(${viewModel.sellerProducts.value.count()})",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = LowAlphaBlackText,
+                        fontFamily = Comfortaa
+                    )
+                }
 
                 val visibleProducts = if (isMyProfile) {
                     sellerProducts
@@ -249,15 +261,18 @@ fun SellerProfileScreen(
                     )
                 } else {
                     LazyRow(
-                        contentPadding = PaddingValues(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(horizontal = 8.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         items(visibleProducts) { product ->
                             val isInactive = product?.status != ProductStatus.ACTIVE
 
                             if (product != null) {
-                                Box(modifier = Modifier.alpha(if (isInactive) 0.5f else 1f)) {
+                                Box(
+                                    modifier = Modifier
+                                        .alpha(if (isInactive) 0.5f else 1f)
+                                        .width(200.dp)
+                                ) {
                                     ProductListItem(
                                         product = product,
                                         onClick = {

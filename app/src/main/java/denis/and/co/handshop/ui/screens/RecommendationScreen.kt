@@ -97,6 +97,7 @@ fun RecommendationScreen(
         Column(
             modifier = Modifier
                 .padding(padding)
+                .background(SoftBack)
                 .fillMaxSize()
         ) {
             Row(
@@ -170,6 +171,7 @@ fun Header(onSearch: (String) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .background(SoftBack)
             .clip(RoundedCornerShape(0.dp, 0.dp, 15.dp, 15.dp))
             .padding(0.dp)
             .background(HardBack)
@@ -309,7 +311,9 @@ fun Content(
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     contentPadding = PaddingValues(8.dp),
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(SoftBack)
                 ) {
                     items(state.items) { item ->
                         ProductListItem(

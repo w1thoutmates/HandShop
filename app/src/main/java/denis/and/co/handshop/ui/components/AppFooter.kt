@@ -35,6 +35,7 @@ import denis.and.co.handshop.ui.navigation.ProfileRoute
 import denis.and.co.handshop.ui.navigation.RecommendationRoute
 import denis.and.co.handshop.ui.navigation.SearchByCategoryRoute
 import denis.and.co.handshop.ui.theme.HardBack
+import denis.and.co.handshop.ui.theme.SoftBack
 
 @Composable
 fun AppFooter(navController: NavController) {
@@ -44,6 +45,7 @@ fun AppFooter(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .background(SoftBack)
             .clip(RoundedCornerShape(15.dp, 15.dp, 0.dp, 0.dp))
             .background(HardBack)
     ) {

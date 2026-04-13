@@ -85,10 +85,8 @@ fun ReviewsScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(SoftBack)
-    ) { padding ->
-
+    ) {
         ReviewsScreenContent(PaddingValues(0.dp), viewModel, navController)
-
     }
 }
 
@@ -394,14 +392,14 @@ fun ReviewsScreenContent(
 
                 Button(
                     onClick = {
-                        if (!input.isEmpty() && selectedRate != 0) {
+                        if (!input.trim().isEmpty() && selectedRate != 0) {
                             viewModel.postReview(input, selectedRate)
                         }
                         input = ""
                         selectedRate = 0
                         Toast.makeText(context, "Отзыв успешно опубликован", Toast.LENGTH_LONG)
                     },
-                    enabled = !input.isEmpty() && selectedRate > 0,
+                    enabled = !input.trim().isEmpty() && selectedRate > 0,
                     modifier = Modifier.fillMaxWidth().padding(16.dp).height(50.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Accent),
                     shape = RoundedCornerShape(12.dp)
@@ -411,7 +409,7 @@ fun ReviewsScreenContent(
                         fontFamily = Comfortaa,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
-                        color = if (input.isEmpty()) LowAlphaBlackText else WhiteText
+                        color = if (input.trim().isEmpty()) LowAlphaBlackText else WhiteText
                     )
                 }
             }
