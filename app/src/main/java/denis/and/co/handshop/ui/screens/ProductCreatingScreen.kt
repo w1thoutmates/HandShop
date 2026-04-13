@@ -4,6 +4,8 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -32,6 +34,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.google.firebase.auth.FirebaseAuth
+import denis.and.co.handshop.data.enums.ProductStatus
 import denis.and.co.handshop.data.model.Product
 import denis.and.co.handshop.ui.theme.*
 import denis.and.co.handshop.viewmodel.CreateProductViewModel
@@ -66,6 +69,8 @@ fun ProductCreatingScreen(
     }
 
     var tagsString by remember { mutableStateOf(initialProduct?.tags?.joinToString(", ") ?: "") }
+
+    var selectedStatus by remember { mutableStateOf(initialProduct?.status ?: ProductStatus.ACTIVE) }
 
     Scaffold(
         topBar = {
@@ -113,7 +118,8 @@ fun ProductCreatingScreen(
                             targetCity = targetCity,
                             category = category,
                             imageUrls = existingImages,
-                            tags = tagsList
+                            tags = tagsList,
+                            status = selectedStatus
                         ) ?: Product(
                             title = title,
                             description = description,
@@ -207,7 +213,7 @@ fun ProductCreatingScreen(
                     onValueChange = { description = it },
                     label = "Описание",
                     singleLine = false,
-                    modifier = Modifier.height(120.dp)
+                    modifier = Modifier.height(120.dp).fillMaxWidth()
                 )
                 ProductTextField(
                     value = cost,
@@ -230,6 +236,49 @@ fun ProductCreatingScreen(
                     onValueChange = { tagsString = it },
                     label = "Теги (через запятую, например: дерево, лампа)"
                 )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    for (status in ProductStatus.entries) {
+                        val isSelected = selectedStatus == status
+
+                        val animatedContainerColor by animateColorAsState(
+                            targetValue = if (isSelected) Accent else Accent.copy(alpha = 0.1f),
+                            animationSpec = tween(durationMillis = 300),
+                            label = "backgroundColor"
+                        )
+
+                        val animatedContentColor by animateColorAsState(
+                            targetValue = if (isSelected) WhiteText else BlackText,
+                            animationSpec = tween(durationMillis = 300),
+                            label = "contentColor"
+                        )
+                        Button(
+                            onClick = {
+                                selectedStatus = status
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(4.dp)
+                                .height(50.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = animatedContainerColor,
+                                contentColor = animatedContentColor
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            elevation = ButtonDefaults.buttonElevation(0.dp)
+                        ) {
+                            Text(
+                                text = status.value,
+                                fontFamily = Comfortaa,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                fontSize = 14.sp
+                            )
+                        }
+                    }
+                }
+
                 // добавить всплывашку или при нажатии окошко с пояснением, что теги помогают персонализировать
                 // ленты для пользователей и тем самым продвигать товары с тегами которые вы указали в ленты к вашим потенциальным покупателям
 
