@@ -125,10 +125,21 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     )
+                    val likedViewModel: LikedViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                return LikedViewModel(
+                                    AppDependencies.productRepository,
+                                    AppDependencies.sellerRepository
+                                ) as T
+                            }
+                        }
+                    )
 
                     RecommendationScreen(
                         navController = navController,
-                        catalogViewModel = catalogViewModel
+                        catalogViewModel = catalogViewModel,
+                        likedViewModel = likedViewModel
                     )
                 }
 
@@ -210,10 +221,22 @@ class MainActivity : ComponentActivity() {
                         }
                     )
 
+                    val likedViewModel: LikedViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                return LikedViewModel(
+                                    AppDependencies.productRepository,
+                                    AppDependencies.sellerRepository
+                                ) as T
+                            }
+                        }
+                    )
+
                     SellerProfileScreen(
                         navController = navController,
                         sellerId = route.sellerId,
-                        viewModel = profileVm
+                        viewModel = profileVm,
+                        likedViewModel = likedViewModel
                     )
                 }
                 composable<LikedRoute> {
@@ -235,16 +258,27 @@ class MainActivity : ComponentActivity() {
 
                 composable<SearchByCategoryRoute> {
                     val catalogViewModel: CatalogViewModel = viewModel(
-                    factory = object : ViewModelProvider.Factory {
-                        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                            return CatalogViewModel(
-                                AppDependencies.productRepository,
-                                AppDependencies.sellerRepository
-                            ) as T
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                return CatalogViewModel(
+                                    AppDependencies.productRepository,
+                                    AppDependencies.sellerRepository
+                                ) as T
+                            }
                         }
-                    }
-                )
-                    SearchingScreen(navController, catalogViewModel)
+                    )
+                    val likedViewModel: LikedViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                return LikedViewModel(
+                                    AppDependencies.productRepository,
+                                    AppDependencies.sellerRepository
+                                ) as T
+                            }
+                        }
+                    )
+
+                    SearchingScreen(navController, catalogViewModel, likedViewModel)
                 }
 
                 composable<EditProfileRoute> { backStackEntry ->

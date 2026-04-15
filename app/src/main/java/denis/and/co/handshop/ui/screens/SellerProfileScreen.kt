@@ -82,6 +82,7 @@ import denis.and.co.handshop.ui.theme.SoftBack
 import denis.and.co.handshop.ui.theme.StarEmpty
 import denis.and.co.handshop.ui.theme.StarFilled
 import denis.and.co.handshop.ui.theme.WhiteText
+import denis.and.co.handshop.viewmodel.LikedViewModel
 import denis.and.co.handshop.viewmodel.ProfileViewModel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.count
@@ -91,7 +92,8 @@ import kotlinx.coroutines.flow.count
 fun SellerProfileScreen(
     navController: NavController,
     sellerId: String?,
-    viewModel: ProfileViewModel = viewModel()
+    viewModel: ProfileViewModel = viewModel(),
+    likedViewModel: LikedViewModel
 ) {
     val seller by viewModel.seller.collectAsState()
     val isMyProfile = sellerId == null || sellerId == viewModel.currentUid
@@ -284,7 +286,9 @@ fun SellerProfileScreen(
                                                 navController.navigate(ProductDetailsRoute(product.id))
                                             }
                                         },
-                                        seller = seller
+                                        seller = seller,
+                                        viewModel = likedViewModel,
+                                        isMyProfile = isMyProfile
                                     )
 
                                     if (isInactive) {

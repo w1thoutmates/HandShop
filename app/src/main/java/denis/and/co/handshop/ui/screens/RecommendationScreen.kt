@@ -72,12 +72,14 @@ import denis.and.co.handshop.ui.navigation.RecommendationRoute
 import denis.and.co.handshop.ui.navigation.SearchByCategoryRoute
 import denis.and.co.handshop.ui.theme.*
 import denis.and.co.handshop.viewmodel.CatalogViewModel
+import denis.and.co.handshop.viewmodel.LikedViewModel
 
 @Composable
 fun RecommendationScreen(
     navController: NavController,
-    catalogViewModel: CatalogViewModel
-    ) {
+    catalogViewModel: CatalogViewModel,
+    likedViewModel: LikedViewModel
+) {
     val listState = rememberLazyListState()
     val currentUser by catalogViewModel.currentUser.collectAsState()
     val locationText = if (currentUser?.selectedLocation.isNullOrBlank()) {
@@ -164,7 +166,8 @@ fun RecommendationScreen(
                 viewModel = catalogViewModel,
                 onProductClick = { id ->
                     navController.navigate(ProductDetailsRoute(id))
-                }
+                },
+                likedViewModel = likedViewModel
             )
 
             if (showDialog) {
@@ -182,7 +185,10 @@ fun RecommendationScreen(
 }
 
 @Composable
-fun Header(onSearch: (String) -> Unit, navController: NavController) {
+fun Header(
+    onSearch: (String) -> Unit,
+    navController: NavController
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -310,7 +316,8 @@ fun Header(onSearch: (String) -> Unit, navController: NavController) {
 fun Content(
     modifier: Modifier = Modifier,
     viewModel: CatalogViewModel = viewModel(),
-    onProductClick: (String) -> Unit
+    onProductClick: (String) -> Unit,
+    likedViewModel: LikedViewModel
 ) {
     val uiState by viewModel.state.collectAsState()
 
@@ -337,7 +344,8 @@ fun Content(
                                 onProductClick(item.product.id)
                                 viewModel.updateProductViewsCount(item.product.id)
                             },
-                            seller = item.seller
+                            seller = item.seller,
+                            viewModel = likedViewModel
                         )
                     }
                 }

@@ -1,21 +1,38 @@
 package denis.and.co.handshop.ui.components
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -33,13 +50,27 @@ import denis.and.co.handshop.data.model.Product
 import denis.and.co.handshop.data.model.Seller
 import denis.and.co.handshop.utils.toRelativeDateString
 import denis.and.co.handshop.ui.theme.*
+import denis.and.co.handshop.viewmodel.LikedViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun ProductListItem(
     product: Product,
     onClick: () -> Unit,
-    seller: Seller?
+    seller: Seller?,
+    viewModel: LikedViewModel,
+    isMyProfile: Boolean = false
 ) {
+
+    var isInLiked by remember { mutableStateOf<Boolean?>(null) }
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(product.id) {
+        isInLiked = viewModel.isProductExistInLiked(product.id)
+    }
+
+    val displayState = isInLiked ?: false
+
     Card(
         modifier = Modifier
 //            .fillMaxWidth()
@@ -51,19 +82,58 @@ fun ProductListItem(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
-        Column(
-
-        ) {
-            AsyncImage(
-                model = product.imageUrls.firstOrNull(),
-                contentDescription = "Изображение в карточке товара",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1f),
+        Column {
+            Box(Modifier.fillMaxSize()) {
+                AsyncImage(
+                    model = product.imageUrls.firstOrNull(),
+                    contentDescription = "Изображение в карточке товара",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(1f),
 //                    .height(120.dp),
-                error = painterResource(R.drawable.error_picture)
-            )
+                    error = painterResource(R.drawable.error_picture)
+                )
+
+                if (!isMyProfile) {
+                    Box(
+                        modifier = Modifier
+                            .padding(15.dp)
+                            .align(Alignment.TopEnd),
+                        contentAlignment = Alignment.TopEnd
+                    ) {
+                        AnimatedContent(
+                            targetState = displayState,
+                            transitionSpec = {
+                                fadeIn(animationSpec = tween(300)) togetherWith
+                                        fadeOut(animationSpec = tween(300))
+                            }
+                        ) { liked ->
+                            Icon(
+                                imageVector = if (liked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                                contentDescription = if (liked) "Удалить из избранного" else "Добавить в избранное",
+                                modifier = Modifier
+                                    .size(35.dp)
+                                    .clickable {
+                                        scope.launch {
+                                            isInLiked = !liked
+                                            try {
+                                                if (liked) {
+                                                    viewModel.deleteFromLiked(product.id)
+                                                } else {
+                                                    viewModel.addToLiked(product.id)
+                                                }
+                                            } catch (ex: Exception) {
+                                                isInLiked = liked
+                                            }
+                                        }
+                                    },
+                                tint = BlackText
+                            )
+                        }
+                    }
+                }
+            }
 
             Column(
                 Modifier.padding(12.dp)
@@ -87,12 +157,12 @@ fun ProductListItem(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = if(product.cost != null && product.currency != null) "${product.cost} ${product.currency}".uppercase() else "не указана",
+                        text = if (product.cost != null && product.currency != null) "${product.cost} ${product.currency}".uppercase() else "не указана",
                         style = TextStyle(
                             fontFamily = Onest,
-                            color = if(product.cost != null && product.currency != null) BlackText else LowAlphaBlackText,
+                            color = if (product.cost != null && product.currency != null) BlackText else LowAlphaBlackText,
                             fontWeight = FontWeight.ExtraBold,
-                            fontSize = if(product.cost != null && product.currency != null) 16.sp else 10.sp,
+                            fontSize = if (product.cost != null && product.currency != null) 16.sp else 10.sp,
                         ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
