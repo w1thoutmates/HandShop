@@ -60,10 +60,13 @@ class SellerRepository {
 
     suspend fun addToLiked(userId: String, productId: String): Result<Unit> {
         return try {
-            firestore.collection("sellers")
-                .document(userId)
-                .update("likedProductIds", FieldValue.arrayUnion(productId))
-                .await()
+            firestore.runTransaction { transaction ->
+                val sellerRef = firestore.collection("sellers").document(userId)
+                val productRef = firestore.collection("products").document(productId)
+
+                transaction.update(sellerRef, "likedProductIds", FieldValue.arrayUnion(productId))
+                transaction.update(productRef, "addedToLikedCount", FieldValue.increment(1))
+            }.await()
 
             Result.success(Unit)
         } catch (ex: Exception) {
@@ -73,10 +76,13 @@ class SellerRepository {
 
     suspend fun deleteFromLiked(userId: String, productId: String): Result<Unit> {
         return try {
-            firestore.collection("sellers")
-                .document(userId)
-                .update("likedProductIds", FieldValue.arrayRemove(productId))
-                .await()
+            firestore.runTransaction { transaction ->
+                val sellerRef = firestore.collection("sellers").document(userId)
+                val productRef = firestore.collection("products").document(productId)
+
+                transaction.update(sellerRef, "likedProductIds", FieldValue.arrayRemove(productId))
+                transaction.update(productRef, "addedToLikedCount", FieldValue.increment(-1))
+            }.await()
 
             Result.success(Unit)
         } catch (ex: Exception) {
