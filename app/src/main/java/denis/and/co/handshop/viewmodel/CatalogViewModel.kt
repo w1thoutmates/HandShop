@@ -1,5 +1,6 @@
 package denis.and.co.handshop.viewmodel
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -9,6 +10,7 @@ import com.google.firebase.auth.FirebaseAuth
 import denis.and.co.handshop.data.model.CatalogState
 import denis.and.co.handshop.data.model.Product
 import denis.and.co.handshop.data.model.ProductWithSeller
+import denis.and.co.handshop.data.model.Seller
 import denis.and.co.handshop.data.repository.ProductRepository
 import denis.and.co.handshop.data.repository.SellerRepository
 import denis.and.co.handshop.di.AppDependencies
@@ -38,9 +40,27 @@ class CatalogViewModel(
     private val _isSearching = MutableStateFlow(false)
     val isSearching: StateFlow<Boolean> = _isSearching
 
+    private val _currentUser = MutableStateFlow<Seller?>(null)
+    val currentUser: StateFlow<Seller?> = _currentUser.asStateFlow()
+
     init {
         globalCatalogViewModel = this
+        loadCurrentUser()
         loadRecommendations()
+    }
+
+    private fun loadCurrentUser() {
+        viewModelScope.launch {
+            try {
+                val uid = sellerRepo.getCurrentUserId()
+                if (uid != null) {
+                    val result = sellerRepo.getSeller(uid)
+                    _currentUser.value = result.getOrNull()
+                }
+            } catch (ex: Exception) {
+                Log.e("CATALOG_VM", "Ошибка загрузки профиля пользователя", ex)
+            }
+        }
     }
 
     var scrollTrigger by mutableStateOf(0)
@@ -80,14 +100,13 @@ class CatalogViewModel(
         }
     }
 
-    fun loadRecommendations() {
+    fun loadRecommendationsWithoutFilteredByLocation() {
         viewModelScope.launch {
             _state.value = CatalogState.Loading
             try {
-                val currentUid = FirebaseAuth.getInstance().currentUser?.uid
-
-                val currentUser = currentUid?.let { AppDependencies.sellerRepository.getSeller(it) }
-                val tagStats = currentUser?.getOrNull()?.userTagStats ?: emptyMap()
+                val currentUser = _currentUser.value
+                val tagStats = currentUser?.userTagStats ?: emptyMap()
+                val selectedLocation = currentUser?.selectedLocation ?: "выбрать город"
 
                 val topTags = tagStats.entries
                     .sortedByDescending { it.value }
@@ -96,11 +115,21 @@ class CatalogViewModel(
 
                 val recommendedItems = if (topTags.isNotEmpty()) {
                     productRepo.getProductsByTags(topTags)
+                        .filter { product ->
+                            selectedLocation.isEmpty() ||
+                            selectedLocation == "выбрать город" ||
+                            product.targetCity == selectedLocation
+                        }
                 } else {
                     emptyList()
                 }
 
                 val allActiveItems = productRepo.getProducts()
+                    .filter { product ->
+                        selectedLocation.isEmpty() ||
+                        selectedLocation == "выбрать город" ||
+                        product.targetCity == selectedLocation
+                    }
 
                 val combinedList = (recommendedItems + allActiveItems).distinctBy { it.id }
 
@@ -141,13 +170,16 @@ class CatalogViewModel(
                 if (finalList.isEmpty()) {
                     _state.value = CatalogState.Empty
                 } else {
+                    val sellerIds = finalList.map { it.sellerId }
+                    val sellersMap = sellerRepo.getSellersByIds(sellerIds)
+
                     val itemsWithSellers = finalList.map { product ->
-                        val seller = AppDependencies.sellerRepository.getSeller(product.sellerId)
-                        ProductWithSeller(product, seller.getOrNull())
+                        ProductWithSeller(product, sellersMap[product.sellerId])
                     }
                     _state.value = CatalogState.Success(itemsWithSellers)
                 }
             } catch (ex: Exception) {
+                Log.e("CATALOG_VM", "Ошибка рекомендаций", ex)
                 _state.value = CatalogState.Error("Ошибка загрузки рекомендаций")
             }
         }
@@ -188,6 +220,163 @@ class CatalogViewModel(
     fun updateProductViewsCount(productId: String) {
         viewModelScope.launch {
             productRepo.updateProductViewsCount(productId)
+        }
+    }
+
+    fun loadProductsByCategory(category: String) {
+        viewModelScope.launch {
+            _isSearching.value = true
+            _state.value = CatalogState.Loading
+            try {
+                val products = productRepo.getProductsByCategory(category)
+
+                if (products.isEmpty()) {
+                    _state.value = CatalogState.Empty
+                    return@launch
+                }
+
+                val items = coroutineScope {
+                    products.map { product ->
+                        async {
+                            val seller = sellerRepo.getSeller(product.sellerId)
+                            ProductWithSeller(
+                                product = product,
+                                seller = seller.getOrNull()
+                            )
+                        }
+                    }.awaitAll()
+                }
+
+                _state.value = CatalogState.Success(items)
+            } catch (ex : Exception) {
+                _state.value = CatalogState.Error("Ошибка загрузки объявлений по категории \"$category\": ${ex.message}")
+            }
+        }
+    }
+
+    fun updateSelectedLocation(location: String) {
+        viewModelScope.launch {
+            try {
+                val userId = sellerRepo.getCurrentUserId() ?: return@launch
+                sellerRepo.updateSelectedLocation(userId = userId, location = location)
+
+                _currentUser.value = _currentUser.value?.copy(selectedLocation = location)
+
+                loadRecommendations()
+            } catch (ex: Exception) {
+                Log.e("UPDATE_SELECTED_LOCATION_ERROR", "Ошибка обновления города: ", ex)
+            }
+        }
+    }
+
+    fun loadRecommendations() {
+        viewModelScope.launch {
+            _state.value = CatalogState.Loading
+            try {
+                val currentUser = _currentUser.value
+                val tagStats = currentUser?.userTagStats ?: emptyMap()
+                val selectedLocation = currentUser?.selectedLocation ?: ""
+
+                val allActiveItems = productRepo.getProducts()
+
+                val localItems = if (selectedLocation.isBlank() || selectedLocation == "выбрать город") {
+                    emptyList()
+                } else {
+                    allActiveItems.filter { it.targetCity == selectedLocation }
+                }
+
+                val globalItems = if (localItems.isEmpty()) {
+                    allActiveItems
+                } else {
+                    allActiveItems.filter { it.targetCity != selectedLocation }
+                }
+
+                fun scoreProducts(products: List<Product>): List<Product> {
+                    return products.map { product ->
+                        val score = product.tags.sumOf { tag ->
+                            tagStats[tag] ?: 0
+                        } / product.tags.size.coerceAtLeast(1)
+
+                        product to score
+                    }
+                        .sortedByDescending { it.second }
+                        .map { it.first }
+                }
+
+                val sortedLocal = scoreProducts(localItems)
+                val sortedGlobal = scoreProducts(globalItems)
+
+                val finalList = mutableListOf<Product>()
+
+                val localIterator = sortedLocal.iterator()
+                val globalIterator = sortedGlobal.iterator()
+
+                while (localIterator.hasNext()) {
+                    repeat(4) {
+                        if (localIterator.hasNext()) {
+                            finalList.add(localIterator.next())
+                        }
+                    }
+
+                    if (globalIterator.hasNext()) {
+                        finalList.add(globalIterator.next())
+                    }
+                }
+
+                if (finalList.isEmpty()) {
+                    finalList.addAll(sortedGlobal)
+                }
+
+                val explorationRatio = 0.2f
+                val explorationCount = (finalList.size * explorationRatio)
+                    .toInt()
+                    .coerceAtLeast(1)
+
+                val localExploration = localItems
+                    .filter { it.id !in sortedLocal.take(20).map { it.id } }
+                    .shuffled()
+
+                val globalExploration = globalItems
+                    .filter { it.id !in sortedGlobal.take(20).map { it.id } }
+                    .shuffled()
+
+                val explorationItems = (
+                        localExploration.take(explorationCount / 2) +
+                                globalExploration.take(explorationCount / 2)
+                        ).shuffled()
+
+                val explorationIterator = explorationItems.iterator()
+                val enrichedList = mutableListOf<Product>()
+
+                finalList.forEachIndexed { index, product ->
+                    enrichedList.add(product)
+
+                    if (index % 5 == 4 && explorationIterator.hasNext()) {
+                        enrichedList.add(explorationIterator.next())
+                    }
+                }
+
+                while (explorationIterator.hasNext()) {
+                    enrichedList.add(explorationIterator.next())
+                }
+
+                if (enrichedList.isEmpty()) {
+                    _state.value = CatalogState.Empty
+                } else {
+                    val sellerIds = enrichedList.map { it.sellerId }
+                    val sellersMap = sellerRepo.getSellersByIds(sellerIds)
+
+                    val itemsWithSellers = enrichedList.map { product ->
+                        ProductWithSeller(product, sellersMap[product.sellerId])
+                    }
+
+                    _state.value = CatalogState.Success(itemsWithSellers)
+                }
+
+            } catch (ex: Exception) {
+                Log.e("CATALOG_VM", "Ошибка рекомендаций", ex)
+                _state.value = CatalogState.Error("Ошибка загрузки рекомендаций")
+            }
         }
     }
 

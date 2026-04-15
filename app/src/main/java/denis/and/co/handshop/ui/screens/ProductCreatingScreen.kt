@@ -35,6 +35,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.google.firebase.auth.FirebaseAuth
 import denis.and.co.handshop.data.enums.ProductStatus
+import denis.and.co.handshop.data.model.CategoryProvider
 import denis.and.co.handshop.data.model.Product
 import denis.and.co.handshop.ui.theme.*
 import denis.and.co.handshop.viewmodel.CreateProductViewModel
@@ -221,10 +222,10 @@ fun ProductCreatingScreen(
                     label = "Цена (₽)",
                     keyboardType = KeyboardType.Number
                 )
-                ProductTextField(
-                    value = category,
-                    onValueChange = { category = it },
-                    label = "Категория"
+                CategoryDropdown(
+                    selectedCategory = category,
+                    onCategorySelected = { category = it },
+                    categories = CategoryProvider.categories.map { it.name }
                 )
                 ProductTextField(
                     value = targetCity,
@@ -234,7 +235,7 @@ fun ProductCreatingScreen(
                 ProductTextField(
                     value = tagsString,
                     onValueChange = { tagsString = it },
-                    label = "Теги (через запятую, например: дерево, лампа)"
+                    label = "Теги (через запятую, например: дерево, мебель, одежда)"
                 )
 
                 Row(
@@ -346,4 +347,70 @@ fun ProductTextField(
         ),
         modifier = modifier
     )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CategoryDropdown(
+    selectedCategory: String,
+    onCategorySelected: (String) -> Unit,
+    categories: List<String>
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        OutlinedTextField(
+            value = selectedCategory,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Категория", fontFamily = Comfortaa, color = LowAlphaBlackText) },
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+            },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Accent,
+                unfocusedBorderColor = LowAlphaBlackText.copy(alpha = 0.5f),
+                cursorColor = Accent,
+                focusedTrailingIconColor = Accent,
+                unfocusedTrailingIconColor = LowAlphaBlackText
+            ),
+            textStyle = TextStyle(fontFamily = Comfortaa, color = BlackText, fontSize = 16.sp),
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth()
+        )
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier
+                .background(WhiteText)
+                .exposedDropdownSize()
+                .clip(RoundedCornerShape(12.dp))
+        ) {
+            categories.forEach { categoryName ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = categoryName,
+                            fontFamily = Comfortaa,
+                            color = BlackText,
+                            fontSize = 14.sp
+                        )
+                    },
+                    onClick = {
+                        onCategorySelected(categoryName)
+                        expanded = false
+                    },
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    modifier = Modifier.clip(RoundedCornerShape(12.dp))
+                )
+            }
+        }
+    }
 }

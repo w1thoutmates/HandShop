@@ -14,7 +14,8 @@ data class Seller(
     val contacts: Map<String, String> = emptyMap(),
     val userTagStats: Map<String, Long> = emptyMap(),
     val ratingSum: Double = 0.0,
-    val likedProductIds: List<String> = emptyList()
+    val likedProductIds: List<String> = emptyList(),
+    val selectedLocation: String = ""
 ) {
     init {
         require(rate in 0.0..5.0) { "Рейтинг не может быть ниже 0 и больше 5. Получен рейтинг: $rate" }

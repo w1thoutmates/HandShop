@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import denis.and.co.handshop.R
 import denis.and.co.handshop.data.model.CatalogState
+import denis.and.co.handshop.data.model.CategoryProvider
 import denis.and.co.handshop.ui.components.AppFooter
 import denis.and.co.handshop.ui.components.ProductListItem
 import denis.and.co.handshop.ui.navigation.ProductDetailsRoute
@@ -66,6 +67,7 @@ import denis.and.co.handshop.ui.theme.BlackText
 import denis.and.co.handshop.ui.theme.Comfortaa
 import denis.and.co.handshop.ui.theme.GreyText
 import denis.and.co.handshop.ui.theme.LowAlphaBlackText
+import denis.and.co.handshop.ui.theme.Onest
 import denis.and.co.handshop.ui.theme.SoftBack
 import denis.and.co.handshop.ui.theme.WhiteText
 import denis.and.co.handshop.viewmodel.CatalogViewModel
@@ -83,7 +85,7 @@ fun SearchingScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(SoftBack)
-            .verticalScroll(rememberScrollState())
+//            .verticalScroll(rememberScrollState())
     ) {
         Column(
             modifier = Modifier
@@ -210,7 +212,7 @@ fun SearchingScreen(
             }
 
             if (!isSearching)
-                SearchingScreenContent(PaddingValues(0.dp))
+                SearchingScreenContent(PaddingValues(0.dp), catalogViewModel)
             else
                 SearchResultsContent(
                     state = uiState,
@@ -225,33 +227,25 @@ fun SearchingScreen(
     }
 }
 
-val categories = listOf(
-    Pair("Украшения и аксессуары", R.drawable.diamond_icon),
-    Pair("Дом и интерьер", R.drawable.furniture_icon),
-    Pair("Одежда и обувь", R.drawable.clothes_icon),
-    Pair("Игрушки и товары для детей", R.drawable.plush_toys_icon),
-    Pair("Подарки и праздники", R.drawable.gift_icon)
-)
-
 @Composable
-fun SearchingScreenContent(modifier: PaddingValues) {
+fun SearchingScreenContent(
+    modifier: PaddingValues,
+    viewModel: CatalogViewModel
+) {
     LazyColumn(modifier = Modifier.padding(modifier)) {
         items(
-            categories + Pair("Другое", R.drawable.three_dots_icon)
-        ) { item ->
+            CategoryProvider.categories
+        ) { category ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable {
-                        /*
-                            вызов навигации на экран со списком отфильтрованных
-                            товаров по категории, через view model
-                        */
+                        viewModel.loadProductsByCategory(category.name)
                     },
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Image(
-                    painter =  painterResource(item.second),
+                    painter =  painterResource(category.iconRes),
                     contentDescription = null,
                     modifier = Modifier
                         .size(35.dp)
@@ -260,7 +254,7 @@ fun SearchingScreenContent(modifier: PaddingValues) {
                 )
 
                 Text(
-                    text = item.first,
+                    text = category.name,
                     style = TextStyle(
                         fontFamily = Comfortaa,
                         color = BlackText,
@@ -320,7 +314,13 @@ fun SearchResultsContent(
 
         is CatalogState.Empty -> {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Ничего не найдено")
+                Text(
+                    text = "Ничего не найдено",
+                    modifier = Modifier.align(Alignment.Center),
+                    fontFamily = Onest,
+                    color = LowAlphaBlackText,
+                    fontSize = 20.sp
+                )
             }
         }
 

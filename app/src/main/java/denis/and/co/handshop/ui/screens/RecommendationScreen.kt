@@ -62,6 +62,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import denis.and.co.handshop.R
 import denis.and.co.handshop.data.model.CatalogState
 import denis.and.co.handshop.ui.components.AppFooter
+import denis.and.co.handshop.ui.components.LocationSelectionDialog
 import denis.and.co.handshop.ui.components.ProductListItem
 import denis.and.co.handshop.ui.navigation.CreateProductRoute
 import denis.and.co.handshop.ui.navigation.LikedRoute
@@ -78,6 +79,13 @@ fun RecommendationScreen(
     catalogViewModel: CatalogViewModel
     ) {
     val listState = rememberLazyListState()
+    val currentUser by catalogViewModel.currentUser.collectAsState()
+    val locationText = if (currentUser?.selectedLocation.isNullOrBlank()) {
+        "выбрать город"
+    } else {
+        currentUser?.selectedLocation!!
+    }
+    var showDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(catalogViewModel.scrollTrigger) {
         if (catalogViewModel.scrollTrigger > 0) {
@@ -86,9 +94,14 @@ fun RecommendationScreen(
     }
 
     Scaffold(
-        topBar = { Header(onSearch = { query ->
-            catalogViewModel.search(query)
-        }) },
+        topBar = {
+            Header(
+                onSearch = { query ->
+                    catalogViewModel.search(query)
+                },
+                navController = navController
+            )
+        },
         bottomBar = { AppFooter(navController) },
         modifier = Modifier
             .background(SoftBack)
@@ -125,16 +138,7 @@ fun RecommendationScreen(
                     modifier = Modifier
                         .padding(end = 10.dp)
                         .clickable {
-                            /*
-                                открывать менюшку где будет выбор городов.
-                                так же добавить в firebase collection
-                                города, в ней будут появляться новые города
-                                по мере создания объявлений, типо кто то создал город
-                                и он попал в эту collection и потом этот город находился бы
-                                в этом выпадающем списке. Если пользователь не нашел город
-                                - добавляет вбивает его в поиск и потом после этого открывается
-                                список с определенной фильтрацией по городу
-                            */
+                            showDialog = true
                         }
                 ) {
                     Icon(
@@ -143,7 +147,7 @@ fun RecommendationScreen(
                     )
 
                     Text(
-                        text = "выбрать город",
+                        text = locationText,
                         style = TextStyle(
                             fontFamily = Comfortaa,
                             color = LowAlphaBlackText,
@@ -162,12 +166,23 @@ fun RecommendationScreen(
                     navController.navigate(ProductDetailsRoute(id))
                 }
             )
+
+            if (showDialog) {
+                LocationSelectionDialog(
+                    onDismissRequest = { showDialog = false },
+                    onLocationSelected = { city ->
+                        catalogViewModel.updateSelectedLocation(city)
+                        showDialog = false
+                    },
+                    currentLocation = locationText
+                )
+            }
         }
     }
 }
 
 @Composable
-fun Header(onSearch: (String) -> Unit) {
+fun Header(onSearch: (String) -> Unit, navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -190,7 +205,7 @@ fun Header(onSearch: (String) -> Unit) {
             )
 
             Button(
-                onClick = { /* catalog open fun + catalog icon anim. */ },
+                onClick = { navController.navigate(SearchByCategoryRoute) },
                 shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Accent, contentColor = WhiteText),
                 contentPadding = PaddingValues(

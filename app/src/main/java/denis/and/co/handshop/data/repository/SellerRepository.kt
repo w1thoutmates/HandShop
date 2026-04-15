@@ -128,4 +128,17 @@ class SellerRepository {
             emptyMap()
         }
     }
+
+    suspend fun updateSelectedLocation(userId: String, location: String): Result<Unit> {
+        return try {
+            firestore.collection("sellers")
+                .document(userId)
+                .update("selectedLocation", location)
+                .await()
+
+            Result.success(Unit)
+        } catch (ex: Exception) {
+            Result.failure(ex)
+        }
+    }
 }

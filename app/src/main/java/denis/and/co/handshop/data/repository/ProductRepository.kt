@@ -182,4 +182,22 @@ class ProductRepository {
             emptyList()
         }
     }
+
+    suspend fun getProductsByCategory(category: String): List<Product> {
+        return try {
+            val snapshot = productsCollection
+                .whereEqualTo("status", ProductStatus.ACTIVE)
+                .whereEqualTo("category", category)
+                .get()
+                .await()
+
+            Log.d("FIREBASE_DATA", "Найдено документов: ${snapshot.size()}")
+            snapshot.documents.mapNotNull { doc ->
+                doc.toObject(Product::class.java)?.copy(id = doc.id)
+            }
+        } catch (ex: Exception) {
+            Log.e("FIREBASE_MAP_ERROR", "Ошибка маппинга: ", ex)
+            emptyList()
+        }
+    }
 }
