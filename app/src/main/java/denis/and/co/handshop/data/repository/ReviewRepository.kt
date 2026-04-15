@@ -2,7 +2,6 @@ package denis.and.co.handshop.data.repository
 
 import android.util.Log
 import com.google.firebase.Firebase
-import com.google.firebase.firestore.Filter
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
 import denis.and.co.handshop.data.model.Review

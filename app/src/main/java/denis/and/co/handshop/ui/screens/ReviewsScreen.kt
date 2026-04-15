@@ -59,11 +59,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Popup
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import denis.and.co.handshop.R
 import denis.and.co.handshop.data.model.Review
+import denis.and.co.handshop.ui.components.ReviewsRateAnalyticalCard
 import denis.and.co.handshop.ui.navigation.ProfileRoute
 import denis.and.co.handshop.ui.theme.Accent
 import denis.and.co.handshop.ui.theme.BlackText
@@ -98,14 +100,21 @@ fun ReviewsScreenContent(
     viewModel: ReviewsViewModel,
     navController: NavController
 ) {
+    val seller by viewModel.seller.collectAsState()
+    val reviews by viewModel.reviews.collectAsState()
+
+    val ratio = remember(reviews) {
+        reviews.groupBy { it.selectedRate }
+            .mapValues { it.value.size }
+    }
+
     var sortOption by remember { mutableStateOf("Сначала новые") };
     var showSortMenu by remember { mutableStateOf(false) }
-
     var input by remember { mutableStateOf("") }
-
     var selectedRate by remember { mutableStateOf(0) }
+    var showPopup by remember { mutableStateOf(false) }
 
-    val seller by viewModel.seller.collectAsState()
+    val context = LocalContext.current
 
     Column(Modifier.fillMaxSize()) {
         Card(
@@ -324,15 +333,28 @@ fun ReviewsScreenContent(
                                 .padding(end = 15.dp)
                                 .size(40.dp)
                                 .clickable {
-                                    /*
-                                        открытие меню со статистикой по оценкам
-                                        5шт прогресс баров с соотношением поставленных оценок
-                                        например 5 - 100 оценок, 4 - 30 оценок, 3 - 0 оценок,
-                                        2 - 10 оценок, 1 - 30 оценок
-                                    */
+                                    showPopup = true
                                 },
                             tint = BlackText.copy(alpha = 0.6f)
                         )
+                    }
+                }
+
+                if (showPopup && seller != null) {
+                    Popup(
+                        alignment = Alignment.Center,
+                        onDismissRequest = { showPopup = false }
+                    ) {
+                        Box(
+                            Modifier
+                                .padding(horizontal = 20.dp)
+                                .shadow(5.dp, RoundedCornerShape(16.dp))
+                        ) {
+                            ReviewsRateAnalyticalCard(
+                                seller = seller ?: return@Popup,
+                                ratio = ratio
+                            )
+                        }
                     }
                 }
             }
@@ -388,8 +410,6 @@ fun ReviewsScreenContent(
                         .fillMaxWidth()
                         .padding(top = 10.dp, start = 16.dp, end = 16.dp)
                 )
-
-                val context = LocalContext.current
 
                 Button(
                     onClick = {

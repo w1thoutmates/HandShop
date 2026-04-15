@@ -46,7 +46,6 @@ class CatalogViewModel(
     init {
         globalCatalogViewModel = this
         loadCurrentUser()
-        loadRecommendations()
     }
 
     private fun loadCurrentUser() {
@@ -56,9 +55,15 @@ class CatalogViewModel(
                 if (uid != null) {
                     val result = sellerRepo.getSeller(uid)
                     _currentUser.value = result.getOrNull()
+
+                    loadRecommendations()
+                } else {
+                    loadRecommendations()
                 }
             } catch (ex: Exception) {
                 Log.e("CATALOG_VM", "Ошибка загрузки профиля пользователя", ex)
+
+                loadRecommendations()
             }
         }
     }

@@ -49,6 +49,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -103,7 +104,7 @@ fun SearchingScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth(0.9f)
-                        .height(45.dp)
+                        .height(50.dp)
                         .dropShadow(
                             shape = RoundedCornerShape(15.dp),
                             shadow = Shadow(
@@ -116,7 +117,9 @@ fun SearchingScreen(
                     TextField(
                         value = input,
                         onValueChange = { newValue -> input = newValue },
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(end = 2.dp),
                         colors = TextFieldDefaults.colors(
                             focusedTextColor = BlackText,
                             unfocusedTextColor = GreyText,
@@ -132,13 +135,13 @@ fun SearchingScreen(
                                 "Найти в Ручной Лавке",
                                 style = TextStyle(
                                     fontFamily = Comfortaa,
-                                    color = Color(0x66000000),
+                                    color = LowAlphaBlackText,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 15.sp
                                 ),
                             )
                         },
-                        shape = RoundedCornerShape(14.dp)
+                        shape = RoundedCornerShape(14.dp),
                     )
 
                     Button(
