@@ -5,6 +5,7 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -27,6 +29,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -35,7 +38,9 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,11 +55,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.toColorInt
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import denis.and.co.handshop.data.model.Seller
+import denis.and.co.handshop.ui.components.ColorPickerDialog
 import denis.and.co.handshop.ui.theme.Accent
 import denis.and.co.handshop.ui.theme.BlackText
 import denis.and.co.handshop.ui.theme.Comfortaa
@@ -99,6 +106,10 @@ fun EditProfileScreen(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri -> localAvatarUri = uri }
     )
+
+    LaunchedEffect(seller) {
+        viewModel.initColorsFromSeller(seller)
+    }
 
     Scaffold(
         topBar = {
@@ -148,6 +159,12 @@ fun EditProfileScreen(
                             description = description,
                             profileImage = seller?.profileImage ?: "",
                             coverImageUrl = seller?.coverImageUrl ?: "",
+                            selfProfileBackground = viewModel.selfProfileBackground,
+                            selfProfileTextColor = viewModel.selfProfileTextColor,
+                            selfProfileFooterColor = viewModel.selfProfileFooterColor,
+                            selfProfileAccentColor = viewModel.selfProfileAccentColor,
+                            selfProfileAccentTextColor = viewModel.selfProfileAccentTextColor,
+                            selfProfileIconsColor = viewModel.selfProfileIconsColor,
                             contacts = mapOf(
                                 "Номер телефона" to phone,
                                 "Почта" to email,
@@ -303,6 +320,51 @@ fun EditProfileScreen(
             ProfileTextField(value = email, onValueChange = { email = it }, label = "Электронная почта")
             ProfileTextField(value = telegram, onValueChange = { telegram = it }, label = "Телеграм (@username)")
 
+            Text(
+                text = "Цветовая палитра профиля",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = BlackText,
+                fontFamily = Comfortaa,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+
+            ColorField(
+                color = Color(viewModel.selfProfileBackground.toColorInt()),
+                onColorChange = { viewModel.setSelfProfileBackgroundColor(it) },
+                label = "Основной цвет (задний фон)"
+            )
+
+            ColorField(
+                color = Color(viewModel.selfProfileTextColor.toColorInt()),
+                onColorChange = { viewModel.setSelfProfileTextColor(it) },
+                label = "Основной цвет текста"
+            )
+
+            ColorField(
+                color = Color(viewModel.selfProfileFooterColor.toColorInt()),
+                onColorChange = { viewModel.setSelfProfileFooterColor(it) },
+                label = "Цвет панели навигации"
+            )
+
+            ColorField(
+                color = Color(viewModel.selfProfileAccentColor.toColorInt()),
+                onColorChange = { viewModel.setSelfProfileAccentColor(it) },
+                label = "Акцентированный цвет (цвет кнопок)"
+            )
+
+            ColorField(
+                color = Color(viewModel.selfProfileAccentTextColor.toColorInt()),
+                onColorChange = { viewModel.setSelfProfileAccentTextColor(it) },
+                label = "Акцентированный цвет текста (цвет текста на кнопках)"
+            )
+
+            ColorField(
+                color = Color(viewModel.selfProfileIconsColor.toColorInt()),
+                onColorChange = { viewModel.setSelfProfileIconsColor(it) },
+                label = "Цвет иконок"
+            )
+
             Spacer(modifier = Modifier.height(30.dp))
         }
     }
@@ -330,4 +392,73 @@ fun ProfileTextField(
         ),
         modifier = modifier
     )
+}
+
+@Composable
+fun ColorField(
+    color: Color,
+    onColorChange: (Color) -> Unit,
+    label: String
+) {
+    var showPicker by remember { mutableStateOf(false) }
+
+    val hex = remember(color) {
+        "#%02X%02X%02X".format(
+            (color.red * 255).toInt(),
+            (color.green * 255).toInt(),
+            (color.blue * 255).toInt()
+        )
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = ripple(bounded = true),
+                onClick = { showPicker = true }
+            )
+    ) {
+        OutlinedTextField(
+            value = hex,
+            onValueChange = {},
+            readOnly = true,
+            label = {
+                Text(label, fontFamily = Comfortaa, color = LowAlphaBlackText)
+            },
+            textStyle = TextStyle(
+                fontFamily = Comfortaa,
+                color = BlackText,
+                fontSize = 16.sp
+            ),
+            shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Accent,
+                unfocusedBorderColor = LowAlphaBlackText.copy(alpha = 0.5f),
+                cursorColor = Accent
+            ),
+            trailingIcon = {
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(CircleShape)
+                        .background(color)
+                )
+            },
+            modifier = Modifier
+                .fillMaxWidth(),
+            enabled = false
+        )
+    }
+
+    if (showPicker) {
+        ColorPickerDialog(
+            initialColor = color,
+            onDismiss = { showPicker = false },
+            onColorSelected = {
+                onColorChange(it)
+                showPicker = false
+            }
+        )
+    }
 }

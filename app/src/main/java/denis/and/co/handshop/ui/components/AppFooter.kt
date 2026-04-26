@@ -20,34 +20,49 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.toColorInt
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import denis.and.co.handshop.R
+import denis.and.co.handshop.data.model.Seller
 import denis.and.co.handshop.di.AppDependencies.globalCatalogViewModel
 import denis.and.co.handshop.ui.navigation.CreateProductRoute
 import denis.and.co.handshop.ui.navigation.LikedRoute
 import denis.and.co.handshop.ui.navigation.ProfileRoute
 import denis.and.co.handshop.ui.navigation.RecommendationRoute
 import denis.and.co.handshop.ui.navigation.SearchByCategoryRoute
+import denis.and.co.handshop.ui.theme.BlackText
 import denis.and.co.handshop.ui.theme.HardBack
 import denis.and.co.handshop.ui.theme.SoftBack
 
 @Composable
-fun AppFooter(navController: NavController) {
+fun AppFooter(navController: NavController, seller: Seller? = null) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(SoftBack)
+            .background(
+                if (seller == null)
+                        SoftBack
+                    else
+                        Color(seller.selfProfileBackground.toColorInt())
+            )
             .clip(RoundedCornerShape(15.dp, 15.dp, 0.dp, 0.dp))
-            .background(HardBack)
+            .background(
+                if (seller == null)
+                    HardBack
+                else
+                    Color(seller.selfProfileFooterColor.toColorInt())
+            )
     ) {
         Row(
             modifier = Modifier
@@ -71,7 +86,8 @@ fun AppFooter(navController: NavController) {
                             restoreState = false
                         }
                     }
-                }
+                },
+                seller = seller
             )
 
             Spacer(Modifier.width(45.dp))
@@ -79,7 +95,8 @@ fun AppFooter(navController: NavController) {
             FooterItem(
                 iconRes = R.drawable.search_nav,
                 isSelected = currentDestination?.hasRoute<SearchByCategoryRoute>() == true,
-                onClick = { navController.navigate(SearchByCategoryRoute) }
+                onClick = { navController.navigate(SearchByCategoryRoute) },
+                seller = seller
             )
 
             Spacer(Modifier.width(45.dp))
@@ -87,7 +104,8 @@ fun AppFooter(navController: NavController) {
             FooterItem(
                 iconRes = R.drawable.add_image,
                 isSelected = currentDestination?.hasRoute<CreateProductRoute>() == true,
-                onClick = { navController.navigate(CreateProductRoute) }
+                onClick = { navController.navigate(CreateProductRoute) },
+                seller = seller
             )
 
             Spacer(Modifier.width(45.dp))
@@ -95,7 +113,8 @@ fun AppFooter(navController: NavController) {
             FooterItem(
                 iconRes = R.drawable.liked_nav,
                 isSelected = currentDestination?.hasRoute<LikedRoute>() == true,
-                onClick = { navController.navigate(LikedRoute) }
+                onClick = { navController.navigate(LikedRoute) },
+                seller = seller
             )
 
             Spacer(Modifier.width(45.dp))
@@ -103,7 +122,8 @@ fun AppFooter(navController: NavController) {
             FooterItem(
                 iconRes = R.drawable.profile_nav,
                 isSelected = currentDestination?.hasRoute<ProfileRoute>() == true,
-                onClick = { navController.navigate(ProfileRoute()) }
+                onClick = { navController.navigate(ProfileRoute()) },
+                seller = seller
             )
         }
     }
@@ -113,7 +133,8 @@ fun AppFooter(navController: NavController) {
 fun FooterItem(
     iconRes: Int,
     isSelected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    seller: Seller? = null
 ) {
     Image(
         painter = painterResource(id = iconRes),
@@ -125,6 +146,11 @@ fun FooterItem(
                 indication = null
             ) { onClick() }
             .alpha(if (isSelected) 1f else 0.5f),
-        contentScale = ContentScale.FillBounds
+        contentScale = ContentScale.FillBounds,
+        colorFilter =
+            if (seller == null)
+                ColorFilter.tint(BlackText)
+            else
+                ColorFilter.tint(Color(seller.selfProfileIconsColor.toColorInt()))
     )
 }

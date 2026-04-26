@@ -169,7 +169,7 @@ fun SellerProfileScreen(
                             text = currentSeller.sellerName,
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
-                            color = BlackText,
+                            color = Color(currentSeller.selfProfileTextColor.toColorInt()),
                             fontFamily = Comfortaa,
                             modifier = Modifier.weight(1f)
                         )
@@ -177,7 +177,7 @@ fun SellerProfileScreen(
                             Icon(
                                 imageVector = Icons.Outlined.Edit,
                                 contentDescription = null,
-                                tint = BlackText,
+                                tint = Color(currentSeller.selfProfileIconsColor.toColorInt()),
                                 modifier = Modifier
                                     .size(20.dp)
                                     .clickable {
@@ -192,7 +192,7 @@ fun SellerProfileScreen(
                     Text(
                         text = currentSeller.description,
                         fontSize = 14.sp,
-                        color = LowAlphaBlackText,
+                        color = Color(currentSeller.selfProfileTextColor.toColorInt()).copy(alpha = 0.66f),
                         lineHeight = 20.sp,
                         fontFamily = Comfortaa
                     )
@@ -204,7 +204,7 @@ fun SellerProfileScreen(
                     modifier = Modifier.padding(15.dp)
                 )
 
-                ContactInfoBlock(currentSeller.contacts)
+                ContactInfoBlock(currentSeller.contacts, currentSeller)
 
                 HorizontalDivider(
                     thickness = 2.dp,
@@ -217,7 +217,7 @@ fun SellerProfileScreen(
                         text = "Портфолио",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = BlackText,
+                        color = Color(currentSeller.selfProfileTextColor.toColorInt()),
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                         fontFamily = Comfortaa
                     )
@@ -238,7 +238,7 @@ fun SellerProfileScreen(
                         text = "Опубликованные товары ",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = BlackText,
+                        color = Color(currentSeller.selfProfileTextColor.toColorInt()),
                         fontFamily = Comfortaa
                     )
 
@@ -246,7 +246,7 @@ fun SellerProfileScreen(
                         text = "(${viewModel.sellerProducts.value.count()})",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = LowAlphaBlackText,
+                        color = Color(currentSeller.selfProfileTextColor.toColorInt()).copy(alpha = 0.66f),
                         fontFamily = Comfortaa
                     )
                 }
@@ -261,7 +261,7 @@ fun SellerProfileScreen(
                     Text(
                         text = "Нет товаров",
                         fontFamily = Comfortaa,
-                        color = LowAlphaBlackText,
+                        color = Color(currentSeller.selfProfileTextColor.toColorInt()).copy(alpha = 0.66f),
                         modifier = Modifier.padding(horizontal = 16.dp)
                     )
                 } else {
@@ -331,13 +331,13 @@ fun SellerProfileScreen(
                         fontFamily = Comfortaa,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
-                        color = Color(seller?.selfProfileAccentTextColor!!.toColorInt())
+                        color = Color(currentSeller.selfProfileAccentTextColor.toColorInt())
                     )
                 }
 
             }
 
-            AppFooter(navController)
+            AppFooter(navController, currentSeller)
         }
     } ?: Box(Modifier.fillMaxSize()) { CircularProgressIndicator(Modifier.align(Alignment.Center), color = Accent) }
 }
@@ -362,7 +362,7 @@ fun RatingBlock(seller: Seller, navController: NavController) {
             text = "${seller.rate.let { String.format("%.2f", it) }} ($count отзывов)",
             fontSize = 18.sp,
             fontFamily = Comfortaa,
-            color = LowAlphaBlackText,
+            color = Color(seller.selfProfileTextColor.toColorInt()).copy(alpha = 0.66f),
             modifier = Modifier.padding(start = 8.dp)
         )
 //        Spacer(modifier = Modifier.weight(1f))
@@ -385,7 +385,7 @@ fun RatingBlock(seller: Seller, navController: NavController) {
 }
 
 @Composable
-fun ContactInfoBlock(contacts: Map<String, String>) {
+fun ContactInfoBlock(contacts: Map<String, String>, seller: Seller) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -395,7 +395,7 @@ fun ContactInfoBlock(contacts: Map<String, String>) {
             text = "Связаться с мастером",
             fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold,
-            color = BlackText,
+            color = Color(seller.selfProfileTextColor.toColorInt()),
             fontFamily = Comfortaa,
             modifier = Modifier.padding(bottom = 8.dp)
         )
@@ -416,8 +416,8 @@ fun ContactInfoBlock(contacts: Map<String, String>) {
                     modifier = Modifier.size(20.dp)
                 )
                 Column(modifier = Modifier.padding(start = 12.dp)) {
-                    Text(text = type, fontSize = 10.sp, color = LowAlphaBlackText, fontFamily = Comfortaa)
-                    Text(text = value, fontSize = 14.sp, color = BlackText, fontFamily = Comfortaa)
+                    Text(text = type, fontSize = 10.sp, color = Color(seller.selfProfileTextColor.toColorInt()).copy(alpha = 0.66f), fontFamily = Comfortaa)
+                    Text(text = value, fontSize = 14.sp, color = Color(seller.selfProfileTextColor.toColorInt()), fontFamily = Comfortaa)
                 }
             }
         }

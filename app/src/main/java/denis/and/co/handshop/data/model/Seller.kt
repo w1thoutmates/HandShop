@@ -27,7 +27,8 @@ data class Seller(
     val selfProfileBackground: String = SoftBack.toHexString(),
     val selfProfileFooterColor: String = HardBack.toHexString(),
     val selfProfileAccentColor: String = Accent.toHexString(),
-    val selfProfileAccentTextColor: String = WhiteText.toHexString()
+    val selfProfileAccentTextColor: String = WhiteText.toHexString(),
+    val selfProfileIconsColor: String = BlackText.toHexString()
 ) {
     init {
         require(rate in 0.0..5.0) { "Рейтинг не может быть ниже 0 и больше 5. Получен рейтинг: $rate" }
