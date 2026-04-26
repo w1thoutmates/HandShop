@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,6 +19,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -135,6 +137,32 @@ fun LikedProductListItem(
                             maxLines = 3,
                             overflow = TextOverflow.Ellipsis
                         )
+
+                        Spacer(Modifier.weight(1f))
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Image(
+                                painter = painterResource(R.drawable.mark),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(25.dp)
+                                    .padding(end = 5.dp)
+                            )
+
+                            Text(
+                                text = product.targetCity,
+                                style = TextStyle(
+                                    fontFamily = Onest,
+                                    color = BlackText,
+                                    fontWeight = FontWeight.Normal,
+                                    fontSize = 14.sp,
+                                ),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
                     }
 
                     if (seller != null) {
@@ -195,7 +223,7 @@ fun LikedProductListItem(
 
                             Row(
                                 modifier = Modifier
-                                    .padding(16.dp),
+                                    .padding(end = 16.dp, start = 16.dp, top = 30.dp),
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
                                 Icon(

@@ -58,6 +58,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.toColorInt
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -110,7 +111,7 @@ fun SellerProfileScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(SoftBack)
+                .background(Color(currentSeller.selfProfileBackground.toColorInt()))
         ) {
             Column(
                 modifier = Modifier
@@ -322,7 +323,7 @@ fun SellerProfileScreen(
                         .fillMaxWidth()
                         .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
                         .height(50.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Accent),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(currentSeller.selfProfileAccentColor.toColorInt())),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
@@ -330,7 +331,7 @@ fun SellerProfileScreen(
                         fontFamily = Comfortaa,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
-                        color = WhiteText
+                        color = Color(seller?.selfProfileAccentTextColor!!.toColorInt())
                     )
                 }
 

@@ -15,11 +15,11 @@
       },
       "oauth_client": [
         {
-          "client_id": "347704872995-qaq5b8rut2a194mg4evuj0bql5iqtvvt.apps.googleusercontent.com",
+          "client_id": "347704872995-v2f6fpvp7v1f999pcnptpgj5l8iarsmb.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "denis.and.co.handshop",
-            "certificate_hash": "e07cb83b408f9c84d741f1a28e71d525db01d00c"
+            "certificate_hash": "e659bafc271facd9f8ff6d4cfc3294223054b7ed"
           }
         },
         {
