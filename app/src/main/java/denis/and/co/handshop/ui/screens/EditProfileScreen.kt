@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -28,8 +27,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -49,16 +46,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toColorLong
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import denis.and.co.handshop.data.model.Seller
 import denis.and.co.handshop.ui.components.ColorPickerDialog
@@ -70,6 +65,9 @@ import denis.and.co.handshop.ui.theme.LowAlphaBlackText
 import denis.and.co.handshop.ui.theme.SoftBack
 import denis.and.co.handshop.ui.theme.WhiteText
 import denis.and.co.handshop.viewmodel.EditProfileViewModel
+import androidx.core.graphics.ColorUtils
+import denis.and.co.handshop.ui.theme.Onest
+
 
 @Composable
 fun EditProfileScreen(
@@ -341,11 +339,30 @@ fun EditProfileScreen(
                 label = "Основной цвет текста"
             )
 
-            ColorField(
-                color = Color(viewModel.selfProfileFooterColor.toColorInt()),
-                onColorChange = { viewModel.setSelfProfileFooterColor(it) },
-                label = "Цвет панели навигации"
-            )
+            if (!isContrasted(
+                    Color(viewModel.selfProfileTextColor.toColorInt()),
+                    Color(viewModel.selfProfileBackground.toColorInt())
+                )
+            ) {
+                Box(
+                    modifier = Modifier
+                        .padding(5.dp)
+                        .background(SoftBack)
+                        .clip(RoundedCornerShape(15.dp))
+                        .background(Color.Black.copy(0.1f))
+                ) {
+                    Text(
+                        text = "⚠ Внимание: Текст будет плохо читаться на выбранном фоне. Выберите более контрастные цвета.",
+                        style = TextStyle(
+                            fontFamily = Onest,
+                            color = Color.Yellow,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        ),
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+            }
 
             ColorField(
                 color = Color(viewModel.selfProfileAccentColor.toColorInt()),
@@ -359,11 +376,67 @@ fun EditProfileScreen(
                 label = "Акцентированный цвет текста (цвет текста на кнопках)"
             )
 
+            if (!isContrasted(
+                    Color(viewModel.selfProfileAccentTextColor.toColorInt()),
+                    Color(viewModel.selfProfileAccentColor.toColorInt())
+                )
+            ) {
+                Box(
+                    modifier = Modifier
+                        .padding(5.dp)
+                        .background(SoftBack)
+                        .clip(RoundedCornerShape(15.dp))
+                        .background(Color.Black.copy(0.1f))
+                ) {
+                    Text(
+                        text = "⚠ Внимание: Текст будет плохо читаться на выбранном фоне. Выберите более контрастные цвета.",
+                        style = TextStyle(
+                            fontFamily = Onest,
+                            color = Color.Yellow,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        ),
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+            }
+
+            ColorField(
+                color = Color(viewModel.selfProfileFooterColor.toColorInt()),
+                onColorChange = { viewModel.setSelfProfileFooterColor(it) },
+                label = "Цвет панели навигации"
+            )
+
             ColorField(
                 color = Color(viewModel.selfProfileIconsColor.toColorInt()),
                 onColorChange = { viewModel.setSelfProfileIconsColor(it) },
                 label = "Цвет иконок"
             )
+
+            if (!isContrasted(
+                    Color(viewModel.selfProfileFooterColor.toColorInt()),
+                    Color(viewModel.selfProfileIconsColor.toColorInt())
+                )
+            ) {
+                Box(
+                    modifier = Modifier
+                        .padding(5.dp)
+                        .background(SoftBack)
+                        .clip(RoundedCornerShape(15.dp))
+                        .background(Color.Black.copy(0.1f))
+                ) {
+                    Text(
+                        text = "⚠ Внимание: Иконки будут плохо видны на выбранном фоне. Выберите более контрастные цвета.",
+                        style = TextStyle(
+                            fontFamily = Onest,
+                            color = Color.Yellow,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        ),
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(30.dp))
         }
@@ -461,4 +534,19 @@ fun ColorField(
             }
         )
     }
+}
+
+fun isContrasted(foreground: Color, background: Color): Boolean {
+    val fgInt = android.graphics.Color.rgb(
+        (foreground.red * 255).toInt(),
+        (foreground.green * 255).toInt(),
+        (foreground.blue * 255).toInt()
+    )
+    val bgInt = android.graphics.Color.rgb(
+        (background.red * 255).toInt(),
+        (background.green * 255).toInt(),
+        (background.blue * 255).toInt()
+    )
+
+    return ColorUtils.calculateContrast(fgInt, bgInt) >= 4.5
 }
