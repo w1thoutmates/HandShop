@@ -36,20 +36,24 @@ import denis.and.co.handshop.ui.navigation.EditProductRoute
 import denis.and.co.handshop.ui.navigation.EditProfileRoute
 import denis.and.co.handshop.ui.navigation.LikedRoute
 import denis.and.co.handshop.ui.navigation.LoginRoute
+import denis.and.co.handshop.ui.navigation.MetricsRoute
 import denis.and.co.handshop.ui.navigation.ProductDetailsRoute
 import denis.and.co.handshop.ui.navigation.ProfileRoute
 import denis.and.co.handshop.ui.navigation.RecommendationRoute
 import denis.and.co.handshop.ui.navigation.ReviewsRoute
 import denis.and.co.handshop.ui.navigation.SearchByCategoryRoute
+import denis.and.co.handshop.ui.navigation.SellerRateMetricRoute
 import denis.and.co.handshop.ui.screens.EditProfileScreen
 import denis.and.co.handshop.ui.screens.LikedProductsScreen
 import denis.and.co.handshop.ui.screens.LoginScreen
+import denis.and.co.handshop.ui.screens.MetricsScreen
 import denis.and.co.handshop.ui.screens.ProductCreatingScreen
 import denis.and.co.handshop.ui.screens.ProductDetailsScreen
 import denis.and.co.handshop.ui.screens.RecommendationScreen
 import denis.and.co.handshop.ui.screens.ReviewsScreen
 import denis.and.co.handshop.ui.screens.SearchingScreen
 import denis.and.co.handshop.ui.screens.SellerProfileScreen
+import denis.and.co.handshop.ui.screens.metrics.SellerRateMetricScreen
 import denis.and.co.handshop.ui.theme.Accent
 import denis.and.co.handshop.viewmodel.AuthViewModel
 import denis.and.co.handshop.viewmodel.CatalogViewModel
@@ -359,6 +363,30 @@ class MainActivity : ComponentActivity() {
                     )
 
                     ReviewsScreen(viewModel = reviewsVm, navController = navController)
+                }
+
+                composable<MetricsRoute> {backStackEntry ->
+                    val route: MetricsRoute = backStackEntry.toRoute()
+
+                    MetricsScreen(navController, route.sellerId)
+                }
+
+                composable<SellerRateMetricRoute> { backStackEntry ->
+                    val route: SellerRateMetricRoute = backStackEntry.toRoute()
+
+                    val reviewsVm: ReviewsViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                return ReviewsViewModel(
+                                    sellerId = route.sellerId,
+                                    reviewsRepo = AppDependencies.reviewsRepository,
+                                    sellerRepo = AppDependencies.sellerRepository
+                                ) as T
+                            }
+                        }
+                    )
+
+                    SellerRateMetricScreen(navController, reviewsVm)
                 }
             }
         }

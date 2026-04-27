@@ -1,6 +1,8 @@
 package denis.and.co.handshop.ui.screens
 
-import android.widget.Toast
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -13,10 +15,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
@@ -28,24 +32,25 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
-import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Email
-import androidx.compose.material.icons.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material.icons.outlined.Send
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -54,10 +59,11 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
@@ -66,29 +72,24 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import denis.and.co.handshop.R
 import denis.and.co.handshop.data.enums.ProductStatus
-import denis.and.co.handshop.data.model.Product
 import denis.and.co.handshop.data.model.Seller
-import denis.and.co.handshop.data.model.WorkSample
 import denis.and.co.handshop.ui.components.AppFooter
 import denis.and.co.handshop.ui.components.ProductListItem
 import denis.and.co.handshop.ui.components.WorkSampleCard
 import denis.and.co.handshop.ui.navigation.EditProductRoute
 import denis.and.co.handshop.ui.navigation.EditProfileRoute
+import denis.and.co.handshop.ui.navigation.MetricsRoute
 import denis.and.co.handshop.ui.navigation.ProductDetailsRoute
 import denis.and.co.handshop.ui.navigation.ReviewsRoute
 import denis.and.co.handshop.ui.theme.Accent
 import denis.and.co.handshop.ui.theme.BlackText
 import denis.and.co.handshop.ui.theme.Comfortaa
-import denis.and.co.handshop.ui.theme.LowAlphaBlackText
 import denis.and.co.handshop.ui.theme.Onest
-import denis.and.co.handshop.ui.theme.SoftBack
 import denis.and.co.handshop.ui.theme.StarEmpty
 import denis.and.co.handshop.ui.theme.StarFilled
 import denis.and.co.handshop.ui.theme.WhiteText
 import denis.and.co.handshop.viewmodel.LikedViewModel
 import denis.and.co.handshop.viewmodel.ProfileViewModel
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.count
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -107,6 +108,8 @@ fun SellerProfileScreen(
     }
 
     val scrollState = rememberScrollState()
+
+    val context = LocalContext.current
 
     seller?.let {currentSeller ->
         val pagerState = rememberPagerState(pageCount = { currentSeller.workSamples.size })
@@ -206,7 +209,7 @@ fun SellerProfileScreen(
                     modifier = Modifier.padding(15.dp)
                 )
 
-                ContactInfoBlock(currentSeller.contacts, currentSeller)
+                ContactInfoBlock(currentSeller.contacts, currentSeller, context, viewModel)
 
                 HorizontalDivider(
                     thickness = 2.dp,
@@ -233,9 +236,59 @@ fun SellerProfileScreen(
                         WorkSampleCard(workSample = currentSeller.workSamples[page])
                     }
 
-                    HorizontalDivider(thickness = 2.dp, color = BlackText.copy(alpha = 0.2f), modifier = Modifier.padding(15.dp))
+                    HorizontalDivider(
+                        thickness = 2.dp,
+                        color = BlackText.copy(alpha = 0.2f),
+                        modifier = Modifier.padding(15.dp)
+                    )
                 }
-                Row(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+
+                if (isMyProfile) {
+                    Row(
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .clickable {
+                                navController.navigate(MetricsRoute(currentSeller.id))
+                            },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Метрики для продавца",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(currentSeller.selfProfileTextColor.toColorInt()),
+                            fontFamily = Comfortaa
+                        )
+
+                        Spacer(Modifier.weight(1f))
+
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
+                            contentDescription = null,
+                            modifier = Modifier.size(30.dp),
+                            tint = Color(currentSeller.selfProfileIconsColor.toColorInt()),
+                        )
+                    }
+
+                    HorizontalDivider(
+                        thickness = 2.dp,
+                        color = BlackText.copy(alpha = 0.2f),
+                        modifier = Modifier.padding(15.dp)
+                    )
+                }
+
+                Row(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .clickable {
+                            /*  открывать новый экран со всеми опубликованными
+                                товарами этого продавца и поиском по ним.
+                                можно даже поиск сделать по внутреннему списку,
+                                без транзакций и тд. - имхо так будет лучше
+                            */
+                        },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
                         text = "Опубликованные товары ",
                         fontSize = 18.sp,
@@ -258,14 +311,7 @@ fun SellerProfileScreen(
                         imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
                         contentDescription = null,
                         modifier = Modifier
-                            .size(30.dp)
-                            .clickable {
-                                /*  открывать новый экран со всеми опубликованными
-                                    товарами этого продавца и поиском по ним.
-                                    можно даже поиск сделать по внутреннему списку,
-                                    без транзакций и тд. - имхо так будет лучше
-                                */
-                            },
+                            .size(30.dp),
                         tint = Color(currentSeller.selfProfileIconsColor.toColorInt())
                     )
                 }
@@ -384,40 +430,71 @@ fun RatingBlock(seller: Seller, navController: NavController) {
             color = Color(seller.selfProfileTextColor.toColorInt()).copy(alpha = 0.66f),
             modifier = Modifier.padding(start = 8.dp)
         )
-//        Spacer(modifier = Modifier.weight(1f))
-
-//        Text(
-//            text = "Перейти к отзывам",
-//            fontSize = 16.sp,
-//            color = WhiteText,
-//            fontWeight = FontWeight.Bold,
-//            fontFamily = Comfortaa,
-//            modifier = Modifier
-//                .clip(RoundedCornerShape(8.dp))
-//                .background(Accent)
-//                .clickable {
-//                    navController.navigate(ReviewsRoute(seller.id))
-//                }
-//                .padding(horizontal = 12.dp, vertical = 6.dp)
-//        )
     }
 }
 
 @Composable
-fun ContactInfoBlock(contacts: Map<String, String>, seller: Seller) {
+fun ContactInfoBlock(
+    contacts: Map<String, String>,
+    seller: Seller,
+    context: Context,
+    profileViewModel: ProfileViewModel
+) {
+    var showDialog by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
-        Text(
-            text = "Связаться с мастером",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = Color(seller.selfProfileTextColor.toColorInt()),
-            fontFamily = Comfortaa,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .clickable {
+                    showDialog = true
+                    profileViewModel.updateCountClicksOnContacts(seller.id)
+                }
+        ) {
+            Text(
+                text = "Связаться с мастером",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color(seller.selfProfileTextColor.toColorInt()),
+                fontFamily = Comfortaa,
+                modifier = Modifier.padding(bottom = 8.dp).weight(1f)
+            )
+
+            Icon(
+                imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(30.dp),
+                tint = Color(seller.selfProfileIconsColor.toColorInt())
+            )
+
+            /*
+            Button(
+                onClick = {
+                    showDialog = true
+                    profileViewModel.updateCountClicksOnContacts(seller.id)
+                },
+                modifier = Modifier
+                    .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
+                    .height(35.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(seller.selfProfileAccentColor.toColorInt())),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text(
+                    "Связаться",
+                    fontFamily = Comfortaa,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    color = Color(seller.selfProfileAccentTextColor.toColorInt())
+                )
+            }
+            */
+        }
 
         contacts.forEach { (type, value) ->
             Row(
@@ -441,4 +518,117 @@ fun ContactInfoBlock(contacts: Map<String, String>, seller: Seller) {
             }
         }
     }
+
+    if(showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            shape = RoundedCornerShape(25.dp),
+            containerColor = WhiteText,
+            title = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Выберите удобный способ связи с продавцом",
+                        fontFamily = Onest,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 20.sp,
+                        color = BlackText,
+                        textAlign = TextAlign.Center
+                    )
+                    Box(
+                        modifier = Modifier
+                            .padding(top = 8.dp)
+                            .width(40.dp)
+                            .height(3.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Accent.copy(alpha = 0.4f))
+                    )
+                }
+            },
+            text = {
+                Box(modifier = Modifier.heightIn(max = 300.dp)) {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        items(seller.contacts.entries.toList()) { contact ->
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .clickable {
+                                        when (contact.key) {
+                                            "Номер телефона" -> openDial(context, contact.value)
+                                            "Почта" -> openEmail(context, contact.value)
+                                            "Телеграм" -> openTelegramChat(
+                                                context,
+                                                contact.value.removePrefix("@")
+                                            )
+                                        }
+
+                                        showDialog = false
+                                    }
+                                    .padding(vertical = 12.dp, horizontal = 8.dp)
+                            ) {
+                                Text(
+                                    text = contact.key,
+                                    fontFamily = Comfortaa,
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 16.sp,
+                                    color = BlackText,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = { showDialog = false },
+                    modifier = Modifier.padding(bottom = 8.dp, end = 8.dp)
+                ) {
+                    Text(
+                        text = "Закрыть",
+                        fontFamily = Comfortaa,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp,
+                        color = Accent
+                    )
+                }
+            }
+        )
+    }
+}
+
+fun openTelegramChat(context: Context, username: String) {
+    val url = "tg://resolve?domain=$username"
+    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+
+    intent.setPackage("org.telegram.messenger")
+
+    try {
+        context.startActivity(intent)
+    } catch (ex: Exception) {
+        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me"))
+        context.startActivity(browserIntent)
+    }
+}
+
+fun openDial(context: Context, phone: String) {
+    val intent = Intent(Intent.ACTION_DIAL)
+    intent.data = Uri.parse("tel:$phone")
+
+    context.startActivity(intent)
+}
+
+fun openEmail(context: Context, email: String) {
+    val intent = Intent(Intent.ACTION_SENDTO)
+    intent.data = Uri.parse("mailto:$email")
+
+    context.startActivity(intent)
 }

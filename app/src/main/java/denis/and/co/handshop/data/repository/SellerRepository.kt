@@ -147,4 +147,13 @@ class SellerRepository {
             Result.failure(ex)
         }
     }
+
+    suspend fun updateCountClicksOnContacts(sellerId: String) {
+        try {
+            val sellerRef = firestore.collection("sellers").document(sellerId)
+            sellerRef.update("countClicksOnContacts", FieldValue.increment(1)).await()
+        } catch (ex: Exception) {
+            Log.e("FIREBASE_ERROR", "Ошибка обновления количества кликов по кнопке \"связаться\": ${ex.message}")
+        }
+    }
 }

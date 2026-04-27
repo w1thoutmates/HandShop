@@ -3,34 +3,58 @@ package denis.and.co.handshop.ui.navigation
 import kotlinx.serialization.Serializable
 
 @Serializable
-object RecommendationRoute
+object RecommendationRoute : AppRoute
 
 @Serializable
-object SearchByCategoryRoute
+object SearchByCategoryRoute : AppRoute
 
 @Serializable
-data class ProductDetailsRoute(val productId: String)
+data class ProductDetailsRoute(val productId: String) : AppRoute
 
 @Serializable
-object CreateProductRoute
+object CreateProductRoute : AppRoute
 
 @Serializable
-data class ProfileRoute(val sellerId: String? = null)
+data class ProfileRoute(val sellerId: String? = null) : AppRoute
 
 @Serializable
-object LikedRoute
+object LikedRoute : AppRoute
 
 @Serializable
-data class EditProductRoute(val productId: String)
+data class EditProductRoute(val productId: String) : AppRoute
 
 @Serializable
-object LoginRoute
+object LoginRoute : AppRoute
 
 @Serializable
-object CreateProfileRoute
+object CreateProfileRoute : AppRoute
 
 @Serializable
-object EditProfileRoute
+object EditProfileRoute : AppRoute
 
 @Serializable
-data class ReviewsRoute(val sellerId: String)
+data class ReviewsRoute(val sellerId: String) : AppRoute
+
+@Serializable
+data class MetricsRoute(val sellerId: String) : AppRoute
+
+@Serializable
+data class SellerRateMetricRoute(val sellerId: String) : AppRoute
+
+@Serializable
+object TotalReachMetricRoute : AppRoute
+
+@Serializable
+object ProductCategoryRationMetricRoute : AppRoute
+
+@Serializable
+object AddedToLikedMetricRoute : AppRoute
+
+@Serializable
+object CTRMetricRoute : AppRoute
+
+@Serializable
+object CompetitorsCostCompareMetricRoute : AppRoute
+
+@Serializable
+object ClicksOnContactsMetricRoute : AppRoute

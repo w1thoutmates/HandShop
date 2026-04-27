@@ -21,6 +21,7 @@ data class Seller(
     val contacts: Map<String, String> = emptyMap(),
     val userTagStats: Map<String, Long> = emptyMap(),
     val ratingSum: Double = 0.0,
+    val countClicksOnContacts: Long = 0,
     val likedProductIds: List<String> = emptyList(),
     val selectedLocation: String = "",
     val selfProfileTextColor: String = BlackText.toHexString(),

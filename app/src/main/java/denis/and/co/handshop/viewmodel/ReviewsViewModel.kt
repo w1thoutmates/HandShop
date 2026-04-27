@@ -2,7 +2,7 @@ package denis.and.co.handshop.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import denis.and.co.handshop.R
+import co.yml.charts.common.model.Point
 import denis.and.co.handshop.data.model.Review
 import denis.and.co.handshop.data.model.Seller
 import denis.and.co.handshop.data.repository.ReviewRepository
@@ -22,6 +22,9 @@ class ReviewsViewModel(
     private val _seller = MutableStateFlow<Seller?>(null)
     val seller: StateFlow<Seller?> = _seller
 
+    private val _ratingPoints = MutableStateFlow<List<Point>>(emptyList())
+    val ratingPoints: StateFlow<List<Point>> = _ratingPoints
+
     init {
         loadInitialData()
     }
@@ -33,6 +36,8 @@ class ReviewsViewModel(
 
             _reviews.value = reviewsResult
             _seller.value = sellerResult
+
+            calculateRatingHistory(reviewsResult)
         }
     }
 
@@ -79,5 +84,23 @@ class ReviewsViewModel(
             val result = reviewsRepo.getReviewsSortedByGreaterDate(sellerId)
             _reviews.value = result;
         }
+    }
+
+    private fun calculateRatingHistory(allReviews: List<Review>) {
+        if (allReviews.isEmpty()) return
+
+        val sortedReviews = allReviews.sortedBy { it.date }
+
+        var currentSum = 0.0
+        val points = sortedReviews.mapIndexed { index, review ->
+            currentSum += review.selectedRate
+            val averageAtThisPoint = currentSum / (index + 1)
+
+            Point(
+                x = index.toFloat(),
+                y = averageAtThisPoint.toFloat()
+            )
+        }
+        _ratingPoints.value = points
     }
 }

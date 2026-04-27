@@ -41,4 +41,10 @@ class ProfileViewModel(
             _sellerProducts.value = products
         }
     }
+
+    fun updateCountClicksOnContacts(sellerId: String) {
+        viewModelScope.launch {
+            sellerRepo.updateCountClicksOnContacts(sellerId)
+        }
+    }
 }
