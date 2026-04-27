@@ -29,3 +29,8 @@ fun Date.formatToReadable(): String {
     val formatter = SimpleDateFormat("dd MMMM yyyy, HH:mm", Locale.getDefault())
     return formatter.format(this)
 }
+
+fun Date.formatToStandard(): String {
+    val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    return formatter.format(this)
+}

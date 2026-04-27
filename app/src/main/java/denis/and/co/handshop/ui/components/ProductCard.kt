@@ -73,7 +73,7 @@ fun ProductListItem(
 
     if (catalogViewModel != null) {
         LaunchedEffect(Unit) {
-            catalogViewModel.registerImpressionOnSession(product.id)
+            catalogViewModel.registerImpressionOnSession(product)
         }
     }
 

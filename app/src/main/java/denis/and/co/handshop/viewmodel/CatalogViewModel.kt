@@ -387,12 +387,13 @@ class CatalogViewModel(
         }
     }
 
-    fun registerImpressionOnSession(productId: String) {
-        if (trackedImpressions.contains(productId)) return
+    fun registerImpressionOnSession(product: Product) {
+        if (trackedImpressions.contains(product.id)) return
 
         viewModelScope.launch {
-            trackedImpressions.add(productId)
-            productRepo.updateImpressionsCount(productId)
+            trackedImpressions.add(product.id)
+            productRepo.updateImpressionsCount(product.id)
+            sellerRepo.updateImpression(product.sellerId)
         }
     }
 

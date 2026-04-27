@@ -6,8 +6,14 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.SetOptions
+import denis.and.co.handshop.data.model.DailyReach
 import denis.and.co.handshop.data.model.Seller
+import denis.and.co.handshop.utils.formatToStandard
 import kotlinx.coroutines.tasks.await
+import java.time.ZoneId
+import java.util.Date
 
 class SellerRepository {
     private val firestore = FirebaseFirestore.getInstance()
@@ -154,6 +160,63 @@ class SellerRepository {
             sellerRef.update("countClicksOnContacts", FieldValue.increment(1)).await()
         } catch (ex: Exception) {
             Log.e("FIREBASE_ERROR", "Ошибка обновления количества кликов по кнопке \"связаться\": ${ex.message}")
+        }
+    }
+
+    fun updateImpression(sellerId: String) {
+        val today = Date().formatToStandard()
+
+        val metricsRef = firestore.collection("sellers")
+            .document(sellerId)
+            .collection("daily_stats")
+            .document(today)
+
+        val data = mapOf(
+            "impressions" to FieldValue.increment(1),
+            "date" to today
+        )
+
+        metricsRef.set(data, SetOptions.merge())
+    }
+
+//    suspend fun getDailyStats(sellerId: String, limit: Int = 7): List<DailyReach> {
+//        return try {
+//            val snapshot = firestore.collection("sellers")
+//                .document(sellerId)
+//                .collection("daily_stats")
+//                .orderBy("date", com.google.firebase.firestore.Query.Direction.DESCENDING)
+//                .limit(limit.toLong())
+//                .get()
+//                .await()
+//
+//            snapshot.toObjects(DailyReach::class.java).sortedBy { it.date }
+//        } catch (ex: Exception) {
+//            Log.e("FIREBASE_ERROR", "Ошибка загрузки статистики", ex)
+//            emptyList()
+//        }
+//    }
+
+    suspend fun getDailyStats(sellerId: String, days: Int): List<DailyReach> {
+        return try {
+            val fromDate = Date()
+                .toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate()
+                .minusDays(days.toLong())
+                .toString()
+
+            val snapshot = firestore.collection("sellers")
+                .document(sellerId)
+                .collection("daily_stats")
+                .whereGreaterThanOrEqualTo("date", fromDate)
+                .orderBy("date", Query.Direction.ASCENDING)
+                .get()
+                .await()
+
+            snapshot.toObjects(DailyReach::class.java)
+        } catch (ex: Exception) {
+            Log.e("FIREBASE_ERROR", "Ошибка загрузки статистики", ex)
+            emptyList()
         }
     }
 }

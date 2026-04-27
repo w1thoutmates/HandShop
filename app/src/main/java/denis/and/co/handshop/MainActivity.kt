@@ -43,6 +43,7 @@ import denis.and.co.handshop.ui.navigation.RecommendationRoute
 import denis.and.co.handshop.ui.navigation.ReviewsRoute
 import denis.and.co.handshop.ui.navigation.SearchByCategoryRoute
 import denis.and.co.handshop.ui.navigation.SellerRateMetricRoute
+import denis.and.co.handshop.ui.navigation.TotalReachMetricRoute
 import denis.and.co.handshop.ui.screens.EditProfileScreen
 import denis.and.co.handshop.ui.screens.LikedProductsScreen
 import denis.and.co.handshop.ui.screens.LoginScreen
@@ -54,12 +55,14 @@ import denis.and.co.handshop.ui.screens.ReviewsScreen
 import denis.and.co.handshop.ui.screens.SearchingScreen
 import denis.and.co.handshop.ui.screens.SellerProfileScreen
 import denis.and.co.handshop.ui.screens.metrics.SellerRateMetricScreen
+import denis.and.co.handshop.ui.screens.metrics.TotalReachMetricScreen
 import denis.and.co.handshop.ui.theme.Accent
 import denis.and.co.handshop.viewmodel.AuthViewModel
 import denis.and.co.handshop.viewmodel.CatalogViewModel
 import denis.and.co.handshop.viewmodel.CreateProductViewModel
 import denis.and.co.handshop.viewmodel.EditProfileViewModel
 import denis.and.co.handshop.viewmodel.LikedViewModel
+import denis.and.co.handshop.viewmodel.MetricsViewModel
 import denis.and.co.handshop.viewmodel.ProductDetailsVM
 import denis.and.co.handshop.viewmodel.ProfileViewModel
 import denis.and.co.handshop.viewmodel.ReviewsViewModel
@@ -387,6 +390,26 @@ class MainActivity : ComponentActivity() {
                     )
 
                     SellerRateMetricScreen(navController, reviewsVm)
+                }
+
+                composable<TotalReachMetricRoute> {
+                    val currentUid = authViewModel.getAuth().currentUser?.uid ?: ""
+
+                    val metricsVm: MetricsViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                return MetricsViewModel(
+                                    sellerId = currentUid,
+                                    sellerRepo = AppDependencies.sellerRepository
+                                ) as T
+                            }
+                        }
+                    )
+
+                    TotalReachMetricScreen(
+                        navController = navController,
+                        viewModel = metricsVm
+                    )
                 }
             }
         }
