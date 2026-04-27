@@ -43,6 +43,7 @@ android {
 }
 
 dependencies {
+    implementation("co.yml:ycharts:2.1.0")
     implementation("com.github.skydoves:colorpicker-compose:1.0.7")
     implementation(platform("com.google.firebase:firebase-bom:34.10.0"))
     implementation("com.google.firebase:firebase-firestore")

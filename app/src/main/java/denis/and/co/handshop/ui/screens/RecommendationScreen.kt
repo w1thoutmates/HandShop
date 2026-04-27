@@ -345,7 +345,8 @@ fun Content(
                                 viewModel.updateProductViewsCount(item.product.id)
                             },
                             seller = item.seller,
-                            viewModel = likedViewModel
+                            viewModel = likedViewModel,
+                            catalogViewModel = viewModel
                         )
                     }
                 }

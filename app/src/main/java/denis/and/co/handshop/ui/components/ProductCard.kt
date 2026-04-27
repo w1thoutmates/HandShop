@@ -50,6 +50,7 @@ import denis.and.co.handshop.data.model.Product
 import denis.and.co.handshop.data.model.Seller
 import denis.and.co.handshop.utils.toRelativeDateString
 import denis.and.co.handshop.ui.theme.*
+import denis.and.co.handshop.viewmodel.CatalogViewModel
 import denis.and.co.handshop.viewmodel.LikedViewModel
 import kotlinx.coroutines.launch
 
@@ -59,7 +60,8 @@ fun ProductListItem(
     onClick: () -> Unit,
     seller: Seller?,
     viewModel: LikedViewModel,
-    isMyProfile: Boolean = false
+    isMyProfile: Boolean = false,
+    catalogViewModel: CatalogViewModel? = null
 ) {
 
     var isInLiked by remember { mutableStateOf<Boolean?>(null) }
@@ -67,6 +69,12 @@ fun ProductListItem(
 
     LaunchedEffect(product.id) {
         isInLiked = viewModel.isProductExistInLiked(product.id)
+    }
+
+    if (catalogViewModel != null) {
+        LaunchedEffect(Unit) {
+            catalogViewModel.registerImpressionOnSession(product.id)
+        }
     }
 
     val displayState = isInLiked ?: false

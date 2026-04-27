@@ -43,6 +43,8 @@ class CatalogViewModel(
     private val _currentUser = MutableStateFlow<Seller?>(null)
     val currentUser: StateFlow<Seller?> = _currentUser.asStateFlow()
 
+    private val trackedImpressions = mutableSetOf<String>()
+
     init {
         globalCatalogViewModel = this
         loadCurrentUser()
@@ -382,6 +384,15 @@ class CatalogViewModel(
                 Log.e("CATALOG_VM", "Ошибка рекомендаций", ex)
                 _state.value = CatalogState.Error("Ошибка загрузки рекомендаций")
             }
+        }
+    }
+
+    fun registerImpressionOnSession(productId: String) {
+        if (trackedImpressions.contains(productId)) return
+
+        viewModelScope.launch {
+            trackedImpressions.add(productId)
+            productRepo.updateImpressionsCount(productId)
         }
     }
 

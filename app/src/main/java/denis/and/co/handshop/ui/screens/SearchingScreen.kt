@@ -314,7 +314,8 @@ fun SearchResultsContent(
                             onProductClick(item.product.id)
                             catalogViewModel.updateProductViewsCount(item.product.id)
                         },
-                        viewModel = likedViewModel
+                        viewModel = likedViewModel,
+                        catalogViewModel = catalogViewModel
                     )
                 }
             }

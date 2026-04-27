@@ -11,6 +11,7 @@ data class Product(
     val cost: Long? = null,
     val currency: String? = "₽",
     val viewsCount: Long = 0,
+    val impressionsCount: Long = 0,
     val postedTime: Long = System.currentTimeMillis(),
     val targetCity: String = "",
     val category: String = "",

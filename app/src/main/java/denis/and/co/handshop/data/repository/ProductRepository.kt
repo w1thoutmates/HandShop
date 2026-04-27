@@ -4,6 +4,7 @@ import android.util.Log
 import android.widget.Toast
 import com.google.firebase.*
 import com.google.firebase.firestore.FieldPath
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
 import denis.and.co.handshop.MainActivity
@@ -155,6 +156,15 @@ class ProductRepository {
             val newViews = currentViews + 1
             transaction.update(productRef, "viewsCount", newViews)
         }.await()
+    }
+
+    suspend fun updateImpressionsCount(productId: String) {
+        try {
+            val productRef = db.collection("products").document(productId)
+            productRef.update("impressionsCount", FieldValue.increment(1)).await()
+        } catch (ex: Exception) {
+            Log.e("FIREBASE_ERROR", "Ошибка обновления показов: ${ex.message}")
+        }
     }
 
     suspend fun getLikedProducts(productIds: List<String>): List<Product> {

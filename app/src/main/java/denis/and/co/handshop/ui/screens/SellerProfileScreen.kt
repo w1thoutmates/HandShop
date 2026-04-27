@@ -27,10 +27,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material.icons.outlined.Send
 import androidx.compose.material3.Button
@@ -248,6 +250,23 @@ fun SellerProfileScreen(
                         fontWeight = FontWeight.SemiBold,
                         color = Color(currentSeller.selfProfileTextColor.toColorInt()).copy(alpha = 0.66f),
                         fontFamily = Comfortaa
+                    )
+
+                    Spacer(Modifier.weight(1f))
+
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(30.dp)
+                            .clickable {
+                                /*  открывать новый экран со всеми опубликованными
+                                    товарами этого продавца и поиском по ним.
+                                    можно даже поиск сделать по внутреннему списку,
+                                    без транзакций и тд. - имхо так будет лучше
+                                */
+                            },
+                        tint = Color(currentSeller.selfProfileIconsColor.toColorInt())
                     )
                 }
 
