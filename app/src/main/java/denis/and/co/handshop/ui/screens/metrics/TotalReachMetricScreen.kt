@@ -1,22 +1,19 @@
 package denis.and.co.handshop.ui.screens.metrics
 
+import android.text.Layout
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
@@ -31,7 +28,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -42,21 +38,29 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import co.yml.charts.axis.AxisData
-import co.yml.charts.common.model.Point
-import co.yml.charts.ui.barchart.models.BarData
-import co.yml.charts.ui.barchart.models.BarPlotData
-import co.yml.charts.ui.barchart.models.BarStyle
-import co.yml.charts.ui.barchart.models.GroupBar
-import co.yml.charts.ui.barchart.models.SelectionHighlightData
-import co.yml.charts.ui.combinedchart.model.CombinedChartData
-import co.yml.charts.ui.linechart.model.IntersectionPoint
-import co.yml.charts.ui.linechart.model.Line
-import co.yml.charts.ui.linechart.model.LinePlotData
-import co.yml.charts.ui.linechart.model.LineStyle
-import co.yml.charts.ui.linechart.model.SelectionHighlightPoint
-import co.yml.charts.ui.linechart.model.SelectionHighlightPopUp
-import co.yml.charts.ui.linechart.model.ShadowUnderLine
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottomAxis
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStartAxis
+import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisLabelComponent
+import com.patrykandpatrick.vico.compose.cartesian.layer.rememberColumnCartesianLayer
+import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
+import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineSpec
+import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
+import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
+import com.patrykandpatrick.vico.compose.common.component.rememberShapeComponent
+import com.patrykandpatrick.vico.compose.common.component.rememberTextComponent
+import com.patrykandpatrick.vico.compose.common.shader.color
+import com.patrykandpatrick.vico.compose.common.shader.verticalGradient
+import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
+import com.patrykandpatrick.vico.core.cartesian.data.ColumnCartesianLayerModel
+import com.patrykandpatrick.vico.core.cartesian.data.columnSeries
+import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
+import com.patrykandpatrick.vico.core.cartesian.layer.ColumnCartesianLayer
+import com.patrykandpatrick.vico.core.cartesian.marker.CartesianMarker
+import com.patrykandpatrick.vico.core.common.component.LineComponent
+import com.patrykandpatrick.vico.core.common.data.ExtraStore
+import com.patrykandpatrick.vico.core.common.shader.DynamicShader
+import com.patrykandpatrick.vico.core.common.shape.Shape
 import denis.and.co.handshop.data.enums.TimePeriod
 import denis.and.co.handshop.ui.components.AppFooter
 import denis.and.co.handshop.ui.theme.Accent
@@ -65,102 +69,80 @@ import denis.and.co.handshop.ui.theme.HardBack
 import denis.and.co.handshop.ui.theme.Onest
 import denis.and.co.handshop.ui.theme.SoftBack
 import denis.and.co.handshop.viewmodel.MetricsViewModel
-import java.time.format.TextStyle
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+import com.patrykandpatrick.vico.compose.cartesian.marker.rememberDefaultCartesianMarker
+import com.patrykandpatrick.vico.compose.common.of
+import com.patrykandpatrick.vico.compose.common.shape.rounded
+import com.patrykandpatrick.vico.core.cartesian.marker.ColumnCartesianLayerMarkerTarget
+import com.patrykandpatrick.vico.core.cartesian.marker.DefaultCartesianMarker
+import com.patrykandpatrick.vico.core.common.Dimensions
 
 @Composable
 fun TotalReachMetricScreen(
     navController: NavController,
     viewModel: MetricsViewModel
 ) {
-    var days: Int by remember { mutableIntStateOf(7) }
+    var days by remember { mutableIntStateOf(7) }
     val points by viewModel.reachPoints.collectAsState()
+    val stats by viewModel.stats.collectAsState()
+    val formatter = remember { DateTimeFormatter.ofPattern("d MMM", Locale("ru")) }
+
+    val modelProducer = remember { CartesianChartModelProducer.build() }
+
+    val marker = rememberMarker()
+
+    val basePalette = listOf(
+        Color(0xFF6C5CE7), Color(0xFF00B894), Color(0xFFFF7675),
+        Color(0xFFFDCB6E), Color(0xFF0984E3), Color(0xFFE17055)
+    )
+    val columnComponents = basePalette.map { color ->
+        rememberLineComponent(
+            color = color,
+            thickness = 16.dp,
+            shape = Shape.rounded(allDp = 4f),
+            dynamicShader = DynamicShader.verticalGradient(
+                arrayOf(color, color.copy(alpha = 0.7f))
+            )
+        )
+    }
+
+    val multiColorProvider = remember(columnComponents) {
+        object : ColumnCartesianLayer.ColumnProvider {
+            override fun getColumn(
+                entry: ColumnCartesianLayerModel.Entry,
+                seriesIndex: Int,
+                extraStore: ExtraStore
+            ): LineComponent {
+                val index = entry.x.toInt()
+                return columnComponents[index % columnComponents.size]
+            }
+
+            override fun getWidestSeriesColumn(
+                seriesIndex: Int,
+                extraStore: ExtraStore
+            ): LineComponent {
+                return columnComponents[0]
+            }
+        }
+    }
 
     LaunchedEffect(days) {
         viewModel.loadStats(days)
     }
 
-    val groupBarList = points.map { point ->
-        GroupBar(
-            label = "День ${point.x.toInt() + 1}",
-            barList = listOf(
-                BarData(
-                    point = point,
-                    color = Accent,
-                    gradientColorList = listOf(Accent, Color(0xFFFF9800)),
-                    label = "День ${point.x.toInt() + 1}"
-                )
-            )
-        )
-    }
+    LaunchedEffect(points) {
+        if (points.isNotEmpty()) {
+            modelProducer.tryRunTransaction {
+                columnSeries { series(points.map { it.y }) }
 
-    val xAxisData = AxisData.Builder()
-        .axisStepSize(75.dp)
-        .steps(points.size)
-        .labelData { i -> if (i < points.size) "Д${i + 1}" else "" }
-        .startDrawPadding(20.dp)
-        .axisLineColor(BlackText.copy(alpha = 0.1f))
-        .axisLabelColor(BlackText.copy(alpha = 0.6f))
-        .build()
-
-    val yAxisData = AxisData.Builder()
-        .steps(5)
-        .labelAndAxisLinePadding(20.dp)
-        .labelData { i ->
-            val max = points.maxOfOrNull { it.y } ?: 10f
-            val stepValue = max / 5
-            String.format("%.0f", i * stepValue)
+                lineSeries {
+                    series(points.map { it.y })
+                }
+            }
         }
-        .backgroundColor(Color.White)
-        .axisLineColor(BlackText.copy(alpha = 0.1f))
-        .axisLabelColor(BlackText)
-        .build()
-
-    val barStyle = BarStyle(
-        isGradientEnabled = true,
-        barWidth = 35.dp,
-        cornerRadius = 4.dp,
-        selectionHighlightData = SelectionHighlightData(
-            isHighlightFullBar = true,
-            groupBarPopUpLabel = { x, y ->
-                "день ${x.toInt() + 1}: ${y.toInt()} показов"
-            },
-            highlightTextBackgroundColor = Color.Yellow,
-            highlightTextColor = Color.Black
-        )
-    )
-
-    val barPlotData = BarPlotData(
-        groupBarList = groupBarList,
-        barStyle = barStyle,
-        barColorPaletteList = listOf(Accent, Color(0xFFFF9800))
-    )
-
-    val linePlotData = LinePlotData(
-        lines = listOf(
-            Line(
-                dataPoints = points,
-                lineStyle = LineStyle(color = Color(0xFFD53807), width = 4f),
-                intersectionPoint = IntersectionPoint(color = Color(0xFFD53807), radius = 5.dp),
-                selectionHighlightPoint = SelectionHighlightPoint(color = Color.Black),
-                shadowUnderLine = ShadowUnderLine(alpha = 0.1f, color = Accent),
-                selectionHighlightPopUp = SelectionHighlightPopUp(
-                    popUpLabel = { x, y -> "день ${x.toInt() + 1}: ${y.toInt()} показов" },
-                    backgroundColor = Color.Yellow,
-                    labelColor = Color.Black
-                )
-            )
-        )
-    )
-
-    val combinedChartData = CombinedChartData(
-        combinedPlotDataList = listOf(
-            barPlotData,
-            linePlotData
-        ),
-        xAxisData = xAxisData,
-        yAxisData = yAxisData,
-        backgroundColor = Color.White,
-    )
+    }
 
     Scaffold(
         containerColor = SoftBack,
@@ -190,7 +172,9 @@ fun TotalReachMetricScreen(
                 )
 
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 10.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 15.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     TimePeriod.entries.forEach { period ->
@@ -203,54 +187,81 @@ fun TotalReachMetricScreen(
                 }
             }
 
-            ChartCard(points, combinedChartData)
-        }
-    }
-}
-
-@Composable
-private fun ChartCard(points: List<Point>, combinedChartData: CombinedChartData) {
-    val scrollState = rememberScrollState()
-    val screenWidth = 300.dp
-    val calculatedWidth = (75.dp * points.size) + 80.dp
-    val finalWidth = if (calculatedWidth < screenWidth) Modifier.fillMaxWidth() else Modifier.width(calculatedWidth)
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(420.dp)
-            .padding(16.dp),
-        shape = RoundedCornerShape(28.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(4.dp)
-    ) {
-        if (points.isNotEmpty()) {
-            Box(
+            Card(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .then(if (calculatedWidth > screenWidth) Modifier.horizontalScroll(scrollState) else Modifier)
-                    .padding(top = 25.dp, bottom = 10.dp, end = 16.dp)
+                    .fillMaxWidth()
+                    .height(420.dp)
+                    .padding(16.dp),
+                shape = RoundedCornerShape(28.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(4.dp)
             ) {
-                co.yml.charts.ui.combinedchart.CombinedChart(
-                    modifier = Modifier
-                        .then(finalWidth)
-                        .fillMaxHeight(),
-                    combinedChartData = combinedChartData
-                )
-            }
-        } else {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Нет данных для графика", fontFamily = Onest)
+                if (points.isNotEmpty()) {
+                    CartesianChartHost(
+                        chart = rememberCartesianChart(
+                            rememberColumnCartesianLayer(
+                                columnProvider = multiColorProvider
+                            ),
+                            rememberLineCartesianLayer(
+                                lines = listOf(
+                                    rememberLineSpec(
+                                        shader = DynamicShader.color(Accent.copy(alpha = 0.15f)),
+                                        thickness = 2.dp,
+                                        point = rememberShapeComponent(
+                                            shape = Shape.Pill,
+                                            color = Accent.copy(0.45f)
+                                        ),
+                                        pointSize = 5.dp,
+                                    )
+                                )
+                            ),
+                            startAxis = rememberStartAxis(
+                                label = rememberAxisLabelComponent(
+                                    color = BlackText,
+                                    textSize = 12.sp
+                                ),
+                                guideline = rememberLineComponent(BlackText.copy(0.1f))
+                            ),
+                            bottomAxis = rememberBottomAxis(
+                                label = rememberAxisLabelComponent(
+                                    color = BlackText.copy(alpha = 0.6f),
+                                    textSize = 11.sp
+                                ),
+                                valueFormatter = { value, _, _ ->
+                                    stats.getOrNull(value.toInt())?.let {
+                                        try {
+                                            LocalDate.parse(it.date).format(formatter)
+                                        } catch (ex: Exception) {
+                                            ""
+                                        }
+                                    } ?: ""
+                                },
+                                guideline = null
+                            )
+                        ),
+                        modelProducer = modelProducer,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        marker = marker
+                    )
+                } else {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("Нет данных для графика", fontFamily = Onest)
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-private fun HeaderSection(navController: NavController, title: String) {
+fun HeaderSection(navController: NavController, title: String) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(vertical = 15.dp).fillMaxWidth()
+        modifier = Modifier
+            .padding(vertical = 15.dp)
+            .fillMaxWidth()
     ) {
         Icon(
             imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowLeft,
@@ -292,4 +303,39 @@ fun FilterChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
             )
         )
     }
+}
+
+@Composable
+fun rememberMarker(flag: Boolean = false): CartesianMarker {
+    val label = rememberTextComponent(
+        color = Color.White,
+        background = rememberShapeComponent(
+            shape = Shape.rounded(5.dp),
+            color = Accent
+        ),
+        padding = Dimensions.of(8.dp, 4.dp),
+        textSize = 14.sp,
+        textAlignment = Layout.Alignment.ALIGN_CENTER
+    )
+
+    val indicator = rememberShapeComponent(
+        shape = Shape.rounded(5.dp),
+        color = Color.White,
+        strokeColor = Accent,
+        strokeWidth = 2.dp
+    )
+
+    return rememberDefaultCartesianMarker(
+        label = label,
+        indicator = indicator,
+        indicatorSize = 6.dp,
+        labelPosition = DefaultCartesianMarker.LabelPosition.AbovePoint,
+        valueFormatter = { _, targets ->
+            val rawValue = targets.firstOrNull()?.let { target ->
+                (target as? ColumnCartesianLayerMarkerTarget)
+                    ?.columns?.firstOrNull()?.entry?.y
+            } ?: 0f
+            String.format(Locale.US, if (flag) "%.1f" else "%.0f", rawValue)
+        }
+    )
 }

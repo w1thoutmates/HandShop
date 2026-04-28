@@ -7,8 +7,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -17,16 +15,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NamedNavArgument
-import androidx.navigation.NavArgument
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import androidx.navigation.toRoute
 import denis.and.co.handshop.data.model.Product
 import denis.and.co.handshop.di.AppDependencies
@@ -37,6 +31,7 @@ import denis.and.co.handshop.ui.navigation.EditProfileRoute
 import denis.and.co.handshop.ui.navigation.LikedRoute
 import denis.and.co.handshop.ui.navigation.LoginRoute
 import denis.and.co.handshop.ui.navigation.MetricsRoute
+import denis.and.co.handshop.ui.navigation.ProductCategoryRationMetricRoute
 import denis.and.co.handshop.ui.navigation.ProductDetailsRoute
 import denis.and.co.handshop.ui.navigation.ProfileRoute
 import denis.and.co.handshop.ui.navigation.RecommendationRoute
@@ -54,6 +49,7 @@ import denis.and.co.handshop.ui.screens.RecommendationScreen
 import denis.and.co.handshop.ui.screens.ReviewsScreen
 import denis.and.co.handshop.ui.screens.SearchingScreen
 import denis.and.co.handshop.ui.screens.SellerProfileScreen
+import denis.and.co.handshop.ui.screens.metrics.ProductCategoryRationMetricScreen
 import denis.and.co.handshop.ui.screens.metrics.SellerRateMetricScreen
 import denis.and.co.handshop.ui.screens.metrics.TotalReachMetricScreen
 import denis.and.co.handshop.ui.theme.Accent
@@ -410,6 +406,21 @@ class MainActivity : ComponentActivity() {
                         navController = navController,
                         viewModel = metricsVm
                     )
+                }
+
+                composable<ProductCategoryRationMetricRoute> {
+                    val profileVm: ProfileViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T: ViewModel> create(modelClass: Class<T>): T {
+                                return ProfileViewModel(
+                                    sellerRepo = AppDependencies.sellerRepository,
+                                    productRepo = AppDependencies.productRepository
+                                ) as T
+                            }
+                        }
+                    )
+
+                    ProductCategoryRationMetricScreen(navController, profileVm)
                 }
             }
         }

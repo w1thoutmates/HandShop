@@ -17,6 +17,9 @@ class MetricsViewModel(
     private val _reachPoints = MutableStateFlow<List<Point>>(emptyList())
     val reachPoints: StateFlow<List<Point>> = _reachPoints
 
+    private val _stats = MutableStateFlow<List<DailyReach>>(emptyList())
+    val stats: StateFlow<List<DailyReach>> = _stats
+
     init {
         loadStats()
     }
@@ -24,6 +27,7 @@ class MetricsViewModel(
     fun loadStats(days: Int = 7) {
         viewModelScope.launch {
             val stats = sellerRepo.getDailyStats(sellerId, days)
+            _stats.value = stats
             _reachPoints.value = mapToPoints(stats)
         }
     }

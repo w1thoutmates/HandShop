@@ -8,3 +8,19 @@ fun Color.toHexString(): String {
     val blue = (this.blue * 255).toInt()
     return String.format("#%02X%02X%02X", red, green, blue)
 }
+
+fun generateColor(index: Int): Color {
+    val hue = (index * 137.5f) % 360f
+    val saturation = 0.65f
+    val value = 0.95f
+
+    return Color.hsv(hue, saturation, value)
+}
+
+fun getColorForIndex(index: Int, basePalette: List<Color>): Color {
+    return if (index < basePalette.size) {
+        basePalette[index]
+    } else {
+        generateColor(index)
+    }
+}

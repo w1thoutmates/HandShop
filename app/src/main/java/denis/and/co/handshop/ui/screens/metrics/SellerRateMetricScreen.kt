@@ -1,41 +1,39 @@
 package denis.and.co.handshop.ui.screens.metrics
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import co.yml.charts.axis.AxisData
-import co.yml.charts.common.model.Point
-import co.yml.charts.ui.barchart.models.BarChartData
-import co.yml.charts.ui.barchart.models.BarData
-import co.yml.charts.ui.barchart.models.BarStyle
-import co.yml.charts.ui.barchart.models.SelectionHighlightData
-import co.yml.charts.ui.linechart.LineChart
-import co.yml.charts.ui.linechart.model.*
-import denis.and.co.handshop.data.enums.TimePeriod
+import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisLabelComponent
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottomAxis
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStartAxis
+import com.patrykandpatrick.vico.compose.cartesian.fullWidth
+import com.patrykandpatrick.vico.compose.cartesian.layer.rememberColumnCartesianLayer
+import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
+import com.patrykandpatrick.vico.compose.cartesian.segmented
+import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
+import com.patrykandpatrick.vico.compose.common.shader.verticalGradient
+import com.patrykandpatrick.vico.core.cartesian.HorizontalLayout
+import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
+import com.patrykandpatrick.vico.core.cartesian.data.ColumnCartesianLayerModel
+import com.patrykandpatrick.vico.core.cartesian.data.columnSeries
+import com.patrykandpatrick.vico.core.cartesian.layer.ColumnCartesianLayer
+import com.patrykandpatrick.vico.core.common.component.LineComponent
+import com.patrykandpatrick.vico.core.common.data.ExtraStore
+import com.patrykandpatrick.vico.core.common.shader.DynamicShader
+import com.patrykandpatrick.vico.core.common.shape.Shape
 import denis.and.co.handshop.ui.components.AppFooter
-import denis.and.co.handshop.ui.theme.Accent
-import denis.and.co.handshop.ui.theme.BlackText
-import denis.and.co.handshop.ui.theme.HardBack
-import denis.and.co.handshop.ui.theme.Onest
-import denis.and.co.handshop.ui.theme.SoftBack
+import denis.and.co.handshop.ui.theme.*
 import denis.and.co.handshop.viewmodel.ReviewsViewModel
-import kotlin.random.Random
+import java.util.Locale
 
 @Composable
 fun SellerRateMetricScreen(
@@ -45,50 +43,48 @@ fun SellerRateMetricScreen(
     val points by viewModel.ratingPoints.collectAsState()
     val seller by viewModel.seller.collectAsState()
 
-    val barData = points.map { point ->
-        BarData(
-            point = point,
-            color = Accent,
-            label = "Отзыв ${point.x.toInt() + 1}",
-            gradientColorList = listOf(
-                Accent,
-                Color(0xFFD53807)
+    val modelProducer = remember { CartesianChartModelProducer.build() }
+    val marker = rememberMarker(true)
+
+    val basePalette = listOf(
+        Accent, Color(0xFF00B894), Color(0xFFFF7675),
+        Color(0xFFFDCB6E), Color(0xFF0984E3), Color(0xFFE17055)
+    )
+
+    val columnComponents = basePalette.map { color ->
+        rememberLineComponent(
+            color = color,
+            thickness = 32.dp,
+            shape = Shape.rounded(allDp = 4f),
+            dynamicShader = DynamicShader.verticalGradient(
+                arrayOf(color, color.copy(alpha = 0.7f))
             )
         )
     }
 
-    val xAxisData = AxisData.Builder()
-        .axisStepSize(70.dp)
-        .steps(barData.size)
-        .labelData { i -> if (i < barData.size) "${i + 1}" else "" }
-        .axisLabelAngle(0f)
-        .axisLineColor(BlackText.copy(alpha = 0.1f))
-        .axisLabelColor(BlackText.copy(alpha = 0.6f))
-        .startDrawPadding(20.dp)
-        .build()
+    val multiColorProvider = remember(columnComponents) {
+        object : ColumnCartesianLayer.ColumnProvider {
+            override fun getColumn(
+                entry: ColumnCartesianLayerModel.Entry,
+                seriesIndex: Int,
+                extraStore: ExtraStore
+            ): LineComponent {
+                val index = entry.x.toInt()
+                return columnComponents[index % columnComponents.size]
+            }
 
-    val yAxisData = AxisData.Builder()
-        .steps(5)
-        .labelAndAxisLinePadding(20.dp)
-        .labelData { i -> i.toString() }
-        .axisLineColor(BlackText.copy(alpha = 0.1f))
-        .axisLabelColor(BlackText)
-        .backgroundColor(Color.White)
-        .build()
+            override fun getWidestSeriesColumn(seriesIndex: Int, extraStore: ExtraStore): LineComponent =
+                columnComponents[0]
+        }
+    }
 
-    val barChartData = BarChartData(
-        chartData = barData,
-        xAxisData = xAxisData,
-        yAxisData = yAxisData,
-        backgroundColor = Color.White,
-        showYAxis = true,
-        showXAxis = true,
-        horizontalExtraSpace = 15.dp,
-        barStyle = BarStyle(
-            isGradientEnabled = true,
-            barBlendMode = BlendMode.SrcOver,
-        )
-    )
+    LaunchedEffect(points) {
+        if (points.isNotEmpty()) {
+            modelProducer.tryRunTransaction {
+                columnSeries { series(points.map { it.y }) }
+            }
+        }
+    }
 
     Scaffold(
         containerColor = SoftBack,
@@ -99,31 +95,14 @@ fun SellerRateMetricScreen(
                 .fillMaxSize()
                 .windowInsetsPadding(WindowInsets.statusBars)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(vertical = 15.dp).fillMaxWidth()
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowLeft,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .padding(start = 15.dp)
-                        .size(40.dp)
-                        .clickable { navController.popBackStack() }
-                )
-                Text(
-                    text = "Рейтинг продавца",
-                    style = TextStyle(fontFamily = Onest, fontWeight = FontWeight.Bold, fontSize = 20.sp),
-                    modifier = Modifier.padding(start = 10.dp)
-                )
-            }
+            HeaderSection(navController, "Рейтинг продавца")
 
-            Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+            Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)) {
                 Text(
                     text = "Текущий рейтинг: ${String.format("%.1f", seller?.rate ?: 0.0)}",
                     fontFamily = Onest,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 24.sp,
+                    fontSize = 26.sp,
                     color = BlackText
                 )
                 Text(
@@ -132,36 +111,62 @@ fun SellerRateMetricScreen(
                     fontSize = 14.sp,
                     color = BlackText.copy(alpha = 0.5f)
                 )
-            }
 
-            val scrollState = rememberScrollState()
-            val chartWidth = (70.dp * barData.size) + 60.dp
+                Spacer(modifier = Modifier.height(15.dp))
+            }
 
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(400.dp)
+                    .height(420.dp)
                     .padding(16.dp),
-                shape = RoundedCornerShape(24.dp),
+                shape = RoundedCornerShape(28.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(2.dp)
+                elevation = CardDefaults.cardElevation(4.dp)
             ) {
-                if (barData.isNotEmpty()) {
-                    Box(
+                if (points.isNotEmpty()) {
+                    CartesianChartHost(
+                        chart = rememberCartesianChart(
+                            rememberColumnCartesianLayer(
+                                columnProvider = multiColorProvider,
+                                axisValueOverrider = remember {
+                                    com.patrykandpatrick.vico.core.cartesian.data.AxisValueOverrider.fixed(
+                                        minY = 0f,
+                                        maxY = 5f
+                                    )
+                                }
+                            ),
+                            startAxis = rememberStartAxis(
+                                label = rememberAxisLabelComponent(
+                                    color = BlackText,
+                                    textSize = 12.sp
+                                ),
+                                guideline = rememberLineComponent(color = BlackText.copy(0.1f)),
+                                itemPlacer = com.patrykandpatrick.vico.core.cartesian.axis.AxisItemPlacer.Vertical.count(
+                                    count = { 6 }
+                                )
+                            ),
+                            bottomAxis = rememberBottomAxis(
+                                label = rememberAxisLabelComponent(
+                                    color = BlackText.copy(alpha = 0.6f),
+                                    textSize = 11.sp
+                                ),
+                                valueFormatter = { value, _, _ ->
+                                    "${value.toInt() + 1}"
+                                },
+                                guideline = null
+                            )
+                        ),
+                        modelProducer = modelProducer,
                         modifier = Modifier
-                            .padding(top = 20.dp, end = 15.dp)
-                            .horizontalScroll(scrollState)
-                    ) {
-                        co.yml.charts.ui.barchart.BarChart(
-                            modifier = Modifier
-                                .width(chartWidth)
-                                .fillMaxHeight(),
-                            barChartData = barChartData
-                        )
-                    }
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        marker = marker,
+                        horizontalLayout = HorizontalLayout.segmented()
+                    )
                 } else {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Нет отзывов для отображения", fontFamily = Onest)
+                        Text("Нет данных для графика", fontFamily = Onest)
                     }
                 }
             }

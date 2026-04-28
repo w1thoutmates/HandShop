@@ -7,12 +7,13 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 fun Long.toRelativeDateString(): String {
     val date = Instant.ofEpochMilli(this)
         .atZone(ZoneId.systemDefault())
         .toLocalDate()
-    val today = LocalDate.now()
+    val today = LocalDate.now(ZoneId.systemDefault())
 
     return when {
         date == today -> "Сегодня"
@@ -32,5 +33,6 @@ fun Date.formatToReadable(): String {
 
 fun Date.formatToStandard(): String {
     val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    formatter.timeZone = TimeZone.getDefault()
     return formatter.format(this)
 }

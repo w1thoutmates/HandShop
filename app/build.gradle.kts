@@ -43,6 +43,9 @@ android {
 }
 
 dependencies {
+    implementation("com.patrykandpatrick.vico:compose:2.0.0-alpha.22")
+    implementation("com.patrykandpatrick.vico:compose-m3:2.0.0-alpha.22")
+    implementation("com.patrykandpatrick.vico:core:2.0.0-alpha.22")
     implementation("co.yml:ycharts:2.1.0")
     implementation("com.github.skydoves:colorpicker-compose:1.0.7")
     implementation(platform("com.google.firebase:firebase-bom:34.10.0"))
