@@ -1,5 +1,15 @@
 package denis.and.co.handshop.data.model
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddIcCall
+import androidx.compose.material.icons.filled.AdsClick
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Preview
+import androidx.compose.material.icons.filled.RateReview
+import androidx.compose.material.icons.filled.RemoveRedEye
+import androidx.compose.material.icons.filled.StarRate
 import denis.and.co.handshop.ui.navigation.AddedToLikedMetricRoute
 import denis.and.co.handshop.ui.navigation.CTRMetricRoute
 import denis.and.co.handshop.ui.navigation.ClicksOnContactsMetricRoute
@@ -17,18 +27,21 @@ object MetricsProvider {
                 ChildItem(
                     id = "gm_child_1",
                     title = "Рейтинг продавца", // статистика: за все время / за месяц / за неделю
-                    route = SellerRateMetricRoute(sellerId)
+                    route = SellerRateMetricRoute(sellerId),
+                    icon = Icons.Default.StarRate
                 ),
                 ChildItem(
                     id = "gm_child_2",
                     title = "Суммарный охват",
                     description = "Статистика, которая показывает, сколько раз пользователям показывались объявления продавца",
-                    route = TotalReachMetricRoute
+                    route = TotalReachMetricRoute,
+                    icon = Icons.Default.RemoveRedEye
                 ),
                 ChildItem(
                     id = "gm_child_3",
                     title = "Соотношение категорий опубликованных товаров", // круговая диаграмма, например 70% Дерево, 13% Аксессуары и тд
-                    route = ProductCategoryRationMetricRoute
+                    route = ProductCategoryRationMetricRoute,
+                    icon = Icons.Default.Category
                 )
             )
         ),
@@ -40,24 +53,28 @@ object MetricsProvider {
                 ChildItem(
                     id = "cpm_child_1",
                     title = "Добавлено в избранное",
-                    route = AddedToLikedMetricRoute
+                    route = AddedToLikedMetricRoute,
+                    icon = Icons.Default.Favorite
                 ),
                 ChildItem(
                     id = "cpm_child_2",
                     title = "Коэффициент кликабельности (CTR)",
                     description = "Статистика, которая показывает соотношение того, сколько раз объявление показывалось пользователям и сколько раз по этому объявлению пользователь кликнул",
-                    route = CTRMetricRoute
+                    route = CTRMetricRoute,
+                    icon = Icons.Default.AdsClick
                 ),
                 ChildItem(
                     id = "cpm_child_3",
                     title = "Индекс конкурентной цены",
                     description = "Статистика, которая представляет собой сравнение цен конкурентов, ориентируясь на похожие товары",
-                    route = CompetitorsCostCompareMetricRoute
+                    route = CompetitorsCostCompareMetricRoute,
+                    icon = Icons.Default.BarChart
                 ),
                 ChildItem(
                     id = "cpm_child_4",
                     title = "Клики по кнопке «связаться»",
-                    route = ClicksOnContactsMetricRoute
+                    route = ClicksOnContactsMetricRoute,
+                    icon = Icons.Default.AddIcCall
                 )
             )
         )

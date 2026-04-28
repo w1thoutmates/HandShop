@@ -206,9 +206,21 @@ class MainActivity : ComponentActivity() {
                         }
                     )
 
+                    val catalogViewModel: CatalogViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                return CatalogViewModel(
+                                    AppDependencies.productRepository,
+                                    AppDependencies.sellerRepository
+                                ) as T
+                            }
+                        }
+                    )
+
                     ProductCreatingScreen(
                         navController = navController,
-                        viewModel = createProductVM
+                        viewModel = createProductVM,
+                        catalogViewModel = catalogViewModel
                     )
                 }
 
@@ -326,6 +338,17 @@ class MainActivity : ComponentActivity() {
                         }
                     )
 
+                    val catalogViewModel: CatalogViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                return CatalogViewModel(
+                                    AppDependencies.productRepository,
+                                    AppDependencies.sellerRepository
+                                ) as T
+                            }
+                        }
+                    )
+
                     var productToEdit by remember { mutableStateOf<Product?>(null) }
                     var isLoading by remember { mutableStateOf(true) }
 
@@ -343,7 +366,8 @@ class MainActivity : ComponentActivity() {
                         ProductCreatingScreen(
                             navController = navController,
                             viewModel = createProductVM,
-                            initialProduct = productToEdit
+                            initialProduct = productToEdit,
+                            catalogViewModel = catalogViewModel
                         )
                     }
                 }

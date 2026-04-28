@@ -37,7 +37,9 @@ import com.google.firebase.auth.FirebaseAuth
 import denis.and.co.handshop.data.enums.ProductStatus
 import denis.and.co.handshop.data.model.CategoryProvider
 import denis.and.co.handshop.data.model.Product
+import denis.and.co.handshop.ui.components.CostAnalyticsCard
 import denis.and.co.handshop.ui.theme.*
+import denis.and.co.handshop.viewmodel.CatalogViewModel
 import denis.and.co.handshop.viewmodel.CreateProductViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,6 +48,7 @@ fun ProductCreatingScreen(
     navController: NavController,
     viewModel: CreateProductViewModel,
     initialProduct: Product? = null,
+    catalogViewModel: CatalogViewModel
 ) {
     val currentUid = FirebaseAuth.getInstance().currentUser?.uid ?: return
 
@@ -72,6 +75,30 @@ fun ProductCreatingScreen(
     var tagsString by remember { mutableStateOf(initialProduct?.tags?.joinToString(", ") ?: "") }
 
     var selectedStatus by remember { mutableStateOf(initialProduct?.status ?: ProductStatus.ACTIVE) }
+
+    var costAnalytics by remember { mutableStateOf("") }
+
+    LaunchedEffect(cost, title, category) {
+        if (cost.isBlank() || title.isBlank() || category.isBlank()) {
+            costAnalytics = ""
+            return@LaunchedEffect
+        }
+
+        kotlinx.coroutines.delay(500)
+
+        val currentCost = cost.toLongOrNull() ?: 0L
+
+        val tempProduct = Product(
+            title = title,
+            description = description,
+            cost = currentCost,
+            category = category,
+            sellerId = currentUid,
+            tags = tagsString.split(",").map { it.trim() }
+        )
+
+        costAnalytics = catalogViewModel.getCostRecommendation(tempProduct)
+    }
 
     Scaffold(
         topBar = {
@@ -222,6 +249,11 @@ fun ProductCreatingScreen(
                     label = "Цена (₽)",
                     keyboardType = KeyboardType.Number
                 )
+
+                if (cost.isNotBlank() && costAnalytics.isNotBlank()) {
+                    CostAnalyticsCard(costAnalytics)
+                }
+
                 CategoryDropdown(
                     selectedCategory = category,
                     onCategorySelected = { category = it },

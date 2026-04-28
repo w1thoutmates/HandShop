@@ -15,6 +15,7 @@ import denis.and.co.handshop.data.repository.ProductRepository
 import denis.and.co.handshop.data.repository.SellerRepository
 import denis.and.co.handshop.di.AppDependencies
 import denis.and.co.handshop.di.AppDependencies.globalCatalogViewModel
+import denis.and.co.handshop.utils.SimilarityUtils
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -25,6 +26,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlin.collections.emptyList
+import kotlin.collections.sorted
 
 class CatalogViewModel(
     private val productRepo: ProductRepository,
@@ -394,6 +396,41 @@ class CatalogViewModel(
             trackedImpressions.add(product.id)
             productRepo.updateImpressionsCount(product.id)
             sellerRepo.updateImpression(product.sellerId)
+        }
+    }
+
+    suspend fun getCostRecommendation(inputProduct: Product): String {
+        val allProducts = productRepo.getProducts()
+
+        val similarProducts = allProducts
+            .filter { it.category == inputProduct.category && it.id != inputProduct.id }
+            .map { candidate ->
+                val titleSim = SimilarityUtils.calculateSimilarity(inputProduct.title, candidate.title)
+                val descSim = SimilarityUtils.calculateSimilarity(inputProduct.description, candidate.description)
+
+                val totalScore = (titleSim * 0.7) + (descSim * 0.3)
+                candidate to totalScore
+            }
+            .filter { it.second > 0.35 }
+            .sortedByDescending { it.second }
+            .take(15)
+
+        if (similarProducts.isEmpty()) return "Недостаточно данных для оценки"
+
+        val costs = similarProducts.map { it.first.cost?.toDouble() ?: 0.0 }.sorted()
+        val medianCost = if (costs.size % 2 == 0) {
+            (costs[costs.size / 2] + costs[costs.size / 2 - 1]) / 2
+        } else {
+            costs[costs.size / 2]
+        }
+
+        val userCost = inputProduct.cost?.toDouble() ?: 0.0
+        val threshold = 0.15
+
+        return when {
+            userCost < medianCost * (1 - threshold) -> "Цена ниже рынка"
+            userCost > medianCost * (1 + threshold) -> "Цена выше рынка"
+            else -> "Средняя цена по рынку"
         }
     }
 

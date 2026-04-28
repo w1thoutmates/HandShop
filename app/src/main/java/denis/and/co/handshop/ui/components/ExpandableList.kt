@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.InsertChartOutlined
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
@@ -39,6 +40,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
+import androidx.core.graphics.toColorInt
 import denis.and.co.handshop.data.model.ChildItem
 import denis.and.co.handshop.data.model.ParentItem
 import denis.and.co.handshop.ui.theme.BlackText
@@ -137,13 +139,19 @@ fun ChildItemView(
             .padding(horizontal = 20.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-
         Box(
             modifier = Modifier
                 .width(7.dp)
                 .height(2.dp)
                 .clip(RoundedCornerShape(2.dp))
                 .background(LowAlphaBlackText)
+        )
+
+        Icon(
+            imageVector = child.icon,
+            contentDescription = null,
+            modifier = Modifier.padding(start = 5.dp).size(15.dp),
+            tint = BlackText
         )
 
         Text(
@@ -154,9 +162,7 @@ fun ChildItemView(
                 fontWeight = FontWeight.Normal,
                 fontSize = 14.sp
             ),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(start = 12.dp)
+            modifier = Modifier.padding(start = 5.dp)
         )
 
         if (child.description.isNotBlank()) {

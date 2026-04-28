@@ -18,14 +18,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import denis.and.co.handshop.data.model.MetricsProvider
 import denis.and.co.handshop.ui.components.AppFooter
 import denis.and.co.handshop.ui.components.ExpandableList
+import denis.and.co.handshop.ui.theme.BlackText
+import denis.and.co.handshop.ui.theme.Onest
 import denis.and.co.handshop.ui.theme.SoftBack
 
 @Composable
@@ -67,6 +72,17 @@ fun MetricsScreenContent(navController: NavController, modifier: PaddingValues, 
                         .clickable {
                             navController.popBackStack()
                         }
+                )
+
+                Text(
+                    text = "Графики со сводкой статистик",
+                    style = androidx.compose.ui.text.TextStyle(
+                        fontFamily = Onest,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        color = BlackText
+                    ),
+                    modifier = Modifier.padding(start = 10.dp)
                 )
             }
 

@@ -32,6 +32,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.material.icons.filled.InsertChartOutlined
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Email
@@ -267,7 +268,7 @@ fun SellerProfileScreen(
                             imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
                             contentDescription = null,
                             modifier = Modifier.size(30.dp),
-                            tint = Color(currentSeller.selfProfileIconsColor.toColorInt()),
+                            tint = Color(currentSeller.selfProfileIconsColor.toColorInt())
                         )
                     }
 

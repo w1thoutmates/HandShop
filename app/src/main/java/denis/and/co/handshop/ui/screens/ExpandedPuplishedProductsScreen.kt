@@ -40,6 +40,7 @@ import androidx.core.graphics.toColorInt
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import denis.and.co.handshop.data.enums.ProductStatus
 import denis.and.co.handshop.data.model.CatalogState
 import denis.and.co.handshop.data.model.Seller
 import denis.and.co.handshop.ui.components.AppFooter
@@ -64,7 +65,7 @@ fun ExpandedPublishedProductsScreen(
     profileViewModel: ProfileViewModel,
     sellerId: String?
 ) {
-    val publishedProducts = profileViewModel.sellerProducts.collectAsState()
+    val publishedProducts = profileViewModel.sellerProducts.collectAsState().value.filter { it?.status == ProductStatus.ACTIVE }
     val isMyProfile = sellerId == null || sellerId == profileViewModel.currentUid
     val seller by profileViewModel.seller.collectAsState()
 
@@ -125,7 +126,7 @@ fun ExpandedPublishedProductsScreen(
                             )
                         )
 
-                        val count = publishedProducts.value.count()
+                        val count = publishedProducts.count()
 
                         Text(
                             text = "$count ${if (count == 1) "активный" else "активных"}",

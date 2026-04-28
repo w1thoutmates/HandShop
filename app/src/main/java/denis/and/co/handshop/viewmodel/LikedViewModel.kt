@@ -120,8 +120,6 @@ class LikedViewModel(
     }
 
     fun sortLikedProducts(option: String) {
-        val currentList = (state.value as? CatalogState.Success)?.items ?: originalItems
-
         val sortedList = when (option) {
             "Дороже" -> originalItems.sortedByDescending { it.product.cost }
             "Дешевле" -> originalItems.sortedBy { it.product.cost }
