@@ -58,3 +58,6 @@ object CompetitorsCostCompareMetricRoute : AppRoute
 
 @Serializable
 object ClicksOnContactsMetricRoute : AppRoute
+
+@Serializable
+data class ExpandedPublishedProductsRoute(val sellerId: String) : AppRoute

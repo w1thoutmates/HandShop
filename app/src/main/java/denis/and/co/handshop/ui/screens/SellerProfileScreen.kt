@@ -78,6 +78,7 @@ import denis.and.co.handshop.ui.components.ProductListItem
 import denis.and.co.handshop.ui.components.WorkSampleCard
 import denis.and.co.handshop.ui.navigation.EditProductRoute
 import denis.and.co.handshop.ui.navigation.EditProfileRoute
+import denis.and.co.handshop.ui.navigation.ExpandedPublishedProductsRoute
 import denis.and.co.handshop.ui.navigation.MetricsRoute
 import denis.and.co.handshop.ui.navigation.ProductDetailsRoute
 import denis.and.co.handshop.ui.navigation.ReviewsRoute
@@ -281,11 +282,7 @@ fun SellerProfileScreen(
                     modifier = Modifier
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                         .clickable {
-                            /*  открывать новый экран со всеми опубликованными
-                                товарами этого продавца и поиском по ним.
-                                можно даже поиск сделать по внутреннему списку,
-                                без транзакций и тд. - имхо так будет лучше
-                            */
+                            navController.navigate(ExpandedPublishedProductsRoute(currentSeller.id))
                         },
                     verticalAlignment = Alignment.CenterVertically
                 ) {

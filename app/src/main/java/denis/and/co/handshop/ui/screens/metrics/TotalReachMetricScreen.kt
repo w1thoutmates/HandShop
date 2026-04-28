@@ -269,14 +269,16 @@ fun HeaderSection(navController: NavController, title: String) {
             modifier = Modifier
                 .padding(start = 15.dp)
                 .size(40.dp)
-                .clickable { navController.popBackStack() }
+                .clickable { navController.popBackStack() },
+            tint = BlackText
         )
         Text(
             text = title,
             style = androidx.compose.ui.text.TextStyle(
                 fontFamily = Onest,
                 fontWeight = FontWeight.Bold,
-                fontSize = 20.sp
+                fontSize = 20.sp,
+                color = BlackText
             ),
             modifier = Modifier.padding(start = 10.dp)
         )

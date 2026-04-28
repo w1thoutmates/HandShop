@@ -28,6 +28,7 @@ import denis.and.co.handshop.ui.navigation.CreateProductRoute
 import denis.and.co.handshop.ui.navigation.CreateProfileRoute
 import denis.and.co.handshop.ui.navigation.EditProductRoute
 import denis.and.co.handshop.ui.navigation.EditProfileRoute
+import denis.and.co.handshop.ui.navigation.ExpandedPublishedProductsRoute
 import denis.and.co.handshop.ui.navigation.LikedRoute
 import denis.and.co.handshop.ui.navigation.LoginRoute
 import denis.and.co.handshop.ui.navigation.MetricsRoute
@@ -40,6 +41,7 @@ import denis.and.co.handshop.ui.navigation.SearchByCategoryRoute
 import denis.and.co.handshop.ui.navigation.SellerRateMetricRoute
 import denis.and.co.handshop.ui.navigation.TotalReachMetricRoute
 import denis.and.co.handshop.ui.screens.EditProfileScreen
+import denis.and.co.handshop.ui.screens.ExpandedPublishedProductsScreen
 import denis.and.co.handshop.ui.screens.LikedProductsScreen
 import denis.and.co.handshop.ui.screens.LoginScreen
 import denis.and.co.handshop.ui.screens.MetricsScreen
@@ -421,6 +423,50 @@ class MainActivity : ComponentActivity() {
                     )
 
                     ProductCategoryRationMetricScreen(navController, profileVm)
+                }
+
+                composable<ExpandedPublishedProductsRoute> { backStackEntry ->
+                    val route: ExpandedPublishedProductsRoute = backStackEntry.toRoute()
+
+                    val profileViewModel: ProfileViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T: ViewModel> create(modelClass: Class<T>): T {
+                                return ProfileViewModel(
+                                    sellerRepo = AppDependencies.sellerRepository,
+                                    productRepo = AppDependencies.productRepository
+                                ) as T
+                            }
+                        }
+                    )
+
+                    val catalogViewModel: CatalogViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                return CatalogViewModel(
+                                    AppDependencies.productRepository,
+                                    AppDependencies.sellerRepository
+                                ) as T
+                            }
+                        }
+                    )
+                    val likedViewModel: LikedViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                return LikedViewModel(
+                                    AppDependencies.productRepository,
+                                    AppDependencies.sellerRepository
+                                ) as T
+                            }
+                        }
+                    )
+
+                    ExpandedPublishedProductsScreen(
+                        navController = navController,
+                        catalogViewModel = catalogViewModel,
+                        likedViewModel = likedViewModel,
+                        profileViewModel = profileViewModel,
+                        sellerId = route.sellerId
+                    )
                 }
             }
         }
