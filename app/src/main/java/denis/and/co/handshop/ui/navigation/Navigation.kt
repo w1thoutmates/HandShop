@@ -1,5 +1,6 @@
 package denis.and.co.handshop.ui.navigation
 
+import denis.and.co.handshop.data.model.Seller
 import kotlinx.serialization.Serializable
 
 @Serializable

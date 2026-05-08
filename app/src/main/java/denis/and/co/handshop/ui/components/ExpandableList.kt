@@ -26,6 +26,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,22 +44,28 @@ import androidx.compose.ui.window.Popup
 import androidx.core.graphics.toColorInt
 import denis.and.co.handshop.data.model.ChildItem
 import denis.and.co.handshop.data.model.ParentItem
+import denis.and.co.handshop.data.model.Seller
 import denis.and.co.handshop.ui.theme.BlackText
 import denis.and.co.handshop.ui.theme.Comfortaa
 import denis.and.co.handshop.ui.theme.HardBack
 import denis.and.co.handshop.ui.theme.LowAlphaBlackText
 import denis.and.co.handshop.ui.theme.Onest
+import denis.and.co.handshop.viewmodel.ProfileViewModel
 
 @Composable
 fun ExpandableList(
     items: List<ParentItem>,
-    onChildClick: (ChildItem) -> Unit
+    onChildClick: (ChildItem) -> Unit,
+    seller: Seller,
+    viewModel: ProfileViewModel
 ) {
     LazyColumn {
         items(items) { parent ->
             ExpandableListItem(
                 parent = parent,
-                onChildClick = onChildClick
+                onChildClick = onChildClick,
+                seller = seller,
+                viewModel = viewModel
             )
         }
     }
@@ -67,22 +74,25 @@ fun ExpandableList(
 @Composable
 fun ExpandableListItem(
     parent: ParentItem,
-    onChildClick: (ChildItem) -> Unit
+    onChildClick: (ChildItem) -> Unit,
+    seller: Seller,
+    viewModel: ProfileViewModel
 ) {
-    var isExpanded by remember { mutableStateOf(false) }
+    val expandableItems by viewModel.expandableItems.collectAsState()
+    val isExpanded = expandableItems[parent.id] ?: false
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 6.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(HardBack.copy(0.35f))
+            .background(Color(seller.selfProfileFooterColor.toColorInt()).copy(0.35f))
     ) {
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { isExpanded = !isExpanded }
+                .clickable { viewModel.expandMetricsList(parent.id) }
                 .padding(horizontal = 16.dp, vertical = 14.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -90,7 +100,7 @@ fun ExpandableListItem(
                 text = parent.title,
                 style = TextStyle(
                     fontFamily = Onest,
-                    color = BlackText,
+                    color = Color(seller.selfProfileTextColor.toColorInt()),
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 17.sp
                 ),
@@ -105,7 +115,7 @@ fun ExpandableListItem(
                 else
                     Icons.Outlined.KeyboardArrowDown,
                 contentDescription = null,
-                tint = LowAlphaBlackText
+                tint = Color(seller.selfProfileIconsColor.toColorInt())
             )
         }
 

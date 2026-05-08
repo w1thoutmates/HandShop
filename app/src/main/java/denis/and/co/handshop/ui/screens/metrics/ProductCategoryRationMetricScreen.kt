@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.toColorInt
 import androidx.navigation.NavController
 import co.yml.charts.common.extensions.formatToSinglePrecision
 import co.yml.charts.common.model.PlotType
@@ -47,89 +48,94 @@ fun ProductCategoryRationMetricScreen(
     navController: NavController,
     viewModel: ProfileViewModel
 ) {
+    val seller by viewModel.seller.collectAsState()
+
     LaunchedEffect(Unit) {
         viewModel.loadProfile(null)
     }
 
-    val basePalette = listOf(
-        Color(0xFF6C5CE7),
-        Color(0xFF00B894),
-        Color(0xFFFF7675),
-        Color(0xFFFDCB6E),
-        Color(0xFF0984E3),
-        Color(0xFFE17055)
-    )
-
-    val products by viewModel.sellerProducts.collectAsState()
-    val categories = products
-        .filterNotNull()
-        .groupingBy { it.category.trim() }
-        .eachCount()
-
-    val pieData = categories.entries.mapIndexed { index, entry ->
-        Slice(
-            label = entry.key,
-            value = entry.value.toFloat(),
-            color = getColorForIndex(index, basePalette)
+    seller?.let { currentSeller ->
+        val basePalette = listOf(
+            Color(0xFF6C5CE7),
+            Color(0xFF00B894),
+            Color(0xFFFF7675),
+            Color(0xFFFDCB6E),
+            Color(0xFF0984E3),
+            Color(0xFFE17055)
         )
-    }
 
-    if (pieData.size == 1) {
-        Text(
-            text = "Все товары в одной категории: ${pieData.first().label}",
-            fontFamily = Onest
+        val products by viewModel.sellerProducts.collectAsState()
+        val categories = products
+            .filterNotNull()
+            .groupingBy { it.category.trim() }
+            .eachCount()
+
+        val pieData = categories.entries.mapIndexed { index, entry ->
+            Slice(
+                label = entry.key,
+                value = entry.value.toFloat(),
+                color = getColorForIndex(index, basePalette)
+            )
+        }
+
+        if (pieData.size == 1) {
+            Text(
+                text = "Все товары в одной категории: ${pieData.first().label}",
+                fontFamily = Onest,
+                color = Color(currentSeller.selfProfileTextColor.toColorInt())
+            )
+        }
+
+        val pieChartData = PieChartData(
+            slices = pieData,
+            plotType = PlotType.Pie
         )
-    }
 
-    val pieChartData = PieChartData(
-        slices = pieData,
-        plotType = PlotType.Pie
-    )
+        val pieChartConfig = PieChartConfig(
+            isSumVisible = true,
+            isAnimationEnable = true,
+            showSliceLabels = false,
+            animationDuration = 1500
+        )
 
-    val pieChartConfig = PieChartConfig(
-        isSumVisible = true,
-        isAnimationEnable = true,
-        showSliceLabels = false,
-        animationDuration = 1500
-    )
+        val total = pieData.sumOf { it.value.toDouble() }
 
-    val total = pieData.sumOf { it.value.toDouble() }
-
-    Scaffold(
-        containerColor = SoftBack,
-        bottomBar = { AppFooter(navController) }
-    ) { padding ->
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .windowInsetsPadding(WindowInsets.statusBars)
-        ) {
-
-            HeaderSection(navController, "Категории товаров")
+        Scaffold(
+            containerColor = Color(currentSeller.selfProfileBackground.toColorInt()),
+            bottomBar = { AppFooter(navController, currentSeller) }
+        ) { padding ->
 
             Column(
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .windowInsetsPadding(WindowInsets.statusBars)
             ) {
-                Text(
-                    text = "Распределение по категориям",
-                    fontFamily = Onest,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 22.sp,
-                    color = BlackText
-                )
 
-                Text(
-                    text = "Доля каждой категории от общего числа",
-                    fontFamily = Onest,
-                    fontSize = 14.sp,
-                    color = BlackText.copy(alpha = 0.5f)
-                )
+                HeaderSection(navController, "Категории товаров", currentSeller)
+
+                Column(
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
+                ) {
+                    Text(
+                        text = "Распределение по категориям",
+                        fontFamily = Onest,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 22.sp,
+                        color = Color(currentSeller.selfProfileTextColor.toColorInt())
+                    )
+
+                    Text(
+                        text = "Доля каждой категории от общего числа",
+                        fontFamily = Onest,
+                        fontSize = 14.sp,
+                        color = Color(currentSeller.selfProfileTextColor.toColorInt()).copy(alpha = 0.5f)
+                    )
+                }
+
+                ChartCard(pieChartData, pieChartConfig)
+
+                Legend(pieData, total)
             }
-
-            ChartCard(pieChartData, pieChartConfig)
-
-            Legend(pieData, total)
         }
     }
 }

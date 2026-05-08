@@ -20,36 +20,64 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.toColorInt
 import androidx.navigation.NavController
 import denis.and.co.handshop.data.model.MetricsProvider
+import denis.and.co.handshop.data.model.Seller
 import denis.and.co.handshop.ui.components.AppFooter
 import denis.and.co.handshop.ui.components.ExpandableList
 import denis.and.co.handshop.ui.theme.BlackText
 import denis.and.co.handshop.ui.theme.Onest
 import denis.and.co.handshop.ui.theme.SoftBack
+import denis.and.co.handshop.viewmodel.ProfileViewModel
 
 @Composable
 fun MetricsScreen(
     navController: NavController,
-    sellerId: String
+    sellerId: String,
+    viewModel: ProfileViewModel
 ) {
-    Scaffold(
-        containerColor = SoftBack,
-        bottomBar = { AppFooter(navController) },
-        modifier = Modifier
-            .fillMaxSize()
-    ) { padding ->
-        MetricsScreenContent(navController, PaddingValues(0.dp), sellerId)
+    val seller by viewModel.seller.collectAsState()
+
+    LaunchedEffect(sellerId) {
+        viewModel.loadProfile(sellerId)
+    }
+
+    seller?.let { currentSeller ->
+        Scaffold(
+            containerColor = Color(currentSeller.selfProfileBackground.toColorInt()),
+            bottomBar = { AppFooter(navController, currentSeller) },
+            modifier = Modifier
+                .fillMaxSize()
+        ) { padding ->
+            MetricsScreenContent(
+                navController = navController,
+                modifier = PaddingValues(0.dp),
+                sellerId = sellerId,
+                seller = currentSeller,
+                viewModel = viewModel
+            )
+        }
     }
 }
 
 @Composable
-fun MetricsScreenContent(navController: NavController, modifier: PaddingValues, sellerId: String) {
+fun MetricsScreenContent(
+    navController: NavController,
+    modifier: PaddingValues,
+    sellerId: String,
+    seller: Seller,
+    viewModel: ProfileViewModel
+) {
     Box(
         modifier = Modifier
             .windowInsetsPadding(WindowInsets.statusBars)
@@ -80,7 +108,7 @@ fun MetricsScreenContent(navController: NavController, modifier: PaddingValues, 
                         fontFamily = Onest,
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
-                        color = BlackText
+                        color = Color(seller.selfProfileTextColor.toColorInt())
                     ),
                     modifier = Modifier.padding(start = 10.dp)
                 )
@@ -90,7 +118,9 @@ fun MetricsScreenContent(navController: NavController, modifier: PaddingValues, 
                 items = MetricsProvider.getItems(sellerId),
                 onChildClick = { child ->
                     navController.navigate(child.route)
-                }
+                },
+                seller = seller,
+                viewModel = viewModel
             )
 
         }

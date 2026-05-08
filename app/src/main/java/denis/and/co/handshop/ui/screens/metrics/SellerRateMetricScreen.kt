@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.toColorInt
 import androidx.navigation.NavController
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisLabelComponent
@@ -32,16 +33,18 @@ import com.patrykandpatrick.vico.core.common.shader.DynamicShader
 import com.patrykandpatrick.vico.core.common.shape.Shape
 import denis.and.co.handshop.ui.components.AppFooter
 import denis.and.co.handshop.ui.theme.*
+import denis.and.co.handshop.viewmodel.ProfileViewModel
 import denis.and.co.handshop.viewmodel.ReviewsViewModel
 import java.util.Locale
 
 @Composable
 fun SellerRateMetricScreen(
     navController: NavController,
-    viewModel: ReviewsViewModel
+    viewModel: ReviewsViewModel,
+    profileViewModel: ProfileViewModel
 ) {
     val points by viewModel.ratingPoints.collectAsState()
-    val seller by viewModel.seller.collectAsState()
+    val seller by profileViewModel.seller.collectAsState()
 
     val modelProducer = remember { CartesianChartModelProducer.build() }
     val marker = rememberMarker(true)
@@ -86,87 +89,93 @@ fun SellerRateMetricScreen(
         }
     }
 
-    Scaffold(
-        containerColor = SoftBack,
-        bottomBar = { AppFooter(navController) }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .windowInsetsPadding(WindowInsets.statusBars)
-        ) {
-            HeaderSection(navController, "Рейтинг продавца")
+    LaunchedEffect(Unit) {
+        profileViewModel.loadProfile(null)
+    }
 
-            Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)) {
-                Text(
-                    text = "Текущий рейтинг: ${String.format("%.1f", seller?.rate ?: 0.0)}",
-                    fontFamily = Onest,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 26.sp,
-                    color = BlackText
-                )
-                Text(
-                    text = "На основе ${points.size} отзывов",
-                    fontFamily = Onest,
-                    fontSize = 14.sp,
-                    color = BlackText.copy(alpha = 0.5f)
-                )
-
-                Spacer(modifier = Modifier.height(15.dp))
-            }
-
-            Card(
+    seller?.let { currentSeller ->
+        Scaffold(
+            containerColor = Color(currentSeller.selfProfileBackground.toColorInt()),
+            bottomBar = { AppFooter(navController, currentSeller) }
+        ) { padding ->
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(420.dp)
-                    .padding(16.dp),
-                shape = RoundedCornerShape(28.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(4.dp)
+                    .fillMaxSize()
+                    .windowInsetsPadding(WindowInsets.statusBars)
             ) {
-                if (points.isNotEmpty()) {
-                    CartesianChartHost(
-                        chart = rememberCartesianChart(
-                            rememberColumnCartesianLayer(
-                                columnProvider = multiColorProvider,
-                                axisValueOverrider = remember {
-                                    com.patrykandpatrick.vico.core.cartesian.data.AxisValueOverrider.fixed(
-                                        minY = 0f,
-                                        maxY = 5f
-                                    )
-                                }
-                            ),
-                            startAxis = rememberStartAxis(
-                                label = rememberAxisLabelComponent(
-                                    color = BlackText,
-                                    textSize = 12.sp
+                HeaderSection(navController, "Рейтинг продавца", currentSeller)
+
+                Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)) {
+                    Text(
+                        text = "Текущий рейтинг: ${String.format("%.1f", seller?.rate ?: 0.0)}",
+                        fontFamily = Onest,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 26.sp,
+                        color = Color(currentSeller.selfProfileTextColor.toColorInt())
+                    )
+                    Text(
+                        text = "На основе ${points.size} отзывов",
+                        fontFamily = Onest,
+                        fontSize = 14.sp,
+                        color = Color(currentSeller.selfProfileTextColor.toColorInt()).copy(alpha = 0.5f)
+                    )
+
+                    Spacer(modifier = Modifier.height(15.dp))
+                }
+
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(420.dp)
+                        .padding(16.dp),
+                    shape = RoundedCornerShape(28.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(4.dp)
+                ) {
+                    if (points.isNotEmpty()) {
+                        CartesianChartHost(
+                            chart = rememberCartesianChart(
+                                rememberColumnCartesianLayer(
+                                    columnProvider = multiColorProvider,
+                                    axisValueOverrider = remember {
+                                        com.patrykandpatrick.vico.core.cartesian.data.AxisValueOverrider.fixed(
+                                            minY = 0f,
+                                            maxY = 5f
+                                        )
+                                    }
                                 ),
-                                guideline = rememberLineComponent(color = BlackText.copy(0.1f)),
-                                itemPlacer = com.patrykandpatrick.vico.core.cartesian.axis.AxisItemPlacer.Vertical.count(
-                                    count = { 6 }
+                                startAxis = rememberStartAxis(
+                                    label = rememberAxisLabelComponent(
+                                        color = BlackText,
+                                        textSize = 12.sp
+                                    ),
+                                    guideline = rememberLineComponent(color = BlackText.copy(0.1f)),
+                                    itemPlacer = com.patrykandpatrick.vico.core.cartesian.axis.AxisItemPlacer.Vertical.count(
+                                        count = { 6 }
+                                    )
+                                ),
+                                bottomAxis = rememberBottomAxis(
+                                    label = rememberAxisLabelComponent(
+                                        color = BlackText.copy(alpha = 0.6f),
+                                        textSize = 11.sp
+                                    ),
+                                    valueFormatter = { value, _, _ ->
+                                        "${value.toInt() + 1}"
+                                    },
+                                    guideline = null
                                 )
                             ),
-                            bottomAxis = rememberBottomAxis(
-                                label = rememberAxisLabelComponent(
-                                    color = BlackText.copy(alpha = 0.6f),
-                                    textSize = 11.sp
-                                ),
-                                valueFormatter = { value, _, _ ->
-                                    "${value.toInt() + 1}"
-                                },
-                                guideline = null
-                            )
-                        ),
-                        modelProducer = modelProducer,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp),
-                        marker = marker,
-                        horizontalLayout = HorizontalLayout.segmented()
-                    )
-                } else {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Нет данных для графика", fontFamily = Onest)
+                            modelProducer = modelProducer,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp),
+                            marker = marker,
+                            horizontalLayout = HorizontalLayout.segmented()
+                        )
+                    } else {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text("Нет данных для графика", fontFamily = Onest, color = Color(currentSeller.selfProfileTextColor.toColorInt()))
+                        }
                     }
                 }
             }

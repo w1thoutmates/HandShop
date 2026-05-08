@@ -25,6 +25,8 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -146,7 +148,7 @@ fun LikedScreenContent(
                                 onDeleteClick = {
                                     onDeleteProduct(item.product.id)
                                     viewModel.loadLikedProducts()
-                                    Toast.makeText(context, "Объявление [${item.product.title}] успешно удалено из избранного", Toast.LENGTH_LONG)
+                                    Toast.makeText(context, "Объявление [${item.product.title}] успешно удалено из избранного", Toast.LENGTH_LONG).show()
                                 },
                                 onShareClick = { /* sharing logic */ }
                             )
@@ -417,8 +419,8 @@ fun LikedScreenHeader(
                                     verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    Image(
-                                        painter = painterResource(R.drawable.eye),
+                                    Icon(
+                                        imageVector = Icons.Default.VisibilityOff,
                                         contentDescription = null,
                                         modifier = Modifier.size(20.dp)
                                     )
@@ -475,8 +477,8 @@ fun LikedScreenHeader(
                                     verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    Image(
-                                        painter = painterResource(R.drawable.mark),
+                                    Icon(
+                                        imageVector = Icons.Default.Visibility,
                                         contentDescription = null,
                                         modifier = Modifier.size(20.dp)
                                     )

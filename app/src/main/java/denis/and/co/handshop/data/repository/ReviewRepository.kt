@@ -101,12 +101,25 @@ class ReviewRepository {
                 val sellerRef = db.collection("sellers").document(review.sellerId ?: return@runTransaction)
                 val sellerSnap = transaction.get(sellerRef)
 
-                val currentCount = sellerSnap.getLong("reviewsCount") ?: 0
-                val currentSum = sellerSnap.getDouble("ratingSum") ?: 0.0
+                val currentCount = when (val count = sellerSnap.get("reviewsCount")) {
+                    is Long -> count
+                    is Int -> count.toLong()
+                    is Double -> count.toLong()
+                    else -> 0L
+                }
+
+                val currentSum = when (val sum = sellerSnap.get("ratingSum")) {
+                    is Double -> sum
+                    is Long -> sum.toDouble()
+                    is Int -> sum.toDouble()
+                    else -> 0.0
+                }
 
                 val newCount = currentCount + 1
                 val newSum = currentSum + review.selectedRate
                 val newRating = newSum / newCount
+
+                require(newRating <= 5.0) { "Некорректный рейтинг: $newRating" }
 
                 val reviewRef = db.collection("reviews").document()
                 transaction.set(reviewRef, review.copy(id = reviewRef.id))
@@ -118,6 +131,39 @@ class ReviewRepository {
                 ))
             }.await()
             Result.success(Unit)
+        } catch (ex: Exception) {
+            Log.e("REVIEW_ERROR", "Ошибка: ${ex.message}", ex)
+            Result.failure(ex)
+        }
+    }
+
+    suspend fun recalculateSellerRating(sellerId: String): Result<Double> {
+        return try {
+            val reviews = getReviewsForSeller(sellerId)
+            if (reviews.isEmpty()) {
+                db.collection("sellers").document(sellerId).update(
+                    mapOf(
+                        "reviewsCount" to 0,
+                        "ratingSum" to 0.0,
+                        "rate" to 0.0
+                    )
+                ).await()
+                return Result.success(0.0)
+            }
+
+            val sum = reviews.sumOf { it.selectedRate.toDouble() }
+            val count = reviews.size
+            val newRating = sum / count
+
+            db.collection("sellers").document(sellerId).update(
+                mapOf(
+                    "reviewsCount" to count,
+                    "ratingSum" to sum,
+                    "rate" to newRating
+                )
+            ).await()
+
+            Result.success(newRating)
         } catch (ex: Exception) {
             Result.failure(ex)
         }

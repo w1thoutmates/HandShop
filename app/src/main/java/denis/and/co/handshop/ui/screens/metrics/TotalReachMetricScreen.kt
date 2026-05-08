@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.toColorInt
 import androidx.navigation.NavController
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottomAxis
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStartAxis
@@ -78,11 +79,15 @@ import com.patrykandpatrick.vico.compose.common.shape.rounded
 import com.patrykandpatrick.vico.core.cartesian.marker.ColumnCartesianLayerMarkerTarget
 import com.patrykandpatrick.vico.core.cartesian.marker.DefaultCartesianMarker
 import com.patrykandpatrick.vico.core.common.Dimensions
+import denis.and.co.handshop.data.model.Seller
+import denis.and.co.handshop.utils.getContrastColor
+import denis.and.co.handshop.viewmodel.ProfileViewModel
 
 @Composable
 fun TotalReachMetricScreen(
     navController: NavController,
-    viewModel: MetricsViewModel
+    viewModel: MetricsViewModel,
+    profileViewModel: ProfileViewModel
 ) {
     var days by remember { mutableIntStateOf(7) }
     val points by viewModel.reachPoints.collectAsState()
@@ -92,6 +97,12 @@ fun TotalReachMetricScreen(
     val modelProducer = remember { CartesianChartModelProducer.build() }
 
     val marker = rememberMarker()
+
+    val seller by profileViewModel.seller.collectAsState()
+
+    LaunchedEffect(Unit) {
+        profileViewModel.loadProfile(null)
+    }
 
     val basePalette = listOf(
         Color(0xFF6C5CE7), Color(0xFF00B894), Color(0xFFFF7675),
@@ -144,110 +155,113 @@ fun TotalReachMetricScreen(
         }
     }
 
-    Scaffold(
-        containerColor = SoftBack,
-        bottomBar = { AppFooter(navController) }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .windowInsetsPadding(WindowInsets.statusBars)
-        ) {
-            HeaderSection(navController, "Охваты")
+    seller?.let { currentSeller ->
+        Scaffold(
+            containerColor = Color(currentSeller.selfProfileBackground.toColorInt()),
+            bottomBar = { AppFooter(navController, currentSeller) }
+        ) { padding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .windowInsetsPadding(WindowInsets.statusBars)
+            ) {
+                HeaderSection(navController, "Охваты", currentSeller)
 
-            val totalImpressions = points.sumOf { it.y.toInt() }
-            Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)) {
-                Text(
-                    text = "Всего показов: $totalImpressions",
-                    fontFamily = Onest,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 26.sp,
-                    color = BlackText
-                )
-                Text(
-                    text = "Статистика по дням обновляется в реальном времени",
-                    fontFamily = Onest,
-                    fontSize = 14.sp,
-                    color = BlackText.copy(alpha = 0.5f)
-                )
+                val totalImpressions = points.sumOf { it.y.toInt() }
+                Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)) {
+                    Text(
+                        text = "Всего показов: $totalImpressions",
+                        fontFamily = Onest,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 26.sp,
+                        color = Color(currentSeller.selfProfileTextColor.toColorInt())
+                    )
+                    Text(
+                        text = "Статистика по дням обновляется в реальном времени",
+                        fontFamily = Onest,
+                        fontSize = 14.sp,
+                        color = Color(currentSeller.selfProfileTextColor.toColorInt()).copy(alpha = 0.5f)
+                    )
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 15.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    TimePeriod.entries.forEach { period ->
-                        FilterChip(
-                            label = period.label,
-                            isSelected = days == period.days,
-                            onClick = { days = period.days }
-                        )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 15.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        TimePeriod.entries.forEach { period ->
+                            FilterChip(
+                                label = period.label,
+                                isSelected = days == period.days,
+                                onClick = { days = period.days },
+                                seller = currentSeller
+                            )
+                        }
                     }
                 }
-            }
 
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(420.dp)
-                    .padding(16.dp),
-                shape = RoundedCornerShape(28.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(4.dp)
-            ) {
-                if (points.isNotEmpty()) {
-                    CartesianChartHost(
-                        chart = rememberCartesianChart(
-                            rememberColumnCartesianLayer(
-                                columnProvider = multiColorProvider
-                            ),
-                            rememberLineCartesianLayer(
-                                lines = listOf(
-                                    rememberLineSpec(
-                                        shader = DynamicShader.color(Accent.copy(alpha = 0.15f)),
-                                        thickness = 2.dp,
-                                        point = rememberShapeComponent(
-                                            shape = Shape.Pill,
-                                            color = Accent.copy(0.45f)
-                                        ),
-                                        pointSize = 5.dp,
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(420.dp)
+                        .padding(16.dp),
+                    shape = RoundedCornerShape(28.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(4.dp)
+                ) {
+                    if (points.isNotEmpty()) {
+                        CartesianChartHost(
+                            chart = rememberCartesianChart(
+                                rememberColumnCartesianLayer(
+                                    columnProvider = multiColorProvider
+                                ),
+                                rememberLineCartesianLayer(
+                                    lines = listOf(
+                                        rememberLineSpec(
+                                            shader = DynamicShader.color(Accent.copy(alpha = 0.15f)),
+                                            thickness = 2.dp,
+                                            point = rememberShapeComponent(
+                                                shape = Shape.Pill,
+                                                color = Accent.copy(0.45f)
+                                            ),
+                                            pointSize = 5.dp,
+                                        )
                                     )
+                                ),
+                                startAxis = rememberStartAxis(
+                                    label = rememberAxisLabelComponent(
+                                        color = BlackText,
+                                        textSize = 12.sp
+                                    ),
+                                    guideline = rememberLineComponent(BlackText.copy(0.1f))
+                                ),
+                                bottomAxis = rememberBottomAxis(
+                                    label = rememberAxisLabelComponent(
+                                        color = BlackText.copy(alpha = 0.6f),
+                                        textSize = 11.sp
+                                    ),
+                                    valueFormatter = { value, _, _ ->
+                                        stats.getOrNull(value.toInt())?.let {
+                                            try {
+                                                LocalDate.parse(it.date).format(formatter)
+                                            } catch (ex: Exception) {
+                                                ""
+                                            }
+                                        } ?: ""
+                                    },
+                                    guideline = null
                                 )
                             ),
-                            startAxis = rememberStartAxis(
-                                label = rememberAxisLabelComponent(
-                                    color = BlackText,
-                                    textSize = 12.sp
-                                ),
-                                guideline = rememberLineComponent(BlackText.copy(0.1f))
-                            ),
-                            bottomAxis = rememberBottomAxis(
-                                label = rememberAxisLabelComponent(
-                                    color = BlackText.copy(alpha = 0.6f),
-                                    textSize = 11.sp
-                                ),
-                                valueFormatter = { value, _, _ ->
-                                    stats.getOrNull(value.toInt())?.let {
-                                        try {
-                                            LocalDate.parse(it.date).format(formatter)
-                                        } catch (ex: Exception) {
-                                            ""
-                                        }
-                                    } ?: ""
-                                },
-                                guideline = null
-                            )
-                        ),
-                        modelProducer = modelProducer,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp),
-                        marker = marker
-                    )
-                } else {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Нет данных для графика", fontFamily = Onest)
+                            modelProducer = modelProducer,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp),
+                            marker = marker
+                        )
+                    } else {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text("Нет данных для графика", fontFamily = Onest, color = Color(currentSeller.selfProfileTextColor.toColorInt()))
+                        }
                     }
                 }
             }
@@ -256,7 +270,7 @@ fun TotalReachMetricScreen(
 }
 
 @Composable
-fun HeaderSection(navController: NavController, title: String) {
+fun HeaderSection(navController: NavController, title: String, seller: Seller) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -270,7 +284,7 @@ fun HeaderSection(navController: NavController, title: String) {
                 .padding(start = 15.dp)
                 .size(40.dp)
                 .clickable { navController.popBackStack() },
-            tint = BlackText
+            tint = Color(seller.selfProfileIconsColor.toColorInt())
         )
         Text(
             text = title,
@@ -278,7 +292,7 @@ fun HeaderSection(navController: NavController, title: String) {
                 fontFamily = Onest,
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
-                color = BlackText
+                color = Color(seller.selfProfileTextColor.toColorInt())
             ),
             modifier = Modifier.padding(start = 10.dp)
         )
@@ -286,12 +300,12 @@ fun HeaderSection(navController: NavController, title: String) {
 }
 
 @Composable
-fun FilterChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
+fun FilterChip(label: String, isSelected: Boolean, onClick: () -> Unit, seller: Seller) {
     Surface(
         modifier = Modifier
             .clip(RoundedCornerShape(12.dp))
             .clickable { onClick() },
-        color = if (isSelected) Accent else HardBack.copy(alpha = 0.3f),
+        color = if (isSelected) Color(seller.selfProfileAccentColor.toColorInt()) else Color(seller.selfProfileFooterColor.toColorInt()).copy(alpha = 0.3f),
         shape = RoundedCornerShape(12.dp)
     ) {
         Text(
@@ -301,7 +315,7 @@ fun FilterChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
                 fontFamily = Onest,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
-                color = if (isSelected) Color.White else BlackText
+                color = if (isSelected) Color(seller.selfProfileAccentTextColor.toColorInt()) else getContrastColor(Color(seller.selfProfileAccentTextColor.toColorInt()))
             )
         )
     }

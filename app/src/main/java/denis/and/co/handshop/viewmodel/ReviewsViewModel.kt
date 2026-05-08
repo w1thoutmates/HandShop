@@ -1,5 +1,6 @@
 package denis.and.co.handshop.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.yml.charts.common.model.Point
@@ -38,6 +39,12 @@ class ReviewsViewModel(
             _seller.value = sellerResult
 
             calculateRatingHistory(reviewsResult)
+        }
+    }
+
+    suspend fun fixCurrentSellerRating() {
+        reviewsRepo.recalculateSellerRating(sellerId).onSuccess { newRating ->
+            Log.d("FIX", "Рейтинг исправлен на: $newRating")
         }
     }
 

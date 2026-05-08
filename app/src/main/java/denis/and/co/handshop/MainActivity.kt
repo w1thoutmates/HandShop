@@ -387,13 +387,43 @@ class MainActivity : ComponentActivity() {
                         }
                     )
 
-                    ReviewsScreen(viewModel = reviewsVm, navController = navController)
+                    val profileVm: ProfileViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T: ViewModel> create(modelClass: Class<T>): T {
+                                return ProfileViewModel(
+                                    sellerRepo = AppDependencies.sellerRepository,
+                                    productRepo = AppDependencies.productRepository
+                                ) as T
+                            }
+                        }
+                    )
+
+                    ReviewsScreen(
+                        viewModel = reviewsVm,
+                        navController = navController,
+                        profileViewModel = profileVm
+                    )
                 }
 
                 composable<MetricsRoute> {backStackEntry ->
                     val route: MetricsRoute = backStackEntry.toRoute()
 
-                    MetricsScreen(navController, route.sellerId)
+                    val profileVm: ProfileViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T: ViewModel> create(modelClass: Class<T>): T {
+                                return ProfileViewModel(
+                                    sellerRepo = AppDependencies.sellerRepository,
+                                    productRepo = AppDependencies.productRepository
+                                ) as T
+                            }
+                        }
+                    )
+
+                    MetricsScreen(
+                        navController = navController,
+                        sellerId = route.sellerId,
+                        viewModel = profileVm
+                    )
                 }
 
                 composable<SellerRateMetricRoute> { backStackEntry ->
@@ -411,7 +441,22 @@ class MainActivity : ComponentActivity() {
                         }
                     )
 
-                    SellerRateMetricScreen(navController, reviewsVm)
+                    val profileVm: ProfileViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T: ViewModel> create(modelClass: Class<T>): T {
+                                return ProfileViewModel(
+                                    sellerRepo = AppDependencies.sellerRepository,
+                                    productRepo = AppDependencies.productRepository
+                                ) as T
+                            }
+                        }
+                    )
+
+                    SellerRateMetricScreen(
+                        navController = navController,
+                        viewModel = reviewsVm,
+                        profileViewModel = profileVm
+                    )
                 }
 
                 composable<TotalReachMetricRoute> {
@@ -428,9 +473,21 @@ class MainActivity : ComponentActivity() {
                         }
                     )
 
+                    val profileVm: ProfileViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T: ViewModel> create(modelClass: Class<T>): T {
+                                return ProfileViewModel(
+                                    sellerRepo = AppDependencies.sellerRepository,
+                                    productRepo = AppDependencies.productRepository
+                                ) as T
+                            }
+                        }
+                    )
+
                     TotalReachMetricScreen(
                         navController = navController,
-                        viewModel = metricsVm
+                        viewModel = metricsVm,
+                        profileViewModel = profileVm
                     )
                 }
 

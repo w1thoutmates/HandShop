@@ -1,6 +1,7 @@
 package denis.and.co.handshop.utils
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 
 fun Color.toHexString(): String {
     val red = (this.red * 255).toInt()
@@ -22,5 +23,13 @@ fun getColorForIndex(index: Int, basePalette: List<Color>): Color {
         basePalette[index]
     } else {
         generateColor(index)
+    }
+}
+
+fun getContrastColor(color: Color): Color {
+    return if (color.luminance() > 0.5) {
+        Color.Black
+    } else {
+        Color.White
     }
 }

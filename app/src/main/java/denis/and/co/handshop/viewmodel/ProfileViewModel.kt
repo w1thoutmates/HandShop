@@ -24,6 +24,9 @@ class ProfileViewModel(
     private val auth = FirebaseAuth.getInstance()
     val currentUid = auth.currentUser?.uid
 
+    private val _expandableItems = MutableStateFlow<Map<String, Boolean>>(emptyMap())
+    val expandableItems = _expandableItems.asStateFlow()
+
     fun loadProfile(sellerId: String?) {
         val currentUid = FirebaseAuth.getInstance().currentUser?.uid
         val targetId = sellerId ?: currentUid ?: return
@@ -46,5 +49,15 @@ class ProfileViewModel(
         viewModelScope.launch {
             sellerRepo.updateCountClicksOnContacts(sellerId)
         }
+    }
+
+    fun expandMetricsList(itemId: String) {
+        val currentMap = _expandableItems.value.toMutableMap()
+        currentMap[itemId] = !(currentMap[itemId] ?: false)
+        _expandableItems.value = currentMap
+    }
+
+    fun isItemIsExpanded(itemId: String): Boolean {
+        return _expandableItems.value[itemId] ?: false
     }
 }

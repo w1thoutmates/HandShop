@@ -27,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -36,6 +37,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
+import androidx.core.graphics.toColorInt
 import denis.and.co.handshop.R
 import denis.and.co.handshop.data.model.Seller
 import denis.and.co.handshop.ui.theme.Accent
@@ -51,15 +53,16 @@ import kotlin.math.abs
 @Composable
 fun ReviewsRateAnalyticalCard(
     seller: Seller,
-    ratio: Map<Int, Int>
+    ratio: Map<Int, Int>,
+    sellerForStyle: Seller
 ) {
     val totalReviews = seller.reviewsCount.coerceAtLeast(1)
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(SoftBack, RoundedCornerShape(16.dp))
-            .border(1.dp, HardBack, RoundedCornerShape(16.dp))
+            .background(Color(sellerForStyle.selfProfileBackground.toColorInt()), RoundedCornerShape(16.dp))
+            .border(1.dp, Color(sellerForStyle.selfProfileFooterColor.toColorInt()), RoundedCornerShape(16.dp))
             .padding(20.dp)
     ) {
         Column {
@@ -87,14 +90,14 @@ fun ReviewsRateAnalyticalCard(
                         fontFamily = Onest,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = BlackText
+                        color = Color(sellerForStyle.selfProfileTextColor.toColorInt())
                     )
                 )
             }
 
             HorizontalDivider(
                 thickness = 1.dp,
-                color = BlackText.copy(alpha = 0.1f),
+                color = Color(sellerForStyle.selfProfileTextColor.toColorInt()).copy(alpha = 0.1f),
                 modifier = Modifier.padding(vertical = 15.dp)
             )
 
@@ -113,7 +116,7 @@ fun ReviewsRateAnalyticalCard(
                                 fontFamily = Onest,
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = LowAlphaBlackText
+                                color = Color(sellerForStyle.selfProfileTextColor.toColorInt()).copy(0.66f)
                             ),
                             modifier = Modifier.width(65.dp)
                         )
@@ -125,7 +128,7 @@ fun ReviewsRateAnalyticalCard(
                                 .height(8.dp)
                                 .clip(RoundedCornerShape(4.dp)),
                             color = Accent,
-                            trackColor = HardBack
+                            trackColor = Color(sellerForStyle.selfProfileFooterColor.toColorInt())
                         )
 
                         Text(
@@ -134,7 +137,7 @@ fun ReviewsRateAnalyticalCard(
                                 fontFamily = Onest,
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = LowAlphaBlackText,
+                                color = Color(sellerForStyle.selfProfileTextColor.toColorInt()).copy(0.66f),
                                 textAlign = TextAlign.End
                             ),
                             modifier = Modifier
