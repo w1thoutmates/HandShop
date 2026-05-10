@@ -26,7 +26,7 @@ object MetricsProvider {
             children = listOf(
                 ChildItem(
                     id = "gm_child_1",
-                    title = "Рейтинг продавца", // статистика: за все время / за месяц / за неделю
+                    title = "Рейтинг продавца",
                     route = SellerRateMetricRoute(sellerId),
                     icon = Icons.Default.StarRate
                 ),
@@ -39,9 +39,15 @@ object MetricsProvider {
                 ),
                 ChildItem(
                     id = "gm_child_3",
-                    title = "Соотношение категорий опубликованных товаров", // круговая диаграмма, например 70% Дерево, 13% Аксессуары и тд
+                    title = "Соотношение категорий опубликованных товаров",
                     route = ProductCategoryRationMetricRoute,
                     icon = Icons.Default.Category
+                ),
+                ChildItem(
+                    id = "gm_child_4",
+                    title = "Клики по кнопке «связаться»",
+                    route = ClicksOnContactsMetricRoute,
+                    icon = Icons.Default.AddIcCall
                 )
             )
         ),
@@ -53,7 +59,7 @@ object MetricsProvider {
                 ChildItem(
                     id = "cpm_child_1",
                     title = "Добавлено в избранное",
-                    route = AddedToLikedMetricRoute,
+                    route = AddedToLikedMetricRoute(sellerId),
                     icon = Icons.Default.Favorite
                 ),
                 ChildItem(
@@ -69,12 +75,6 @@ object MetricsProvider {
                     description = "Статистика, которая представляет собой сравнение цен конкурентов, ориентируясь на похожие товары",
                     route = CompetitorsCostCompareMetricRoute,
                     icon = Icons.Default.BarChart
-                ),
-                ChildItem(
-                    id = "cpm_child_4",
-                    title = "Клики по кнопке «связаться»",
-                    route = ClicksOnContactsMetricRoute,
-                    icon = Icons.Default.AddIcCall
                 )
             )
         )

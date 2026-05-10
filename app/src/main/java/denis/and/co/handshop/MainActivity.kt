@@ -24,6 +24,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import denis.and.co.handshop.data.model.Product
 import denis.and.co.handshop.di.AppDependencies
+import denis.and.co.handshop.ui.navigation.AddedToLikedMetricRoute
+import denis.and.co.handshop.ui.navigation.ClicksOnContactsMetricRoute
 import denis.and.co.handshop.ui.navigation.CreateProductRoute
 import denis.and.co.handshop.ui.navigation.CreateProfileRoute
 import denis.and.co.handshop.ui.navigation.EditProductRoute
@@ -51,6 +53,8 @@ import denis.and.co.handshop.ui.screens.RecommendationScreen
 import denis.and.co.handshop.ui.screens.ReviewsScreen
 import denis.and.co.handshop.ui.screens.SearchingScreen
 import denis.and.co.handshop.ui.screens.SellerProfileScreen
+import denis.and.co.handshop.ui.screens.metrics.AddedToLikedMetricScreen
+import denis.and.co.handshop.ui.screens.metrics.ClicksOnContactsMetricScreen
 import denis.and.co.handshop.ui.screens.metrics.ProductCategoryRationMetricScreen
 import denis.and.co.handshop.ui.screens.metrics.SellerRateMetricScreen
 import denis.and.co.handshop.ui.screens.metrics.TotalReachMetricScreen
@@ -546,6 +550,72 @@ class MainActivity : ComponentActivity() {
                         catalogViewModel = catalogViewModel,
                         likedViewModel = likedViewModel,
                         profileViewModel = profileViewModel,
+                        sellerId = route.sellerId
+                    )
+                }
+
+                composable<ClicksOnContactsMetricRoute> {
+                    val currentUid = authViewModel.getAuth().currentUser?.uid ?: ""
+
+                    val metricsVm: MetricsViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                return MetricsViewModel(
+                                    sellerId = currentUid,
+                                    sellerRepo = AppDependencies.sellerRepository
+                                ) as T
+                            }
+                        }
+                    )
+
+                    val profileVm: ProfileViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T: ViewModel> create(modelClass: Class<T>): T {
+                                return ProfileViewModel(
+                                    sellerRepo = AppDependencies.sellerRepository,
+                                    productRepo = AppDependencies.productRepository
+                                ) as T
+                            }
+                        }
+                    )
+
+                    ClicksOnContactsMetricScreen(
+                        navController = navController,
+                        viewModel = metricsVm,
+                        profileViewModel = profileVm
+                    )
+                }
+
+                composable<AddedToLikedMetricRoute> { backStackEntry ->
+                    val route: AddedToLikedMetricRoute = backStackEntry.toRoute()
+                    val currentUid = authViewModel.getAuth().currentUser?.uid ?: ""
+
+                    val metricsVm: MetricsViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                return MetricsViewModel(
+                                    sellerId = currentUid,
+                                    sellerRepo = AppDependencies.sellerRepository
+                                ) as T
+                            }
+                        }
+                    )
+
+                    val profileVm: ProfileViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T: ViewModel> create(modelClass: Class<T>): T {
+                                return ProfileViewModel(
+                                    sellerRepo = AppDependencies.sellerRepository,
+                                    productRepo = AppDependencies.productRepository
+                                ) as T
+                            }
+                        }
+                    )
+
+                    AddedToLikedMetricScreen(
+                        navController = navController,
+                        viewModel = metricsVm,
+                        profileViewModel = profileVm,
                         sellerId = route.sellerId
                     )
                 }

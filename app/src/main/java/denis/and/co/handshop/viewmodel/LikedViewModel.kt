@@ -73,11 +73,11 @@ class LikedViewModel(
         }
     }
 
-    fun addToLiked(productId: String) {
+    fun addToLiked(productId: String, ownerId: String) {
         viewModelScope.launch {
             try {
                 val userId = currentUserId ?: return@launch
-                sellerRepo.addToLiked(userId = userId, productId = productId)
+                sellerRepo.addToLiked(userId = userId, productId = productId, ownerId = ownerId)
             } catch (ex: Exception) {
                 Log.e("ADD_TO_LIKED_ERROR", "Ошибка добавления в избранное: ", ex)
             }

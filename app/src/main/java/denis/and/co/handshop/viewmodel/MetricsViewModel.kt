@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.yml.charts.common.model.Point
 import denis.and.co.handshop.data.model.DailyReach
+import denis.and.co.handshop.data.model.Product
 import denis.and.co.handshop.data.repository.SellerRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,6 +20,15 @@ class MetricsViewModel(
 
     private val _stats = MutableStateFlow<List<DailyReach>>(emptyList())
     val stats: StateFlow<List<DailyReach>> = _stats
+
+    private val _clickPoints = MutableStateFlow<List<Point>>(emptyList())
+    val clickPoints: StateFlow<List<Point>> = _clickPoints
+
+    private val _products = MutableStateFlow<List<Product>>(emptyList())
+    val products: StateFlow<List<Product>> = _products
+
+    private val _selectedProduct = MutableStateFlow<Product?>(null)
+    val selectedProduct: StateFlow<Product?> = _selectedProduct
 
     init {
         loadStats()
@@ -36,12 +46,61 @@ class MetricsViewModel(
         return mapToPoints(sellerRepo.getDailyStats(sellerId, days))
     }
 
-    private fun mapToPoints(stats: List<DailyReach>): List<Point> {
-        return stats.mapIndexed { index, reach ->
+    private fun mapToPoints(
+        stats: List<DailyReach>,
+        isClicks: Boolean = false,
+        isAddedToLiked: Boolean = false,
+        productId: String? = null
+    ): List<Point> {
+        return stats.mapIndexed { index, stat ->
             Point(
                 x = index.toFloat(),
-                y = reach.impressions.toFloat()
+                y = when {
+                    isClicks -> {
+                        stat.clicks.toFloat()
+                    }
+                    isAddedToLiked -> {
+                        (stat.addedToLiked[productId] ?: 0L).toFloat()
+                    }
+                    else -> {
+                        stat.impressions.toFloat()
+                    }
+                }
             )
+        }
+    }
+
+    fun loadContactClicks(days: Int = 7) {
+        viewModelScope.launch {
+            val stats = sellerRepo.getContactClicksStats(sellerId, days)
+            _stats.value = stats
+            _clickPoints.value = mapToPoints(stats, true)
+        }
+    }
+
+    fun loadProductsAndInitialStats(sellerId: String, days: Int = 7) {
+        viewModelScope.launch {
+            val allProducts = sellerRepo.getSellerProducts(sellerId)
+            _products.value = allProducts
+
+            val topProduct = allProducts.maxByOrNull { it.addedToLikedCount } ?: allProducts.firstOrNull()
+            topProduct?.let {
+                selectProduct(it, days)
+            }
+        }
+    }
+
+    fun selectProduct(product: Product, days: Int = 7) {
+        _selectedProduct.value = product
+        viewModelScope.launch {
+            val stats = sellerRepo.getProductDailyStats(product.sellerId, days)
+            println("DEBUG: Загружено документов статистики: ${stats.size}")
+
+            _stats.value = stats
+            val newPoints = mapToPoints(stats, isAddedToLiked = true, productId = product.id)
+            println("DEBUG: Сформировано точек для графика: ${newPoints.filter { it.y > 0 }.size} (с ненулевым значением)")
+
+            _reachPoints.value = newPoints
         }
     }
 

@@ -51,6 +51,12 @@ class ProfileViewModel(
         }
     }
 
+    fun updateCountClickStat(sellerId: String) {
+        viewModelScope.launch {
+            sellerRepo.updateContactClickStat(sellerId)
+        }
+    }
+
     fun expandMetricsList(itemId: String) {
         val currentMap = _expandableItems.value.toMutableMap()
         currentMap[itemId] = !(currentMap[itemId] ?: false)

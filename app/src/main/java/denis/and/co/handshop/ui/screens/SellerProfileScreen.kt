@@ -452,6 +452,7 @@ fun ContactInfoBlock(
                 .clickable {
                     showDialog = true
                     profileViewModel.updateCountClicksOnContacts(seller.id)
+                    profileViewModel.updateCountClickStat(seller.id)
                 }
         ) {
             Text(

@@ -1,6 +1,7 @@
 package denis.and.co.handshop.ui.screens
 
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -26,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -77,6 +79,8 @@ fun ProductCreatingScreen(
     var selectedStatus by remember { mutableStateOf(initialProduct?.status ?: ProductStatus.ACTIVE) }
 
     var costAnalytics by remember { mutableStateOf("") }
+
+    val context = LocalContext.current
 
     LaunchedEffect(cost, title, category) {
         if (cost.isBlank() || title.isBlank() || category.isBlank()) {
@@ -162,10 +166,12 @@ fun ProductCreatingScreen(
                             viewModel.updateProduct(productData, localImages) {
                                 navController.popBackStack()
                             }
+                            Toast.makeText(context, "Объявление [${productData.title}] успешно обновлено", Toast.LENGTH_LONG).show()
                         } else {
                             viewModel.createProduct(productData, localImages) {
                                 navController.popBackStack()
                             }
+                            Toast.makeText(context, "Объявление [${productData.title}] успешно опубликовано", Toast.LENGTH_LONG).show()
                         }
                     },
                     enabled = isFormValid && !isSaving,

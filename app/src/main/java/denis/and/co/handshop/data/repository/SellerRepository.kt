@@ -3,17 +3,20 @@ package denis.and.co.handshop.data.repository
 import android.net.Uri
 import android.util.Log
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
 import denis.and.co.handshop.data.model.DailyReach
+import denis.and.co.handshop.data.model.Product
 import denis.and.co.handshop.data.model.Seller
 import denis.and.co.handshop.utils.formatToStandard
 import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Date
 
 class SellerRepository {
@@ -65,14 +68,29 @@ class SellerRepository {
         }
     }
 
-    suspend fun addToLiked(userId: String, productId: String): Result<Unit> {
+    suspend fun addToLiked(userId: String, productId: String, ownerId: String): Result<Unit> {
         return try {
-            firestore.runTransaction { transaction ->
-                val sellerRef = firestore.collection("sellers").document(userId)
-                val productRef = firestore.collection("products").document(productId)
+            val today = Date().formatToStandard()
 
-                transaction.update(sellerRef, "likedProductIds", FieldValue.arrayUnion(productId))
+            firestore.runTransaction { transaction ->
+                val userRef = firestore.collection("sellers").document(userId)
+                val productRef = firestore.collection("products").document(productId)
+                val statsRef = firestore.collection("sellers")
+                    .document(ownerId)
+                    .collection("daily_stats")
+                    .document(today)
+
+                transaction.update(userRef, "likedProductIds", FieldValue.arrayUnion(productId))
+
                 transaction.update(productRef, "addedToLikedCount", FieldValue.increment(1))
+
+                val statsData = mapOf(
+                    "addedToLiked.$productId" to FieldValue.increment(1),
+                    "date" to today
+                )
+                transaction.set(statsRef, statsData, SetOptions.merge())
+
+                null
             }.await()
 
             Result.success(Unit)
@@ -214,10 +232,112 @@ class SellerRepository {
                 .get()
                 .await()
 
-            snapshot.toObjects(DailyReach::class.java)
+            snapshot.documents.map { parseDailyReach(it) }
         } catch (ex: Exception) {
             Log.e("FIREBASE_ERROR", "Ошибка загрузки статистики", ex)
             emptyList()
         }
+    }
+
+    fun updateContactClickStat(sellerId: String) {
+        val today = Date().formatToStandard()
+
+        val metricsRef = firestore.collection("sellers")
+            .document(sellerId)
+            .collection("daily_stats")
+            .document(today)
+
+        val data = mapOf(
+            "clicks" to FieldValue.increment(1),
+            "date" to today
+        )
+
+        metricsRef.set(data, SetOptions.merge())
+    }
+
+    suspend fun getContactClicksStats(sellerId: String, days: Int): List<DailyReach> {
+        return try {
+            val startDate = LocalDate.now().minusDays(days.toLong()).toString()
+
+            val snapshot = firestore.collection("sellers")
+                .document(sellerId)
+                .collection("daily_stats")
+                .whereGreaterThanOrEqualTo("date", startDate)
+                .get()
+                .await()
+
+            val statsMap = snapshot.documents.associate { doc ->
+                val date = doc.getString("date") ?: ""
+                val clicks = doc.getLong("clicks") ?: 0
+                date to DailyReach(date = date, clicks = clicks)
+            }
+
+            (0 until days).map { i ->
+                val dateStr = LocalDate.now().minusDays(i.toLong()).toString()
+                statsMap[dateStr] ?: DailyReach(date = dateStr, clicks = 0)
+            }.reversed()
+        } catch (ex: Exception) {
+            emptyList()
+        }
+    }
+
+    suspend fun getSellerProducts(sellerId: String): List<Product> {
+        return try {
+            val snapshot = firestore.collection("products")
+                .whereEqualTo("sellerId", sellerId)
+                .get()
+                .await()
+            snapshot.toObjects(Product::class.java)
+        } catch (ex: Exception) {
+            Log.e("FIREBASE_ERROR", "Ошибка загрузки товаров", ex)
+            emptyList()
+        }
+    }
+
+    suspend fun getProductDailyStats(sellerId: String, days: Int): List<DailyReach> {
+        return try {
+            val startDate = LocalDate.now().minusDays(days.toLong()).toString()
+            val snapshot = firestore.collection("sellers")
+                .document(sellerId)
+                .collection("daily_stats")
+                .whereGreaterThanOrEqualTo("date", startDate)
+                .orderBy("date", Query.Direction.ASCENDING)
+                .get()
+                .await()
+
+            snapshot.documents.map { parseDailyReach(it) }
+        } catch (ex: Exception) {
+            Log.e("FIREBASE_ERROR", "Ошибка парсинга статистики", ex)
+            emptyList()
+        }
+    }
+
+    private fun parseDailyReach(doc: DocumentSnapshot): DailyReach {
+        val data = doc.data ?: return DailyReach()
+
+        val date = doc.getString("date") ?: ""
+        val impressions = doc.getLong("impressions") ?: 0L
+        val clicks = doc.getLong("clicks") ?: 0L
+
+        val addedMap = mutableMapOf<String, Long>()
+
+        data.forEach { (key, value) ->
+            if (key.startsWith("addedToLiked.")) {
+                val productId = key.substringAfter("addedToLiked.")
+                addedMap[productId] = (value as? Number)?.toLong() ?: 0L
+            }
+        }
+
+        val nestedMap = data["addedToLiked"] as? Map<String, Any>
+        nestedMap?.forEach { (k, v) ->
+            addedMap[k] = (v as? Number)?.toLong() ?: 0L
+        }
+
+        return DailyReach(
+            date = date,
+            impressions = impressions,
+            clicks = clicks,
+            addedToLiked = addedMap
+        )
     }
 }

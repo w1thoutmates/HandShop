@@ -53,13 +53,13 @@ fun CostAnalyticsCard(
     val (bgColor, icon, title) = when (text) {
         "Цена выше рынка" -> Triple(
             Color(0x1AFF7373),
-            Icons.Default.ThumbUp,
+            Icons.Default.ThumbDown,
             "Выше рынка"
         )
 
         "Цена ниже рынка" -> Triple(
             Color(0x1A65BD5E),
-            Icons.Default.ThumbDown,
+            Icons.Default.ThumbUp,
             "Ниже рынка"
         )
 

@@ -49,7 +49,7 @@ object TotalReachMetricRoute : AppRoute
 object ProductCategoryRationMetricRoute : AppRoute
 
 @Serializable
-object AddedToLikedMetricRoute : AppRoute
+data class AddedToLikedMetricRoute(val sellerId: String) : AppRoute
 
 @Serializable
 object CTRMetricRoute : AppRoute

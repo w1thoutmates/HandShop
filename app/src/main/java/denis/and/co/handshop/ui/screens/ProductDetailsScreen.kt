@@ -441,7 +441,7 @@ fun ProductDetailsScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 // карточка с блоком "похожие" ( там будет небольшая подборка товаров с такой же категорией товара )
             }
-            DetailsScreenHeader(navController, likedViewModel, product.id)
+            DetailsScreenHeader(navController, likedViewModel, product.id, product.sellerId)
         }
     }
 }
@@ -451,7 +451,8 @@ fun ProductDetailsScreen(
 fun DetailsScreenHeader(
     navController: NavController,
     viewModel: LikedViewModel,
-    productId: String
+    productId: String,
+    ownerId: String
 ) {
     var isInLiked by remember { mutableStateOf<Boolean?>(null) }
     val scope = rememberCoroutineScope()
@@ -508,7 +509,7 @@ fun DetailsScreenHeader(
                                     if (liked) {
                                         viewModel.deleteFromLiked(productId)
                                     } else {
-                                        viewModel.addToLiked(productId)
+                                        viewModel.addToLiked(productId, ownerId)
                                     }
                                 } catch (ex: Exception) {
                                     isInLiked = liked

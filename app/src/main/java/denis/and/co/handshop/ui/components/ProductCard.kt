@@ -129,7 +129,7 @@ fun ProductListItem(
                                                 if (liked) {
                                                     viewModel.deleteFromLiked(product.id)
                                                 } else {
-                                                    viewModel.addToLiked(product.id)
+                                                    viewModel.addToLiked(product.id, product.sellerId)
                                                 }
                                             } catch (ex: Exception) {
                                                 isInLiked = liked
