@@ -73,7 +73,7 @@ object MetricsProvider {
                     id = "cpm_child_3",
                     title = "Индекс конкурентной цены",
                     description = "Статистика, которая представляет собой сравнение цен конкурентов, ориентируясь на похожие товары",
-                    route = CompetitorsCostCompareMetricRoute,
+                    route = CompetitorsCostCompareMetricRoute(sellerId),
                     icon = Icons.Default.BarChart
                 )
             )

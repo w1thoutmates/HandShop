@@ -4,8 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.yml.charts.common.model.Point
 import denis.and.co.handshop.data.model.DailyReach
+import denis.and.co.handshop.data.model.PriceComparisonData
 import denis.and.co.handshop.data.model.Product
 import denis.and.co.handshop.data.repository.SellerRepository
+import denis.and.co.handshop.utils.SimilarityUtils
+import denis.and.co.handshop.utils.TestDataHelper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -32,6 +35,9 @@ class MetricsViewModel(
 
     private val _ctrPoints = MutableStateFlow<List<Point>>(emptyList())
     val ctrPoints: StateFlow<List<Point>> = _ctrPoints
+
+    private val _priceComparisonPoints = MutableStateFlow<PriceComparisonData?>(null)
+    val priceComparisonData: StateFlow<PriceComparisonData?> = _priceComparisonPoints
 
     init {
         loadStats()
@@ -130,6 +136,45 @@ class MetricsViewModel(
                 Point(x = index.toFloat(), y = ctrValue)
             }
             _reachPoints.value = points
+        }
+    }
+
+    fun loadPriceIndexStats(selectedProduct: Product, days: Int = 7) {
+        _selectedProduct.value = selectedProduct
+        viewModelScope.launch {
+            val categoryProducts = sellerRepo.getAllProductsByCategory(selectedProduct.category)
+
+            val stats = sellerRepo.getProductDailyStats(selectedProduct.sellerId, days)
+            _stats.value = stats
+
+            val competitors = categoryProducts
+                .filter { it.sellerId != selectedProduct.sellerId }
+                .filter { SimilarityUtils.calculateSimilarity(selectedProduct.title, it.title) > 0.35 }
+
+            val competitorCosts = competitors.mapNotNull { it.cost?.toFloat() }.sorted()
+
+            val medianMarketPrice = if (competitorCosts.isNotEmpty()) {
+                if (competitorCosts.size % 2 == 0) {
+                    (competitorCosts[competitorCosts.size / 2] + competitorCosts[competitorCosts.size / 2 - 1]) / 2
+                } else competitorCosts[competitorCosts.size / 2]
+            } else {
+                (selectedProduct.cost?.toFloat() ?: 0f) * 0.9f
+            }
+
+            val userPrices = stats.map { dayStat ->
+                dayStat.productCosts[selectedProduct.id]?.toFloat() ?: selectedProduct.cost?.toFloat() ?: 0f
+            }
+
+            val marketPrices = List(stats.size) { medianMarketPrice }
+            val dates = stats.map { it.date }
+
+            _priceComparisonPoints.value = PriceComparisonData(userPrices, marketPrices, dates)
+        }
+    }
+
+    fun fillTestData() {
+        viewModelScope.launch {
+            TestDataHelper.createOrReplaceTestData()
         }
     }
 

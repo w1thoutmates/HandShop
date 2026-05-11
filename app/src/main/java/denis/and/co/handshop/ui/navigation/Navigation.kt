@@ -1,6 +1,5 @@
 package denis.and.co.handshop.ui.navigation
 
-import denis.and.co.handshop.data.model.Seller
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -55,7 +54,7 @@ data class AddedToLikedMetricRoute(val sellerId: String) : AppRoute
 data class CTRMetricRoute(val sellerId: String) : AppRoute
 
 @Serializable
-object CompetitorsCostCompareMetricRoute : AppRoute
+data class CompetitorsCostCompareMetricRoute(val sellerId: String) : AppRoute
 
 @Serializable
 object ClicksOnContactsMetricRoute : AppRoute

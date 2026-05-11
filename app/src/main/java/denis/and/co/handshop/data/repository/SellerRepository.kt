@@ -320,6 +320,7 @@ class SellerRepository {
 
         val addedMap = mutableMapOf<String, Long>()
         val productClicksMap = mutableMapOf<String, Long>()
+        val productCostsMap = mutableMapOf<String, Long>()
 
         data.forEach { (key, value) ->
             when {
@@ -328,6 +329,9 @@ class SellerRepository {
                 }
                 key.startsWith("productClicks.") -> {
                     productClicksMap[key.substringAfter("productClicks.")] = (value as? Number)?.toLong() ?: 0L
+                }
+                key.startsWith("productCosts.") -> {
+                    productCostsMap[key.substringAfter("productCosts.")] = (value as? Number)?.toLong() ?: 0L
                 }
             }
         }
@@ -354,5 +358,33 @@ class SellerRepository {
         )
 
         metricsRef.set(data, SetOptions.merge())
+    }
+
+    fun updateImpressionWithCost(sellerId: String, product: Product) {
+        val today = Date().formatToStandard()
+        val metricsRef = firestore.collection("sellers")
+            .document(sellerId)
+            .collection("daily_stats")
+            .document(today)
+
+        val data = mapOf(
+            "impressions" to FieldValue.increment(1),
+            "productCosts.${product.id}" to product.cost,
+            "date" to today
+        )
+        metricsRef.set(data, SetOptions.merge())
+    }
+
+    suspend fun getAllProductsByCategory(category: String): List<Product> {
+        return try {
+            FirebaseFirestore.getInstance()
+                .collection("products")
+                .whereEqualTo("category", category)
+                .get()
+                .await()
+                .toObjects(Product::class.java)
+        } catch (e: Exception) {
+            emptyList()
+        }
     }
 }

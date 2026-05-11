@@ -395,7 +395,7 @@ class CatalogViewModel(
         viewModelScope.launch {
             trackedImpressions.add(product.id)
             productRepo.updateImpressionsCount(product.id)
-            sellerRepo.updateImpression(product.sellerId)
+            sellerRepo.updateImpressionWithCost(product.sellerId, product)
         }
     }
 
