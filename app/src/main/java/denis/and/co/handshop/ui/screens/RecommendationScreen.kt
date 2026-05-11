@@ -73,12 +73,14 @@ import denis.and.co.handshop.ui.navigation.SearchByCategoryRoute
 import denis.and.co.handshop.ui.theme.*
 import denis.and.co.handshop.viewmodel.CatalogViewModel
 import denis.and.co.handshop.viewmodel.LikedViewModel
+import denis.and.co.handshop.viewmodel.MetricsViewModel
 
 @Composable
 fun RecommendationScreen(
     navController: NavController,
     catalogViewModel: CatalogViewModel,
-    likedViewModel: LikedViewModel
+    likedViewModel: LikedViewModel,
+    metricsViewModel: MetricsViewModel
 ) {
     val listState = rememberLazyListState()
     val currentUser by catalogViewModel.currentUser.collectAsState()
@@ -167,7 +169,8 @@ fun RecommendationScreen(
                 onProductClick = { id ->
                     navController.navigate(ProductDetailsRoute(id))
                 },
-                likedViewModel = likedViewModel
+                likedViewModel = likedViewModel,
+                metricsViewModel = metricsViewModel
             )
 
             if (showDialog) {
@@ -317,7 +320,8 @@ fun Content(
     modifier: Modifier = Modifier,
     viewModel: CatalogViewModel = viewModel(),
     onProductClick: (String) -> Unit,
-    likedViewModel: LikedViewModel
+    likedViewModel: LikedViewModel,
+    metricsViewModel: MetricsViewModel
 ) {
     val uiState by viewModel.state.collectAsState()
 
@@ -343,6 +347,7 @@ fun Content(
                             onClick = {
                                 onProductClick(item.product.id)
                                 viewModel.updateProductViewsCount(item.product.id)
+                                metricsViewModel.updateProductClickStat(item.product)
                             },
                             seller = item.seller,
                             viewModel = likedViewModel,

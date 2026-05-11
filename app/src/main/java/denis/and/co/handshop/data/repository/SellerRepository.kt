@@ -314,30 +314,45 @@ class SellerRepository {
 
     private fun parseDailyReach(doc: DocumentSnapshot): DailyReach {
         val data = doc.data ?: return DailyReach()
-
         val date = doc.getString("date") ?: ""
         val impressions = doc.getLong("impressions") ?: 0L
         val clicks = doc.getLong("clicks") ?: 0L
 
         val addedMap = mutableMapOf<String, Long>()
+        val productClicksMap = mutableMapOf<String, Long>()
 
         data.forEach { (key, value) ->
-            if (key.startsWith("addedToLiked.")) {
-                val productId = key.substringAfter("addedToLiked.")
-                addedMap[productId] = (value as? Number)?.toLong() ?: 0L
+            when {
+                key.startsWith("addedToLiked.") -> {
+                    addedMap[key.substringAfter("addedToLiked.")] = (value as? Number)?.toLong() ?: 0L
+                }
+                key.startsWith("productClicks.") -> {
+                    productClicksMap[key.substringAfter("productClicks.")] = (value as? Number)?.toLong() ?: 0L
+                }
             }
-        }
-
-        val nestedMap = data["addedToLiked"] as? Map<String, Any>
-        nestedMap?.forEach { (k, v) ->
-            addedMap[k] = (v as? Number)?.toLong() ?: 0L
         }
 
         return DailyReach(
             date = date,
             impressions = impressions,
             clicks = clicks,
-            addedToLiked = addedMap
+            addedToLiked = addedMap,
+            productClicks = productClicksMap
         )
+    }
+
+    fun updateProductClickStat(sellerId: String, productId: String) {
+        val today = Date().formatToStandard()
+        val metricsRef = firestore.collection("sellers")
+            .document(sellerId)
+            .collection("daily_stats")
+            .document(today)
+
+        val data = mapOf(
+            "productClicks.$productId" to FieldValue.increment(1),
+            "date" to today
+        )
+
+        metricsRef.set(data, SetOptions.merge())
     }
 }

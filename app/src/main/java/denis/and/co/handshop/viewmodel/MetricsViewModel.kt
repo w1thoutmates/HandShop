@@ -30,6 +30,9 @@ class MetricsViewModel(
     private val _selectedProduct = MutableStateFlow<Product?>(null)
     val selectedProduct: StateFlow<Product?> = _selectedProduct
 
+    private val _ctrPoints = MutableStateFlow<List<Point>>(emptyList())
+    val ctrPoints: StateFlow<List<Point>> = _ctrPoints
+
     init {
         loadStats()
     }
@@ -101,6 +104,32 @@ class MetricsViewModel(
             println("DEBUG: Сформировано точек для графика: ${newPoints.filter { it.y > 0 }.size} (с ненулевым значением)")
 
             _reachPoints.value = newPoints
+        }
+    }
+
+    fun updateProductClickStat(product: Product) {
+        viewModelScope.launch {
+            sellerRepo.updateProductClickStat(product.sellerId, product.id)
+        }
+    }
+
+    fun selectProductForCTR(product: Product, days: Int = 7) {
+        _selectedProduct.value = product
+        viewModelScope.launch {
+            val stats = sellerRepo.getProductDailyStats(product.sellerId, days)
+            _stats.value = stats
+
+            val points = stats.mapIndexed { index, stat ->
+                val clicksOnThisProduct = stat.productClicks[product.id] ?: 0L
+
+                val ctrValue = if (stat.impressions > 0) {
+                    (clicksOnThisProduct.toFloat() / stat.impressions.toFloat()) * 100f
+                } else {
+                    0f
+                }
+                Point(x = index.toFloat(), y = ctrValue)
+            }
+            _reachPoints.value = points
         }
     }
 

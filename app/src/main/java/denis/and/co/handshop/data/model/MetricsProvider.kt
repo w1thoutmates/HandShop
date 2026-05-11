@@ -66,7 +66,7 @@ object MetricsProvider {
                     id = "cpm_child_2",
                     title = "Коэффициент кликабельности (CTR)",
                     description = "Статистика, которая показывает соотношение того, сколько раз объявление показывалось пользователям и сколько раз по этому объявлению пользователь кликнул",
-                    route = CTRMetricRoute,
+                    route = CTRMetricRoute(sellerId),
                     icon = Icons.Default.AdsClick
                 ),
                 ChildItem(

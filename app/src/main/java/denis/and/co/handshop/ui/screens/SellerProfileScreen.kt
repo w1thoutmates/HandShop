@@ -91,6 +91,7 @@ import denis.and.co.handshop.ui.theme.StarEmpty
 import denis.and.co.handshop.ui.theme.StarFilled
 import denis.and.co.handshop.ui.theme.WhiteText
 import denis.and.co.handshop.viewmodel.LikedViewModel
+import denis.and.co.handshop.viewmodel.MetricsViewModel
 import denis.and.co.handshop.viewmodel.ProfileViewModel
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -99,7 +100,8 @@ fun SellerProfileScreen(
     navController: NavController,
     sellerId: String?,
     viewModel: ProfileViewModel = viewModel(),
-    likedViewModel: LikedViewModel
+    likedViewModel: LikedViewModel,
+    metricsViewModel: MetricsViewModel
 ) {
     val seller by viewModel.seller.collectAsState()
     val isMyProfile = sellerId == null || sellerId == viewModel.currentUid
@@ -348,6 +350,7 @@ fun SellerProfileScreen(
                                                 navController.navigate(EditProductRoute(product.id))
                                             } else {
                                                 navController.navigate(ProductDetailsRoute(product.id))
+                                                metricsViewModel.updateProductClickStat(product)
                                             }
                                         },
                                         seller = seller,

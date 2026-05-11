@@ -25,6 +25,7 @@ import androidx.navigation.toRoute
 import denis.and.co.handshop.data.model.Product
 import denis.and.co.handshop.di.AppDependencies
 import denis.and.co.handshop.ui.navigation.AddedToLikedMetricRoute
+import denis.and.co.handshop.ui.navigation.CTRMetricRoute
 import denis.and.co.handshop.ui.navigation.ClicksOnContactsMetricRoute
 import denis.and.co.handshop.ui.navigation.CreateProductRoute
 import denis.and.co.handshop.ui.navigation.CreateProfileRoute
@@ -54,6 +55,7 @@ import denis.and.co.handshop.ui.screens.ReviewsScreen
 import denis.and.co.handshop.ui.screens.SearchingScreen
 import denis.and.co.handshop.ui.screens.SellerProfileScreen
 import denis.and.co.handshop.ui.screens.metrics.AddedToLikedMetricScreen
+import denis.and.co.handshop.ui.screens.metrics.CTRMetricScreen
 import denis.and.co.handshop.ui.screens.metrics.ClicksOnContactsMetricScreen
 import denis.and.co.handshop.ui.screens.metrics.ProductCategoryRationMetricScreen
 import denis.and.co.handshop.ui.screens.metrics.SellerRateMetricScreen
@@ -145,10 +147,24 @@ class MainActivity : ComponentActivity() {
                         }
                     )
 
+                    val currentUid = authViewModel.getAuth().currentUser?.uid ?: ""
+
+                    val metricsVm: MetricsViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                return MetricsViewModel(
+                                    sellerId = currentUid,
+                                    sellerRepo = AppDependencies.sellerRepository
+                                ) as T
+                            }
+                        }
+                    )
+
                     RecommendationScreen(
                         navController = navController,
                         catalogViewModel = catalogViewModel,
-                        likedViewModel = likedViewModel
+                        likedViewModel = likedViewModel,
+                        metricsViewModel = metricsVm
                     )
                 }
 
@@ -253,11 +269,25 @@ class MainActivity : ComponentActivity() {
                         }
                     )
 
+                    val currentUid = authViewModel.getAuth().currentUser?.uid ?: ""
+
+                    val metricsVm: MetricsViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                return MetricsViewModel(
+                                    sellerId = currentUid,
+                                    sellerRepo = AppDependencies.sellerRepository
+                                ) as T
+                            }
+                        }
+                    )
+
                     SellerProfileScreen(
                         navController = navController,
                         sellerId = route.sellerId,
                         viewModel = profileVm,
-                        likedViewModel = likedViewModel
+                        likedViewModel = likedViewModel,
+                        metricsViewModel = metricsVm
                     )
                 }
                 composable<LikedRoute> {
@@ -299,7 +329,25 @@ class MainActivity : ComponentActivity() {
                         }
                     )
 
-                    SearchingScreen(navController, catalogViewModel, likedViewModel)
+                    val currentUid = authViewModel.getAuth().currentUser?.uid ?: ""
+
+                    val metricsVm: MetricsViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                return MetricsViewModel(
+                                    sellerId = currentUid,
+                                    sellerRepo = AppDependencies.sellerRepository
+                                ) as T
+                            }
+                        }
+                    )
+
+                    SearchingScreen(
+                        navController = navController,
+                        catalogViewModel = catalogViewModel,
+                        likedViewModel = likedViewModel,
+                        metricsViewModel = metricsVm
+                    )
                 }
 
                 composable<EditProfileRoute> { backStackEntry ->
@@ -613,6 +661,40 @@ class MainActivity : ComponentActivity() {
                     )
 
                     AddedToLikedMetricScreen(
+                        navController = navController,
+                        viewModel = metricsVm,
+                        profileViewModel = profileVm,
+                        sellerId = route.sellerId
+                    )
+                }
+
+                composable<CTRMetricRoute> { backStackEntry ->
+                    val route: AddedToLikedMetricRoute = backStackEntry.toRoute()
+                    val currentUid = authViewModel.getAuth().currentUser?.uid ?: ""
+
+                    val metricsVm: MetricsViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                return MetricsViewModel(
+                                    sellerId = currentUid,
+                                    sellerRepo = AppDependencies.sellerRepository
+                                ) as T
+                            }
+                        }
+                    )
+
+                    val profileVm: ProfileViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T: ViewModel> create(modelClass: Class<T>): T {
+                                return ProfileViewModel(
+                                    sellerRepo = AppDependencies.sellerRepository,
+                                    productRepo = AppDependencies.productRepository
+                                ) as T
+                            }
+                        }
+                    )
+
+                    CTRMetricScreen(
                         navController = navController,
                         viewModel = metricsVm,
                         profileViewModel = profileVm,

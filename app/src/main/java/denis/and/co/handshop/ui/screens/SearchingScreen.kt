@@ -73,12 +73,14 @@ import denis.and.co.handshop.ui.theme.SoftBack
 import denis.and.co.handshop.ui.theme.WhiteText
 import denis.and.co.handshop.viewmodel.CatalogViewModel
 import denis.and.co.handshop.viewmodel.LikedViewModel
+import denis.and.co.handshop.viewmodel.MetricsViewModel
 
 @Composable
 fun SearchingScreen(
     navController: NavController,
     catalogViewModel: CatalogViewModel,
-    likedViewModel: LikedViewModel
+    likedViewModel: LikedViewModel,
+    metricsViewModel: MetricsViewModel
 ) {
     var input by remember { mutableStateOf("") }
     val uiState by catalogViewModel.state.collectAsState()
@@ -225,7 +227,8 @@ fun SearchingScreen(
                         navController.navigate(ProductDetailsRoute(id))
                     },
                     catalogViewModel = catalogViewModel,
-                    likedViewModel = likedViewModel
+                    likedViewModel = likedViewModel,
+                    metricsViewModel = metricsViewModel
                 )
         }
 
@@ -291,7 +294,8 @@ fun SearchResultsContent(
     state: CatalogState,
     onProductClick: (String) -> Unit,
     catalogViewModel: CatalogViewModel,
-    likedViewModel: LikedViewModel
+    likedViewModel: LikedViewModel,
+    metricsViewModel: MetricsViewModel
 ) {
     when (state) {
         is CatalogState.Loading -> {
@@ -313,6 +317,7 @@ fun SearchResultsContent(
                         onClick = {
                             onProductClick(item.product.id)
                             catalogViewModel.updateProductViewsCount(item.product.id)
+                            metricsViewModel.updateProductClickStat(item.product)
                         },
                         viewModel = likedViewModel,
                         catalogViewModel = catalogViewModel
