@@ -143,7 +143,8 @@ fun ExpandedPublishedProductsScreen(
                     viewModel = catalogViewModel,
                     likedViewModel = likedViewModel,
                     seller = currentSeller,
-                    isMyProfile = isMyProfile
+                    isMyProfile = isMyProfile,
+                    profileViewModel = profileViewModel
                 )
             }
         }
@@ -154,12 +155,14 @@ fun ExpandedPublishedProductsScreen(
 fun Content(
     navController: NavController,
     modifier: Modifier = Modifier,
-    viewModel: CatalogViewModel = viewModel(),
+    viewModel: CatalogViewModel,
     likedViewModel: LikedViewModel,
     seller: Seller,
-    isMyProfile: Boolean
+    isMyProfile: Boolean,
+    profileViewModel: ProfileViewModel
 ) {
     val uiState by viewModel.state.collectAsState()
+    val sellerProducts by profileViewModel.sellerProducts.collectAsState()
 
     Box(modifier = modifier.fillMaxSize()) {
         when (val state = uiState) {
@@ -177,20 +180,22 @@ fun Content(
                         .fillMaxSize()
                         .background(Color(seller.selfProfileBackground.toColorInt()))
                 ) {
-                    items(state.items) { item ->
-                        ProductListItem(
-                            product = item.product,
-                            onClick = {
-                                if (isMyProfile) {
-                                    navController.navigate(EditProductRoute(item.product.id))
-                                } else {
-                                    navController.navigate(ProductDetailsRoute(item.product.id))
-                                }
-                            },
-                            seller = seller,
-                            viewModel = likedViewModel,
-                            isMyProfile = isMyProfile
-                        )
+                    items(sellerProducts) { product ->
+                        if (product != null) {
+                            ProductListItem(
+                                product = product,
+                                onClick = {
+                                    if (isMyProfile) {
+                                        navController.navigate(EditProductRoute(product.id))
+                                    } else {
+                                        navController.navigate(ProductDetailsRoute(product.id))
+                                    }
+                                },
+                                seller = seller,
+                                viewModel = likedViewModel,
+                                isMyProfile = isMyProfile
+                            )
+                        }
                     }
                 }
             }

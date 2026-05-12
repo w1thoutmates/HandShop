@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlin.collections.emptyList
 import kotlin.collections.sorted
@@ -199,6 +200,11 @@ class CatalogViewModel(
             _isSearching.value = true
             _state.value = CatalogState.Loading
             try {
+                if (query.isBlank()) {
+                    loadRecommendations()
+                    return@launch
+                }
+
                 val products = productRepo.searchProducts(query)
 
                 if (products.isEmpty()) {

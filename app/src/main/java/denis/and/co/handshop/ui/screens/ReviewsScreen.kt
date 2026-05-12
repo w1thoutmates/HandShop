@@ -89,7 +89,8 @@ import denis.and.co.handshop.viewmodel.ReviewsViewModel
 fun ReviewsScreen(
     viewModel: ReviewsViewModel = viewModel(),
     navController: NavController,
-    profileViewModel: ProfileViewModel
+    profileViewModel: ProfileViewModel,
+    sellerId: String
 ) {
     LaunchedEffect(Unit) {
         viewModel.fixCurrentSellerRating()
@@ -104,7 +105,8 @@ fun ReviewsScreen(
             modifier = PaddingValues(0.dp),
             viewModel = viewModel,
             navController = navController,
-            profileViewModel = profileViewModel
+            profileViewModel = profileViewModel,
+            sellerId = sellerId
         )
     }
 }
@@ -115,7 +117,8 @@ fun ReviewsScreenContent(
     modifier: PaddingValues,
     viewModel: ReviewsViewModel,
     navController: NavController,
-    profileViewModel: ProfileViewModel
+    profileViewModel: ProfileViewModel,
+    sellerId: String
 ) {
     val seller by viewModel.seller.collectAsState()
     val reviews by viewModel.reviews.collectAsState()
@@ -136,7 +139,7 @@ fun ReviewsScreenContent(
     val sellerForStyling by profileViewModel.seller.collectAsState()
 
     LaunchedEffect(Unit) {
-        profileViewModel.loadProfile(null)
+        profileViewModel.loadProfile(sellerId)
     }
 
     sellerForStyling?.let { currentSeller ->

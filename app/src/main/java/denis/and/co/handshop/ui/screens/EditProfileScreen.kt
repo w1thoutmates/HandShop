@@ -66,6 +66,8 @@ import denis.and.co.handshop.ui.theme.SoftBack
 import denis.and.co.handshop.ui.theme.WhiteText
 import denis.and.co.handshop.viewmodel.EditProfileViewModel
 import androidx.core.graphics.ColorUtils
+import denis.and.co.handshop.ui.navigation.CreateProfileRoute
+import denis.and.co.handshop.ui.navigation.RecommendationRoute
 import denis.and.co.handshop.ui.theme.Onest
 
 
@@ -174,8 +176,8 @@ fun EditProfileScreen(
                         viewModel.saveProfile(newSeller, localAvatarUri, localCoverUri) {
 
                             if (isFirstCreation) {
-                                navController.navigate("main_flow") {
-                                    popUpTo("create_profile") { inclusive = true }
+                                navController.navigate(RecommendationRoute) {
+                                    popUpTo(CreateProfileRoute) { inclusive = true }
                                 }
                             } else {
                                 navController.popBackStack()

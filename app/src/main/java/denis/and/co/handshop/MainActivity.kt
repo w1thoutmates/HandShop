@@ -455,7 +455,8 @@ class MainActivity : ComponentActivity() {
                     ReviewsScreen(
                         viewModel = reviewsVm,
                         navController = navController,
-                        profileViewModel = profileVm
+                        profileViewModel = profileVm,
+                        sellerId = route.sellerId
                     )
                 }
 
