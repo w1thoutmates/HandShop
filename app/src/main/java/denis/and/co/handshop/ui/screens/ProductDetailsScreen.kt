@@ -507,7 +507,7 @@ fun DetailsScreenHeader(
                                 isInLiked = !liked
                                 try {
                                     if (liked) {
-                                        viewModel.deleteFromLiked(productId)
+                                        viewModel.deleteFromLiked(productId, ownerId)
                                     } else {
                                         viewModel.addToLiked(productId, ownerId)
                                     }

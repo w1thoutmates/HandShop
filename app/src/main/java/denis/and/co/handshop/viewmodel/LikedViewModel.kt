@@ -84,13 +84,15 @@ class LikedViewModel(
         }
     }
 
-    fun deleteFromLiked(productId: String) {
+    fun deleteFromLiked(productId: String, ownerId: String) {
         viewModelScope.launch {
             try {
                 val userId = currentUserId ?: return@launch
-                sellerRepo.deleteFromLiked(userId = userId, productId = productId)
+                sellerRepo.deleteFromLiked(userId = userId, productId = productId, ownerId = ownerId)
+
+                loadLikedProducts()
             } catch (ex: Exception) {
-                Log.e("ADD_TO_LIKED_ERROR", "Ошибка удаления из избранного: ", ex)
+                Log.e("DELETE_FROM_LIKED_ERROR", "Ошибка удаления: ", ex)
             }
         }
     }

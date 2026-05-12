@@ -37,6 +37,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -88,6 +89,10 @@ fun LikedProductsScreen(
         (uiState as CatalogState.Success).items.size
     } else 0
 
+    LaunchedEffect(Unit) {
+        viewModel.loadLikedProducts()
+    }
+
     Scaffold(
         bottomBar = { AppFooter(navController) },
         containerColor = SoftBack,
@@ -109,7 +114,7 @@ fun LikedProductsScreen(
                 modifier = Modifier.weight(1f),
                 onProductClick = { id -> navController.navigate(ProductDetailsRoute(id)) },
                 onSellerClick = { id -> navController.navigate(ProfileRoute(sellerId = id)) },
-                onDeleteProduct = { id -> viewModel.deleteFromLiked(id) },
+                onDeleteProduct = { id, sellerId -> viewModel.deleteFromLiked(id, sellerId) },
                 viewModel = viewModel
             )
         }
@@ -122,7 +127,7 @@ fun LikedScreenContent(
     modifier: Modifier = Modifier,
     onProductClick: (String) -> Unit,
     onSellerClick: (String) -> Unit,
-    onDeleteProduct: (String) -> Unit,
+    onDeleteProduct: (String, String) -> Unit,
     viewModel: LikedViewModel
 ) {
     Box(modifier = modifier.fillMaxSize().background(SoftBack)) {
@@ -146,8 +151,7 @@ fun LikedScreenContent(
                                 onProductClick = onProductClick,
                                 onSellerClick = onSellerClick,
                                 onDeleteClick = {
-                                    onDeleteProduct(item.product.id)
-                                    viewModel.loadLikedProducts()
+                                    onDeleteProduct(item.product.id, item.product.sellerId)
                                     Toast.makeText(context, "Объявление [${item.product.title}] успешно удалено из избранного", Toast.LENGTH_LONG).show()
                                 },
                                 onShareClick = { /* sharing logic */ }

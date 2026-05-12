@@ -99,16 +99,27 @@ class SellerRepository {
         }
     }
 
-    suspend fun deleteFromLiked(userId: String, productId: String): Result<Unit> {
+    suspend fun deleteFromLiked(userId: String, productId: String, ownerId: String): Result<Unit> {
         return try {
+            val today = Date().formatToStandard()
             firestore.runTransaction { transaction ->
                 val sellerRef = firestore.collection("sellers").document(userId)
                 val productRef = firestore.collection("products").document(productId)
+                val statsRef = firestore.collection("sellers")
+                    .document(ownerId)
+                    .collection("daily_stats")
+                    .document(today)
 
                 transaction.update(sellerRef, "likedProductIds", FieldValue.arrayRemove(productId))
                 transaction.update(productRef, "addedToLikedCount", FieldValue.increment(-1))
-            }.await()
 
+                val statsData = mapOf(
+                    "removedFromLiked.$productId" to FieldValue.increment(1),
+                    "date" to today
+                )
+                transaction.set(statsRef, statsData, SetOptions.merge())
+                null
+            }.await()
             Result.success(Unit)
         } catch (ex: Exception) {
             Result.failure(ex)
@@ -319,6 +330,7 @@ class SellerRepository {
         val clicks = doc.getLong("clicks") ?: 0L
 
         val addedMap = mutableMapOf<String, Long>()
+        val removedMap = mutableMapOf<String, Long>()
         val productClicksMap = mutableMapOf<String, Long>()
         val productCostsMap = mutableMapOf<String, Long>()
 
@@ -326,6 +338,9 @@ class SellerRepository {
             when {
                 key.startsWith("addedToLiked.") -> {
                     addedMap[key.substringAfter("addedToLiked.")] = (value as? Number)?.toLong() ?: 0L
+                }
+                key.startsWith("removedFromLiked.") -> {
+                    removedMap[key.substringAfter("removedFromLiked.")] = (value as? Number)?.toLong() ?: 0L
                 }
                 key.startsWith("productClicks.") -> {
                     productClicksMap[key.substringAfter("productClicks.")] = (value as? Number)?.toLong() ?: 0L
