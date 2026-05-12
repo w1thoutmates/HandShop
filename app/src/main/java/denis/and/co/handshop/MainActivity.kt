@@ -289,7 +289,8 @@ class MainActivity : ComponentActivity() {
                         sellerId = route.sellerId,
                         viewModel = profileVm,
                         likedViewModel = likedViewModel,
-                        metricsViewModel = metricsVm
+                        metricsViewModel = metricsVm,
+                        authViewModel = authViewModel
                     )
                 }
                 composable<LikedRoute> {

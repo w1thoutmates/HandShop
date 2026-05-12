@@ -3,6 +3,7 @@ package denis.and.co.handshop.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.yml.charts.common.model.Point
+import denis.and.co.handshop.data.enums.ProductStatus
 import denis.and.co.handshop.data.model.DailyReach
 import denis.and.co.handshop.data.model.PriceComparisonData
 import denis.and.co.handshop.data.model.Product
@@ -97,6 +98,27 @@ class MetricsViewModel(
                 selectProduct(it, days)
             }
         }
+    }
+
+    fun loadProductsAndSelectLastPublished(sellerId: String, days: Int = 7) {
+        viewModelScope.launch {
+            val allProducts = sellerRepo.getSellerProducts(sellerId)
+
+            _products.value = allProducts
+
+            val lastPublishedProduct = allProducts
+                .filter { it.status == ProductStatus.ACTIVE }
+                .maxByOrNull { it.postedTime }
+
+            if (lastPublishedProduct != null) {
+                selectProductForPriceIndex(lastPublishedProduct, days)
+            }
+        }
+    }
+
+    fun selectProductForPriceIndex(product: Product, days: Int = 7) {
+        _selectedProduct.value = product
+        loadPriceIndexStats(product, days)
     }
 
     fun selectProduct(product: Product, days: Int = 7) {

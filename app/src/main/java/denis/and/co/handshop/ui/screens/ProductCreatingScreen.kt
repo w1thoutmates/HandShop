@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -33,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Popup
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.google.firebase.auth.FirebaseAuth
@@ -55,16 +57,24 @@ fun ProductCreatingScreen(
     val currentUid = FirebaseAuth.getInstance().currentUser?.uid ?: return
 
     var title by remember { mutableStateOf(initialProduct?.title ?: "") }
+    var titleTouched by remember { mutableStateOf(false) }
+    val isTitleError = titleTouched && title.isBlank()
     var description by remember { mutableStateOf(initialProduct?.description ?: "") }
     var cost by remember { mutableStateOf(initialProduct?.cost?.toString() ?: "") }
+    var costTouched by remember { mutableStateOf(false) }
     var targetCity by remember { mutableStateOf(initialProduct?.targetCity ?: "") }
+    var targetCityTouched by remember { mutableStateOf(false) }
     var category by remember { mutableStateOf(initialProduct?.category ?: "") }
 
     var existingImages by remember { mutableStateOf(initialProduct?.imageUrls ?: emptyList()) }
     var localImages by remember { mutableStateOf<List<Uri>>(emptyList()) }
 
     val isFormValid =
-        title.isNotBlank() && description.isNotBlank() && cost.isNotBlank() && (existingImages.isNotEmpty() || localImages.isNotEmpty())
+        title.isNotBlank() &&
+        category.isNotBlank() &&
+        cost.isNotBlank() &&
+        targetCity.isNotBlank() &&
+        (existingImages.isNotEmpty() || localImages.isNotEmpty())
 
     val isSaving by viewModel.isSaving
 
@@ -81,6 +91,8 @@ fun ProductCreatingScreen(
     var costAnalytics by remember { mutableStateOf("") }
 
     val context = LocalContext.current
+
+    var showTagsInfo by remember { mutableStateOf(false) }
 
     LaunchedEffect(cost, title, category) {
         if (cost.isBlank() || title.isBlank() || category.isBlank()) {
@@ -239,8 +251,12 @@ fun ProductCreatingScreen(
 
                 ProductTextField(
                     value = title,
-                    onValueChange = { title = it },
-                    label = "Название товара"
+                    onValueChange = {
+                        title = it
+                        titleTouched = true
+                    },
+                    label = "Название товара *",
+                    isError = isTitleError
                 )
                 ProductTextField(
                     value = description,
@@ -251,8 +267,12 @@ fun ProductCreatingScreen(
                 )
                 ProductTextField(
                     value = cost,
-                    onValueChange = { cost = it.filter { char -> char.isDigit() } },
-                    label = "Цена (₽)",
+                    onValueChange = {
+                        cost = it.filter { char -> char.isDigit() }
+                        costTouched = true
+                    },
+                    label = "Цена (₽) *",
+                    isError = costTouched && cost.isBlank(),
                     keyboardType = KeyboardType.Number
                 )
 
@@ -263,18 +283,86 @@ fun ProductCreatingScreen(
                 CategoryDropdown(
                     selectedCategory = category,
                     onCategorySelected = { category = it },
-                    categories = CategoryProvider.categories.map { it.name }
+                    categories = CategoryProvider.categories.map { it.name },
                 )
                 ProductTextField(
                     value = targetCity,
-                    onValueChange = { targetCity = it },
-                    label = "Город (опционально)"
+                    onValueChange = {
+                        targetCity = it
+                        targetCityTouched = true
+                    },
+                    label = "Город *",
+                    isError = targetCityTouched && targetCity.isBlank()
                 )
                 ProductTextField(
                     value = tagsString,
                     onValueChange = { tagsString = it },
                     label = "Теги (через запятую, например: дерево, мебель, одежда)"
                 )
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(start = 5.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Зачем нужны теги?",
+                        fontFamily = Comfortaa,
+                        fontSize = 14.sp,
+                        color = BlackText
+                    )
+
+                    Spacer(modifier = Modifier.width(6.dp))
+
+                    Box {
+                        Icon(
+                            imageVector = Icons.Outlined.Info,
+                            contentDescription = "Информация о тегах",
+                            modifier = Modifier
+                                .size(18.dp)
+                                .clickable { showTagsInfo = true },
+                            tint = LowAlphaBlackText
+                        )
+
+                        if (showTagsInfo) {
+                            Popup(
+                                alignment = Alignment.TopStart,
+                                onDismissRequest = { showTagsInfo = false }
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .widthIn(max = 260.dp)
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(Color.White)
+                                        .padding(12.dp)
+                                ) {
+                                    Column {
+                                        Text(
+                                            text = "Теги и продвижение",
+                                            fontFamily = Onest,
+                                            fontWeight = FontWeight.SemiBold,
+                                            fontSize = 14.sp,
+                                            color = BlackText
+                                        )
+
+                                        HorizontalDivider(
+                                            thickness = 1.dp,
+                                            color = BlackText.copy(alpha = 0.15f),
+                                            modifier = Modifier.padding(vertical = 8.dp)
+                                        )
+
+                                        Text(
+                                            text = "Теги помогают персонализировать ленту для пользователей. " +
+                                                    "Товары с корректно указанными тегами чаще показываются " +
+                                                    "потенциальным покупателям, которым интересны похожие товары",
+                                            fontFamily = Comfortaa,
+                                            fontSize = 13.sp,
+                                            color = BlackText
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
 
                 Row(
                     modifier = Modifier.fillMaxWidth()
@@ -317,9 +405,6 @@ fun ProductCreatingScreen(
                         }
                     }
                 }
-
-                // добавить всплывашку или при нажатии окошко с пояснением, что теги помогают персонализировать
-                // ленты для пользователей и тем самым продвигать товары с тегами которые вы указали в ленты к вашим потенциальным покупателям
 
                 Spacer(modifier = Modifier.height(30.dp))
             }
@@ -368,12 +453,15 @@ fun ProductTextField(
     label: String,
     singleLine: Boolean = true,
     keyboardType: KeyboardType = KeyboardType.Text,
-    modifier: Modifier = Modifier.fillMaxWidth()
+    modifier: Modifier = Modifier.fillMaxWidth(),
+    isError: Boolean = false,
+    errorMessage: String = "Это поле обязательно"
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(label, fontFamily = Comfortaa, color = LowAlphaBlackText) },
+        isError = isError,
         singleLine = singleLine,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         textStyle = TextStyle(fontFamily = Comfortaa, color = BlackText, fontSize = 16.sp),
@@ -381,10 +469,20 @@ fun ProductTextField(
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = Accent,
             unfocusedBorderColor = LowAlphaBlackText.copy(alpha = 0.5f),
-            cursorColor = Accent
+            cursorColor = Accent,
+            errorBorderColor = Color.Red
         ),
         modifier = modifier
     )
+    if (isError) {
+        Text(
+            text = errorMessage,
+            color = Color.Red,
+            fontSize = 12.sp,
+            fontFamily = Comfortaa,
+            modifier = Modifier.padding(start = 8.dp, top = 4.dp)
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -392,7 +490,8 @@ fun ProductTextField(
 fun CategoryDropdown(
     selectedCategory: String,
     onCategorySelected: (String) -> Unit,
-    categories: List<String>
+    categories: List<String>,
+    isError: Boolean = false
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -405,6 +504,7 @@ fun CategoryDropdown(
             value = selectedCategory,
             onValueChange = {},
             readOnly = true,
+            isError = isError,
             label = { Text("Категория", fontFamily = Comfortaa, color = LowAlphaBlackText) },
             trailingIcon = {
                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
@@ -414,7 +514,8 @@ fun CategoryDropdown(
                 unfocusedBorderColor = LowAlphaBlackText.copy(alpha = 0.5f),
                 cursorColor = Accent,
                 focusedTrailingIconColor = Accent,
-                unfocusedTrailingIconColor = LowAlphaBlackText
+                unfocusedTrailingIconColor = LowAlphaBlackText,
+                errorBorderColor = Color.Red
             ),
             textStyle = TextStyle(fontFamily = Comfortaa, color = BlackText, fontSize = 16.sp),
             shape = RoundedCornerShape(12.dp),
@@ -449,6 +550,16 @@ fun CategoryDropdown(
                     modifier = Modifier.clip(RoundedCornerShape(12.dp))
                 )
             }
+        }
+
+        if (isError) {
+            Text(
+                text = "Выберите категорию",
+                color = Color.Red,
+                fontSize = 12.sp,
+                fontFamily = Comfortaa,
+                modifier = Modifier.padding(start = 8.dp, top = 4.dp)
+            )
         }
     }
 }

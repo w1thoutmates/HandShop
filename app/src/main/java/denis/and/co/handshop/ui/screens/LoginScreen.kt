@@ -68,9 +68,14 @@ fun LoginScreen(onAuthSuccess: () -> Unit) {
                 if (idToken != null) {
                     val firebaseCredential = GoogleAuthProvider.getCredential(idToken, null)
                     auth.signInWithCredential(firebaseCredential)
-                        .addOnSuccessListener { onAuthSuccess() }
+                        .addOnSuccessListener {
+                            onAuthSuccess()
+                        }
+                        .addOnFailureListener {
+                            it.printStackTrace()
+                        }
                 }
-            } catch (e: Exception) { /* Обработка */ }
+            } catch (ex: Exception) { ex.printStackTrace() }
         }
     }
 
@@ -118,11 +123,18 @@ fun LoginScreen(onAuthSuccess: () -> Unit) {
 
         Button(
             onClick = {
-                val request = GetSignInIntentRequest.builder()
-                    .setServerClientId(clientId)
-                    .build()
-                signInClient.getSignInIntent(request).addOnSuccessListener { result ->
-                    launcher.launch(IntentSenderRequest.Builder(result.intentSender).build())
+                signInClient.signOut().addOnCompleteListener {
+                    val request = GetSignInIntentRequest.builder()
+                        .setServerClientId(clientId)
+                        .build()
+
+                    signInClient.getSignInIntent(request)
+                        .addOnSuccessListener { result ->
+                            launcher.launch(IntentSenderRequest.Builder(result.intentSender).build())
+                        }
+                        .addOnFailureListener { e ->
+                            e.printStackTrace()
+                        }
                 }
             },
             shape = RoundedCornerShape(16.dp),

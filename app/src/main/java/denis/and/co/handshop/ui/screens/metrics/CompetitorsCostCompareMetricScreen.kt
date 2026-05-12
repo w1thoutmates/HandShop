@@ -81,7 +81,7 @@ fun CompetitorsCostCompareMetricScreen(
     )
 
     LaunchedEffect(Unit) {
-        viewModel.loadProductsAndInitialStats(sellerId, days)
+        viewModel.loadProductsAndSelectLastPublished(sellerId, days)
         profileViewModel.loadProfile(sellerId)
     }
 

@@ -69,6 +69,7 @@ import androidx.core.graphics.ColorUtils
 import denis.and.co.handshop.ui.navigation.CreateProfileRoute
 import denis.and.co.handshop.ui.navigation.RecommendationRoute
 import denis.and.co.handshop.ui.theme.Onest
+import denis.and.co.handshop.utils.toHexString
 
 
 @Composable
@@ -344,7 +345,9 @@ fun EditProfileScreen(
             if (!isContrasted(
                     Color(viewModel.selfProfileTextColor.toColorInt()),
                     Color(viewModel.selfProfileBackground.toColorInt())
-                )
+                ) &&
+                !(viewModel.selfProfileTextColor == BlackText.toHexString() &&
+                viewModel.selfProfileBackground == SoftBack.toHexString())
             ) {
                 Box(
                     modifier = Modifier
@@ -381,7 +384,9 @@ fun EditProfileScreen(
             if (!isContrasted(
                     Color(viewModel.selfProfileAccentTextColor.toColorInt()),
                     Color(viewModel.selfProfileAccentColor.toColorInt())
-                )
+                ) &&
+                !(viewModel.selfProfileAccentColor == Accent.toHexString() &&
+                viewModel.selfProfileAccentTextColor == WhiteText.toHexString())
             ) {
                 Box(
                     modifier = Modifier
@@ -418,7 +423,9 @@ fun EditProfileScreen(
             if (!isContrasted(
                     Color(viewModel.selfProfileFooterColor.toColorInt()),
                     Color(viewModel.selfProfileIconsColor.toColorInt())
-                )
+                ) &&
+                !(viewModel.selfProfileFooterColor == HardBack.toHexString() &&
+                viewModel.selfProfileIconsColor == BlackText.toHexString())
             ) {
                 Box(
                     modifier = Modifier

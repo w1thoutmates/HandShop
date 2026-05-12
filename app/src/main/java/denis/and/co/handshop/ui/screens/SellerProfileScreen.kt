@@ -33,6 +33,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.filled.InsertChartOutlined
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Email
@@ -42,6 +43,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -80,6 +83,7 @@ import denis.and.co.handshop.ui.components.WorkSampleCard
 import denis.and.co.handshop.ui.navigation.EditProductRoute
 import denis.and.co.handshop.ui.navigation.EditProfileRoute
 import denis.and.co.handshop.ui.navigation.ExpandedPublishedProductsRoute
+import denis.and.co.handshop.ui.navigation.LoginRoute
 import denis.and.co.handshop.ui.navigation.MetricsRoute
 import denis.and.co.handshop.ui.navigation.ProductDetailsRoute
 import denis.and.co.handshop.ui.navigation.ReviewsRoute
@@ -90,6 +94,7 @@ import denis.and.co.handshop.ui.theme.Onest
 import denis.and.co.handshop.ui.theme.StarEmpty
 import denis.and.co.handshop.ui.theme.StarFilled
 import denis.and.co.handshop.ui.theme.WhiteText
+import denis.and.co.handshop.viewmodel.AuthViewModel
 import denis.and.co.handshop.viewmodel.LikedViewModel
 import denis.and.co.handshop.viewmodel.MetricsViewModel
 import denis.and.co.handshop.viewmodel.ProfileViewModel
@@ -101,7 +106,8 @@ fun SellerProfileScreen(
     sellerId: String?,
     viewModel: ProfileViewModel = viewModel(),
     likedViewModel: LikedViewModel,
-    metricsViewModel: MetricsViewModel
+    metricsViewModel: MetricsViewModel,
+    authViewModel: AuthViewModel
 ) {
     val seller by viewModel.seller.collectAsState()
     val isMyProfile = sellerId == null || sellerId == viewModel.currentUid
@@ -114,6 +120,8 @@ fun SellerProfileScreen(
     val scrollState = rememberScrollState()
 
     val context = LocalContext.current
+
+    var showMenu by remember { mutableStateOf(false) }
 
     seller?.let {currentSeller ->
         val pagerState = rememberPagerState(pageCount = { currentSeller.workSamples.size })
@@ -155,17 +163,75 @@ fun SellerProfileScreen(
                     )
 
                     Box(modifier = Modifier
-                        .padding(top = 40.dp, start = 16.dp)
+                        .fillMaxWidth()
+                        .padding(top = 40.dp, start = 16.dp, end = 16.dp)
                         .size(40.dp)
                         .clip(CircleShape)
                         .clickable { navController.popBackStack() },
                         contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                            contentDescription = "Кнопка назад",
-                            tint = Color.Black,
-                            modifier = Modifier.size(24.dp)
-                        )
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                                    .clickable { navController.popBackStack() },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                                    contentDescription = "Кнопка назад",
+                                    tint = Color(currentSeller.selfProfileIconsColor.toColorInt()),
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+
+                            Spacer(Modifier.weight(1f))
+
+                            if (isMyProfile) {
+                                Box {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                            .clip(CircleShape)
+                                            .clickable { showMenu = true },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Menu,
+                                            contentDescription = "Кнопка с опциями для продавца",
+                                            tint = Color(currentSeller.selfProfileIconsColor.toColorInt()),
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                    }
+
+                                    DropdownMenu(
+                                        expanded = showMenu,
+                                        onDismissRequest = { showMenu = false }
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = {
+                                                Text(
+                                                    text = "Выйти из аккаунта",
+                                                    fontFamily = Comfortaa
+                                                )
+                                            },
+                                            onClick = {
+                                                showMenu = false
+                                                authViewModel.signOut(context) {
+                                                    navController.navigate(LoginRoute) {
+                                                        popUpTo(0) { inclusive = true }
+                                                        launchSingleTop = true
+                                                    }
+                                                }
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 Column(
