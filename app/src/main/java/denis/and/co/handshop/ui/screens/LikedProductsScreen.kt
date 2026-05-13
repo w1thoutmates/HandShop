@@ -78,11 +78,13 @@ import denis.and.co.handshop.ui.theme.Onest
 import denis.and.co.handshop.ui.theme.SoftBack
 import denis.and.co.handshop.ui.theme.WhiteText
 import denis.and.co.handshop.viewmodel.LikedViewModel
+import denis.and.co.handshop.viewmodel.MetricsViewModel
 
 @Composable
 fun LikedProductsScreen(
     navController: NavController,
-    viewModel: LikedViewModel
+    viewModel: LikedViewModel,
+    metricsViewModel: MetricsViewModel
 ) {
     val uiState by viewModel.state.collectAsState()
     val productCount = if (uiState is CatalogState.Success) {
@@ -113,7 +115,10 @@ fun LikedProductsScreen(
                 uiState = uiState,
                 modifier = Modifier.weight(1f),
                 onProductClick = { id -> navController.navigate(ProductDetailsRoute(id)) },
-                onSellerClick = { id -> navController.navigate(ProfileRoute(sellerId = id)) },
+                onSellerClick = { id ->
+                    navController.navigate(ProfileRoute(sellerId = id))
+                    metricsViewModel.updateProfileClicks(id)
+                },
                 onDeleteProduct = { id, sellerId -> viewModel.deleteFromLiked(id, sellerId) },
                 viewModel = viewModel
             )

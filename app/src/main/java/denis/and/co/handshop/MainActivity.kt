@@ -38,6 +38,7 @@ import denis.and.co.handshop.ui.navigation.LoginRoute
 import denis.and.co.handshop.ui.navigation.MetricsRoute
 import denis.and.co.handshop.ui.navigation.ProductCategoryRationMetricRoute
 import denis.and.co.handshop.ui.navigation.ProductDetailsRoute
+import denis.and.co.handshop.ui.navigation.ProfileClicksMetricRoute
 import denis.and.co.handshop.ui.navigation.ProfileRoute
 import denis.and.co.handshop.ui.navigation.RecommendationRoute
 import denis.and.co.handshop.ui.navigation.ReviewsRoute
@@ -60,10 +61,10 @@ import denis.and.co.handshop.ui.screens.metrics.CTRMetricScreen
 import denis.and.co.handshop.ui.screens.metrics.ClicksOnContactsMetricScreen
 import denis.and.co.handshop.ui.screens.metrics.CompetitorsCostCompareMetricScreen
 import denis.and.co.handshop.ui.screens.metrics.ProductCategoryRationMetricScreen
+import denis.and.co.handshop.ui.screens.metrics.ProfileClicksMetricScreen
 import denis.and.co.handshop.ui.screens.metrics.SellerRateMetricScreen
 import denis.and.co.handshop.ui.screens.metrics.TotalReachMetricScreen
 import denis.and.co.handshop.ui.theme.Accent
-import denis.and.co.handshop.utils.TestDataHelper
 import denis.and.co.handshop.viewmodel.AuthViewModel
 import denis.and.co.handshop.viewmodel.CatalogViewModel
 import denis.and.co.handshop.viewmodel.CreateProductViewModel
@@ -197,6 +198,19 @@ class MainActivity : ComponentActivity() {
                         }
                     )
 
+                    val currentUid = authViewModel.getAuth().currentUser?.uid ?: ""
+
+                    val metricsVm: MetricsViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                return MetricsViewModel(
+                                    sellerId = currentUid,
+                                    sellerRepo = AppDependencies.sellerRepository
+                                ) as T
+                            }
+                        }
+                    )
+
                     LaunchedEffect(route.productId) {
                         detailsVm.loadProduct(route.productId)
                     }
@@ -206,7 +220,8 @@ class MainActivity : ComponentActivity() {
                             product = currentProduct,
                             viewModel = detailsVm,
                             navController = navController,
-                            likedViewModel = likedViewModel
+                            likedViewModel = likedViewModel,
+                            metricsViewModel = metricsVm
                         )
                     } ?: run {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -304,9 +319,24 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     )
+
+                    val currentUid = authViewModel.getAuth().currentUser?.uid ?: ""
+
+                    val metricsVm: MetricsViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                return MetricsViewModel(
+                                    sellerId = currentUid,
+                                    sellerRepo = AppDependencies.sellerRepository
+                                ) as T
+                            }
+                        }
+                    )
+
                     LikedProductsScreen(
                         navController = navController,
-                        viewModel = likedViewModel
+                        viewModel = likedViewModel,
+                        metricsViewModel = metricsVm
                     )
                 }
 
@@ -453,11 +483,25 @@ class MainActivity : ComponentActivity() {
                         }
                     )
 
+                    val currentUid = authViewModel.getAuth().currentUser?.uid ?: ""
+
+                    val metricsVm: MetricsViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                return MetricsViewModel(
+                                    sellerId = currentUid,
+                                    sellerRepo = AppDependencies.sellerRepository
+                                ) as T
+                            }
+                        }
+                    )
+
                     ReviewsScreen(
                         viewModel = reviewsVm,
                         navController = navController,
                         profileViewModel = profileVm,
-                        sellerId = route.sellerId
+                        sellerId = route.sellerId,
+                        metricsViewModel = metricsVm
                     )
                 }
 
@@ -737,6 +781,38 @@ class MainActivity : ComponentActivity() {
                         viewModel = metricsVm,
                         profileViewModel = profileVm,
                         sellerId = route.sellerId
+                    )
+                }
+
+                composable<ProfileClicksMetricRoute> {
+                    val currentUid = authViewModel.getAuth().currentUser?.uid ?: ""
+
+                    val metricsVm: MetricsViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                return MetricsViewModel(
+                                    sellerId = currentUid,
+                                    sellerRepo = AppDependencies.sellerRepository
+                                ) as T
+                            }
+                        }
+                    )
+
+                    val profileVm: ProfileViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T: ViewModel> create(modelClass: Class<T>): T {
+                                return ProfileViewModel(
+                                    sellerRepo = AppDependencies.sellerRepository,
+                                    productRepo = AppDependencies.productRepository
+                                ) as T
+                            }
+                        }
+                    )
+
+                    ProfileClicksMetricScreen(
+                        navController = navController,
+                        viewModel = metricsVm,
+                        profileViewModel = profileVm
                     )
                 }
             }

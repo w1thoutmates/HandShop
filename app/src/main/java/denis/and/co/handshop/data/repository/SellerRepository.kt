@@ -193,7 +193,7 @@ class SellerRepository {
         }
     }
 
-    fun updateImpression(sellerId: String) {
+    fun updateProfileClicks(sellerId: String) {
         val today = Date().formatToStandard()
 
         val metricsRef = firestore.collection("sellers")
@@ -202,29 +202,12 @@ class SellerRepository {
             .document(today)
 
         val data = mapOf(
-            "impressions" to FieldValue.increment(1),
+            "profileClicks" to FieldValue.increment(1),
             "date" to today
         )
 
         metricsRef.set(data, SetOptions.merge())
     }
-
-//    suspend fun getDailyStats(sellerId: String, limit: Int = 7): List<DailyReach> {
-//        return try {
-//            val snapshot = firestore.collection("sellers")
-//                .document(sellerId)
-//                .collection("daily_stats")
-//                .orderBy("date", com.google.firebase.firestore.Query.Direction.DESCENDING)
-//                .limit(limit.toLong())
-//                .get()
-//                .await()
-//
-//            snapshot.toObjects(DailyReach::class.java).sortedBy { it.date }
-//        } catch (ex: Exception) {
-//            Log.e("FIREBASE_ERROR", "Ошибка загрузки статистики", ex)
-//            emptyList()
-//        }
-//    }
 
     suspend fun getDailyStats(sellerId: String, days: Int): List<DailyReach> {
         return try {
@@ -328,6 +311,7 @@ class SellerRepository {
         val date = doc.getString("date") ?: ""
         val impressions = doc.getLong("impressions") ?: 0L
         val clicks = doc.getLong("clicks") ?: 0L
+        val profileClicks = doc.getLong("profileClicks") ?: 0L
 
         val addedMap = mutableMapOf<String, Long>()
         val removedMap = mutableMapOf<String, Long>()
@@ -356,7 +340,10 @@ class SellerRepository {
             impressions = impressions,
             clicks = clicks,
             addedToLiked = addedMap,
-            productClicks = productClicksMap
+            removedFromLiked = removedMap,
+            productClicks = productClicksMap,
+            productCosts = productCostsMap,
+            profileClicks = profileClicks
         )
     }
 

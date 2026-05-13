@@ -540,28 +540,6 @@ fun ContactInfoBlock(
                     .size(30.dp),
                 tint = Color(seller.selfProfileIconsColor.toColorInt())
             )
-
-            /*
-            Button(
-                onClick = {
-                    showDialog = true
-                    profileViewModel.updateCountClicksOnContacts(seller.id)
-                },
-                modifier = Modifier
-                    .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
-                    .height(35.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(seller.selfProfileAccentColor.toColorInt())),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text(
-                    "Связаться",
-                    fontFamily = Comfortaa,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    color = Color(seller.selfProfileAccentTextColor.toColorInt())
-                )
-            }
-            */
         }
 
         contacts.forEach { (type, value) ->

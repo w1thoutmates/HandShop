@@ -81,6 +81,7 @@ import denis.and.co.handshop.ui.theme.Onest
 import denis.and.co.handshop.ui.theme.SoftBack
 import denis.and.co.handshop.ui.theme.StarFilled
 import denis.and.co.handshop.viewmodel.LikedViewModel
+import denis.and.co.handshop.viewmodel.MetricsViewModel
 import denis.and.co.handshop.viewmodel.ProductDetailsVM
 import kotlinx.coroutines.launch
 import kotlin.collections.component1
@@ -91,7 +92,8 @@ fun ProductDetailsScreen(
     product: Product,
     viewModel: ProductDetailsVM,
     navController: NavController,
-    likedViewModel: LikedViewModel
+    likedViewModel: LikedViewModel,
+    metricsViewModel: MetricsViewModel
 ) {
     val seller by viewModel.seller.collectAsState()
 
@@ -269,6 +271,7 @@ fun ProductDetailsScreen(
                                 .padding(start = 16.dp, top = 15.dp, end = 10.dp)
                                 .clickable {
                                     navController.navigate(ProfileRoute(sellerId = product.sellerId))
+                                    metricsViewModel.updateProfileClicks(product.sellerId)
                                 }
                         ) {
                             AsyncImage(

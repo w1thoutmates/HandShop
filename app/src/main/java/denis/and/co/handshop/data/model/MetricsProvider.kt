@@ -1,6 +1,7 @@
 package denis.and.co.handshop.data.model
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.AddIcCall
 import androidx.compose.material.icons.filled.AdsClick
 import androidx.compose.material.icons.filled.BarChart
@@ -15,6 +16,7 @@ import denis.and.co.handshop.ui.navigation.CTRMetricRoute
 import denis.and.co.handshop.ui.navigation.ClicksOnContactsMetricRoute
 import denis.and.co.handshop.ui.navigation.CompetitorsCostCompareMetricRoute
 import denis.and.co.handshop.ui.navigation.ProductCategoryRationMetricRoute
+import denis.and.co.handshop.ui.navigation.ProfileClicksMetricRoute
 import denis.and.co.handshop.ui.navigation.SellerRateMetricRoute
 import denis.and.co.handshop.ui.navigation.TotalReachMetricRoute
 
@@ -48,6 +50,12 @@ object MetricsProvider {
                     title = "Клики по кнопке «связаться»",
                     route = ClicksOnContactsMetricRoute,
                     icon = Icons.Default.AddIcCall
+                ),
+                ChildItem(
+                    id = "gm_child_5",
+                    title = "Просмотры профиля",
+                    route = ProfileClicksMetricRoute,
+                    icon = Icons.Default.AccountCircle
                 )
             )
         ),
@@ -58,7 +66,7 @@ object MetricsProvider {
             children = listOf(
                 ChildItem(
                     id = "cpm_child_1",
-                    title = "Добавлено в избранное",
+                    title = "Добавлено и удалено из избранного",
                     route = AddedToLikedMetricRoute(sellerId),
                     icon = Icons.Default.Favorite
                 ),

@@ -61,3 +61,6 @@ object ClicksOnContactsMetricRoute : AppRoute
 
 @Serializable
 data class ExpandedPublishedProductsRoute(val sellerId: String) : AppRoute
+
+@Serializable
+object ProfileClicksMetricRoute : AppRoute

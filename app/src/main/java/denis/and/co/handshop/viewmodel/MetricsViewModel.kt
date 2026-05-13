@@ -9,7 +9,6 @@ import denis.and.co.handshop.data.model.PriceComparisonData
 import denis.and.co.handshop.data.model.Product
 import denis.and.co.handshop.data.repository.SellerRepository
 import denis.and.co.handshop.utils.SimilarityUtils
-import denis.and.co.handshop.utils.TestDataHelper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -40,6 +39,12 @@ class MetricsViewModel(
     private val _priceComparisonPoints = MutableStateFlow<PriceComparisonData?>(null)
     val priceComparisonData: StateFlow<PriceComparisonData?> = _priceComparisonPoints
 
+    private val _removedFromLikedPoints = MutableStateFlow<List<Point>>(emptyList())
+    val removedFromLikedPoints: StateFlow<List<Point>> = _removedFromLikedPoints
+
+    private val _profileClickPoints = MutableStateFlow<List<Point>>(emptyList())
+    val profileClickPoints: StateFlow<List<Point>> = _profileClickPoints
+
     init {
         loadStats()
     }
@@ -52,14 +57,11 @@ class MetricsViewModel(
         }
     }
 
-    suspend fun getStats(days: Int = 7): List<Point> {
-        return mapToPoints(sellerRepo.getDailyStats(sellerId, days))
-    }
-
     private fun mapToPoints(
         stats: List<DailyReach>,
         isClicks: Boolean = false,
         isAddedToLiked: Boolean = false,
+        isRemovedFromLiked: Boolean = false,
         productId: String? = null
     ): List<Point> {
         return stats.mapIndexed { index, stat ->
@@ -71,6 +73,9 @@ class MetricsViewModel(
                     }
                     isAddedToLiked -> {
                         (stat.addedToLiked[productId] ?: 0L).toFloat()
+                    }
+                    isRemovedFromLiked -> {
+                        (stat.removedFromLiked[productId] ?: 0L).toFloat()
                     }
                     else -> {
                         stat.impressions.toFloat()
@@ -125,13 +130,13 @@ class MetricsViewModel(
         _selectedProduct.value = product
         viewModelScope.launch {
             val stats = sellerRepo.getProductDailyStats(product.sellerId, days)
-            println("DEBUG: Загружено документов статистики: ${stats.size}")
 
             _stats.value = stats
-            val newPoints = mapToPoints(stats, isAddedToLiked = true, productId = product.id)
-            println("DEBUG: Сформировано точек для графика: ${newPoints.filter { it.y > 0 }.size} (с ненулевым значением)")
+            val addedPoints = mapToPoints(stats, isAddedToLiked = true, productId = product.id)
+            val removedPoints = mapToPoints(stats, isRemovedFromLiked = true, productId = product.id)
 
-            _reachPoints.value = newPoints
+            _reachPoints.value = addedPoints
+            _removedFromLikedPoints.value = removedPoints
         }
     }
 
@@ -194,9 +199,24 @@ class MetricsViewModel(
         }
     }
 
-    fun fillTestData() {
+    fun updateProfileClicks(sellerId: String) {
         viewModelScope.launch {
-            TestDataHelper.createOrReplaceTestData()
+            sellerRepo.updateProfileClicks(sellerId)
+        }
+    }
+
+    fun loadProfileClicks(days: Int = 7) {
+        viewModelScope.launch {
+            val stats = sellerRepo.getDailyStats(sellerId, days)
+
+            _stats.value = stats
+
+            _profileClickPoints.value = stats.mapIndexed { index, stat ->
+                Point(
+                    x = index.toFloat(),
+                    y = stat.profileClicks.toFloat()
+                )
+            }
         }
     }
 

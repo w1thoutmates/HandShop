@@ -5,7 +5,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -59,10 +61,12 @@ fun AddedToLikedMetricScreen(
     val products by viewModel.products.collectAsState()
     val selectedProduct by viewModel.selectedProduct.collectAsState()
     val points by viewModel.reachPoints.collectAsState()
+    val removedPoints by viewModel.removedFromLikedPoints.collectAsState()
     val stats by viewModel.stats.collectAsState()
     val seller by profileViewModel.seller.collectAsState()
 
     val modelProducer = remember { CartesianChartModelProducer.build() }
+    val removedModelProducer = remember { CartesianChartModelProducer.build() }
     val formatter = remember { DateTimeFormatter.ofPattern("d MMM", Locale("ru")) }
 
     LaunchedEffect(Unit) {
@@ -78,6 +82,14 @@ fun AddedToLikedMetricScreen(
         }
     }
 
+    LaunchedEffect(removedPoints) {
+        if (removedPoints.isNotEmpty()) {
+            removedModelProducer.tryRunTransaction {
+                columnSeries { series(removedPoints.map { it.y }) }
+            }
+        }
+    }
+
     seller?.let { currentSeller ->
         val accentColor = Color(currentSeller.selfProfileAccentColor.toColorInt())
 
@@ -88,10 +100,11 @@ fun AddedToLikedMetricScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
                     .windowInsetsPadding(WindowInsets.statusBars)
                     .padding(bottom = padding.calculateBottomPadding())
             ) {
-                HeaderSection(navController, "Добавлено в избранное", currentSeller)
+                HeaderSection(navController, "Добавлено и удалено из избранного", currentSeller)
 
                 Column(modifier = Modifier.padding(horizontal = 20.dp)) {
                     OutlinedTextField(
@@ -142,6 +155,15 @@ fun AddedToLikedMetricScreen(
                     }
                 }
 
+                Text(
+                    text = "Добавлено в избранное",
+                    modifier = Modifier.padding(horizontal = 20.dp),
+                    fontFamily = Onest,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = Color(currentSeller.selfProfileTextColor.toColorInt())
+                )
+
                 Card(
                     modifier = Modifier.fillMaxWidth().height(350.dp).padding(16.dp),
                     shape = RoundedCornerShape(28.dp),
@@ -182,6 +204,97 @@ fun AddedToLikedMetricScreen(
                     } else {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Text("Нет данных за этот период", fontFamily = Onest)
+                        }
+                    }
+                }
+
+                Text(
+                    text = "Удалено из избранного",
+                    modifier = Modifier.padding(horizontal = 20.dp),
+                    fontFamily = Onest,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = Color(currentSeller.selfProfileTextColor.toColorInt())
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(350.dp)
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 16.dp),
+                    shape = RoundedCornerShape(28.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(4.dp)
+                ) {
+
+                    val removeColor = Color(0xFFD32F2F)
+
+                    if (removedPoints.isNotEmpty()) {
+
+                        CartesianChartHost(
+                            chart = rememberCartesianChart(
+                                rememberColumnCartesianLayer(
+                                    columnProvider = ColumnCartesianLayer.ColumnProvider.series(
+                                        rememberLineComponent(
+                                            color = removeColor,
+                                            thickness = 12.dp,
+                                            shape = Shape.rounded(allDp = 4f),
+                                            dynamicShader = DynamicShader.verticalGradient(
+                                                arrayOf(
+                                                    removeColor,
+                                                    removeColor.copy(alpha = 0.55f)
+                                                )
+                                            )
+                                        )
+                                    )
+                                ),
+
+                                startAxis = rememberStartAxis(
+                                    label = rememberAxisLabelComponent(
+                                        color = BlackText,
+                                        textSize = 12.sp
+                                    ),
+                                    guideline = rememberLineComponent(
+                                        BlackText.copy(alpha = 0.1f)
+                                    ),
+                                    itemPlacer = AxisItemPlacer.Vertical.step(
+                                        step = { 1f }
+                                    )
+                                ),
+
+                                bottomAxis = rememberBottomAxis(
+                                    valueFormatter = { value, _, _ ->
+                                        stats.getOrNull(value.toInt())?.let {
+                                            try {
+                                                LocalDate.parse(it.date).format(formatter)
+                                            } catch (_: Exception) {
+                                                ""
+                                            }
+                                        } ?: ""
+                                    }
+                                )
+                            ),
+
+                            modelProducer = removedModelProducer,
+
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp)
+                        )
+
+                    } else {
+
+                        Box(
+                            Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                "Нет данных за этот период",
+                                fontFamily = Onest
+                            )
                         }
                     }
                 }

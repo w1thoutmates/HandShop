@@ -7,5 +7,6 @@ data class DailyReach(
     var addedToLiked: Map<String, Long> = emptyMap(),
     var removedFromLiked: Map<String, Long> = emptyMap(),
     var productClicks: Map<String, Long> = emptyMap(),
-    val productCosts: Map<String, Long> = emptyMap()
+    var productCosts: Map<String, Long> = emptyMap(),
+    var profileClicks: Long = 0
 )

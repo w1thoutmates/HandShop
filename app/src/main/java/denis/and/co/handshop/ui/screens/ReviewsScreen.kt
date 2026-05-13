@@ -82,6 +82,7 @@ import denis.and.co.handshop.ui.theme.StarEmpty
 import denis.and.co.handshop.ui.theme.StarFilled
 import denis.and.co.handshop.ui.theme.WhiteText
 import denis.and.co.handshop.utils.getContrastColor
+import denis.and.co.handshop.viewmodel.MetricsViewModel
 import denis.and.co.handshop.viewmodel.ProfileViewModel
 import denis.and.co.handshop.viewmodel.ReviewsViewModel
 
@@ -90,7 +91,8 @@ fun ReviewsScreen(
     viewModel: ReviewsViewModel = viewModel(),
     navController: NavController,
     profileViewModel: ProfileViewModel,
-    sellerId: String
+    sellerId: String,
+    metricsViewModel: MetricsViewModel
 ) {
     LaunchedEffect(Unit) {
         viewModel.fixCurrentSellerRating()
@@ -106,7 +108,8 @@ fun ReviewsScreen(
             viewModel = viewModel,
             navController = navController,
             profileViewModel = profileViewModel,
-            sellerId = sellerId
+            sellerId = sellerId,
+            metricsViewModel = metricsViewModel
         )
     }
 }
@@ -118,7 +121,8 @@ fun ReviewsScreenContent(
     viewModel: ReviewsViewModel,
     navController: NavController,
     profileViewModel: ProfileViewModel,
-    sellerId: String
+    sellerId: String,
+    metricsViewModel: MetricsViewModel
 ) {
     val seller by viewModel.seller.collectAsState()
     val reviews by viewModel.reviews.collectAsState()
@@ -483,7 +487,8 @@ fun ReviewsScreenContent(
                     ReviewItem(
                         review = review,
                         navController = navController,
-                        seller = currentSeller
+                        seller = currentSeller,
+                        metricsViewModel = metricsViewModel
                     )
                 }
             }
@@ -523,7 +528,8 @@ fun ReviewTextField(
 fun ReviewItem(
     review: Review,
     navController: NavController,
-    seller: Seller
+    seller: Seller,
+    metricsViewModel: MetricsViewModel
 ) {
     Card(
         modifier = Modifier
@@ -542,6 +548,7 @@ fun ReviewItem(
                     .padding(bottom = 7.dp)
                     .clickable {
                         navController.navigate(ProfileRoute(review.reviewerId))
+                        metricsViewModel.updateProfileClicks(review.reviewerId)
                     }
             ) {
                 AsyncImage(
