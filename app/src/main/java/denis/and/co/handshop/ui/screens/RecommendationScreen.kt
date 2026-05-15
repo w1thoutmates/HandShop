@@ -97,6 +97,8 @@ fun RecommendationScreen(
         }
     }
 
+    catalogViewModel.logAllProductsData()
+
     Scaffold(
         topBar = {
             Header(

@@ -411,13 +411,23 @@ class CatalogViewModel(
         val similarProducts = allProducts
             .filter { it.category == inputProduct.category && it.id != inputProduct.id }
             .map { candidate ->
-                val titleSim = SimilarityUtils.calculateSimilarity(inputProduct.title, candidate.title)
-                val descSim = SimilarityUtils.calculateSimilarity(inputProduct.description, candidate.description)
+                val titleSim = SimilarityUtils.calculateSimilarity(
+                    inputProduct.title,
+                    candidate.title,
+                    inputProduct.tags,
+                    candidate.tags
+                )
 
-                val totalScore = (titleSim * 0.7) + (descSim * 0.3)
+                val descSim = SimilarityUtils.calculateSimilarity(
+                    inputProduct.description,
+                    candidate.description,
+                    emptyList(),
+                    emptyList()
+                )
+                val totalScore = (titleSim * 0.8) + (descSim * 0.2)
                 candidate to totalScore
             }
-            .filter { it.second > 0.35 }
+            .filter { it.second > 0.4 }
             .sortedByDescending { it.second }
             .take(15)
 
@@ -438,6 +448,10 @@ class CatalogViewModel(
             userCost > medianCost * (1 + threshold) -> "Цена выше рынка"
             else -> "Средняя цена по рынку"
         }
+    }
+
+    fun logAllProductsData() {
+        productRepo.logAllProductsData()
     }
 
 }

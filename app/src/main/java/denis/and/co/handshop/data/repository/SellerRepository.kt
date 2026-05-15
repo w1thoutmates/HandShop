@@ -385,7 +385,7 @@ class SellerRepository {
                 .get()
                 .await()
                 .toObjects(Product::class.java)
-        } catch (e: Exception) {
+        } catch (ex: Exception) {
             emptyList()
         }
     }

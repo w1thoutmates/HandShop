@@ -31,6 +31,7 @@ import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
 import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
 import com.patrykandpatrick.vico.compose.common.shader.verticalGradient
 import com.patrykandpatrick.vico.core.cartesian.axis.AxisItemPlacer
+import com.patrykandpatrick.vico.core.cartesian.data.AxisValueOverrider
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
 import com.patrykandpatrick.vico.core.cartesian.data.columnSeries
 import com.patrykandpatrick.vico.core.cartesian.layer.ColumnCartesianLayer
@@ -68,6 +69,12 @@ fun AddedToLikedMetricScreen(
     val modelProducer = remember { CartesianChartModelProducer.build() }
     val removedModelProducer = remember { CartesianChartModelProducer.build() }
     val formatter = remember { DateTimeFormatter.ofPattern("d MMM", Locale("ru")) }
+
+    val globalMaxY = remember(points, removedPoints) {
+        val maxAdded = points.maxOfOrNull { it.y } ?: 0f
+        val maxRemoved = removedPoints.maxOfOrNull { it.y } ?: 0f
+        maxOf(maxAdded, maxRemoved).coerceAtLeast(1f)
+    }
 
     LaunchedEffect(Unit) {
         viewModel.loadProductsAndInitialStats(sellerId, days)
@@ -183,12 +190,13 @@ fun AddedToLikedMetricScreen(
                                                 arrayOf(accentColor, accentColor.copy(alpha = 0.6f))
                                             )
                                         )
-                                    )
+                                    ),
+                                    axisValueOverrider = AxisValueOverrider.fixed(maxY = globalMaxY)
                                 ),
                                 startAxis = rememberStartAxis(
                                     label = rememberAxisLabelComponent(color = BlackText, textSize = 12.sp),
                                     guideline = rememberLineComponent(BlackText.copy(0.1f)),
-                                    itemPlacer = AxisItemPlacer.Vertical.step(step = { 1f })
+                                    itemPlacer = AxisItemPlacer.Vertical.step(step = { 1f }, shiftTopLines = false)
                                 ),
                                 bottomAxis = rememberBottomAxis(
                                     valueFormatter = { value, _, _ ->
@@ -249,7 +257,8 @@ fun AddedToLikedMetricScreen(
                                                 )
                                             )
                                         )
-                                    )
+                                    ),
+                                    axisValueOverrider = AxisValueOverrider.fixed(maxY = globalMaxY)
                                 ),
 
                                 startAxis = rememberStartAxis(
@@ -261,7 +270,8 @@ fun AddedToLikedMetricScreen(
                                         BlackText.copy(alpha = 0.1f)
                                     ),
                                     itemPlacer = AxisItemPlacer.Vertical.step(
-                                        step = { 1f }
+                                        step = { 1f },
+                                        shiftTopLines = false
                                     )
                                 ),
 

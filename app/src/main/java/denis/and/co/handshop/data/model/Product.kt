@@ -1,7 +1,6 @@
 package denis.and.co.handshop.data.model
 
 import denis.and.co.handshop.data.enums.ProductStatus
-import com.fasterxml.uuid.Generators
 
 data class Product(
     val id: String = "",

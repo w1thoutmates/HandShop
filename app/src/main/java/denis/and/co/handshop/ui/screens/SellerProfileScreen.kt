@@ -90,6 +90,7 @@ import denis.and.co.handshop.ui.navigation.ReviewsRoute
 import denis.and.co.handshop.ui.theme.Accent
 import denis.and.co.handshop.ui.theme.BlackText
 import denis.and.co.handshop.ui.theme.Comfortaa
+import denis.and.co.handshop.ui.theme.LowAlphaBlackText
 import denis.and.co.handshop.ui.theme.Onest
 import denis.and.co.handshop.ui.theme.StarEmpty
 import denis.and.co.handshop.ui.theme.StarFilled
@@ -385,7 +386,10 @@ fun SellerProfileScreen(
                 val visibleProducts = if (isMyProfile) {
                     sellerProducts
                 } else {
-                    sellerProducts.filter { it?.status == ProductStatus.ACTIVE }
+                    sellerProducts.filter {
+                        it?.status == ProductStatus.ACTIVE
+                        || it?.status == ProductStatus.SOLD
+                    }
                 }
 
                 if (visibleProducts.isEmpty()) {
@@ -425,19 +429,30 @@ fun SellerProfileScreen(
                                     )
 
                                     if (isInactive) {
-                                        Text(
-                                            text = product.status.value,
+                                        Box(
                                             modifier = Modifier
                                                 .align(Alignment.TopEnd)
-                                                .padding(top = 15.dp, end = 20.dp),
-                                            style = TextStyle(
-                                                fontFamily = Onest,
-                                                color = BlackText,
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 14.sp
-                                            ),
-                                            maxLines = 1
-                                        )
+                                                .padding(top = 15.dp, end = 20.dp)
+                                                .clip(RoundedCornerShape(10.dp))
+                                                .background(BlackText.copy(0.75f))
+                                                .padding(horizontal = 8.dp, vertical = 6.dp)
+                                        ) {
+                                            Text(
+                                                text = product.status.value,
+                                                style = TextStyle(
+                                                    fontFamily = Onest,
+                                                    color = when {
+                                                        product.status == ProductStatus.HIDDEN -> WhiteText
+                                                        product.status == ProductStatus.SOLD -> Color.Green
+                                                        (product.status == ProductStatus.SOLD) && !isMyProfile -> Color.Red
+                                                        else -> BlackText
+                                                    },
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 14.sp
+                                                ),
+                                                maxLines = 1
+                                            )
+                                        }
                                     }
                                 }
                             }

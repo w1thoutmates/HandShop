@@ -13,10 +13,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
 import androidx.compose.material3.Button
@@ -30,8 +32,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PaintingStyle.Companion.Stroke
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.toColorLong
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -53,6 +61,7 @@ import denis.and.co.handshop.ui.theme.Comfortaa
 import denis.and.co.handshop.ui.theme.LowAlphaBlackText
 import denis.and.co.handshop.ui.theme.Onest
 import denis.and.co.handshop.ui.theme.SoftBack
+import denis.and.co.handshop.ui.theme.WhiteText
 import denis.and.co.handshop.viewmodel.CatalogViewModel
 import denis.and.co.handshop.viewmodel.LikedViewModel
 import denis.and.co.handshop.viewmodel.ProfileViewModel
@@ -164,6 +173,15 @@ fun Content(
     val uiState by viewModel.state.collectAsState()
     val sellerProducts by profileViewModel.sellerProducts.collectAsState()
 
+    val visibleProducts = if (isMyProfile) {
+        sellerProducts
+    } else {
+        sellerProducts.filter {
+            it?.status == ProductStatus.ACTIVE
+                    || it?.status == ProductStatus.SOLD
+        }
+    }
+
     Box(modifier = modifier.fillMaxSize()) {
         when (val state = uiState) {
             is CatalogState.Loading -> {
@@ -180,21 +198,55 @@ fun Content(
                         .fillMaxSize()
                         .background(Color(seller.selfProfileBackground.toColorInt()))
                 ) {
-                    items(sellerProducts) { product ->
+                    items(visibleProducts) { product ->
+                        val isInactive = product?.status != ProductStatus.ACTIVE
                         if (product != null) {
-                            ProductListItem(
-                                product = product,
-                                onClick = {
-                                    if (isMyProfile) {
-                                        navController.navigate(EditProductRoute(product.id))
-                                    } else {
-                                        navController.navigate(ProductDetailsRoute(product.id))
+                            Box(
+                                modifier = Modifier
+                                    .alpha(if (isInactive) 0.5f else 1f)
+                                    .width(200.dp)
+                            ) {
+                                ProductListItem(
+                                    product = product,
+                                    onClick = {
+                                        if (isMyProfile) {
+                                            navController.navigate(EditProductRoute(product.id))
+                                        } else {
+                                            navController.navigate(ProductDetailsRoute(product.id))
+                                        }
+                                    },
+                                    seller = seller,
+                                    viewModel = likedViewModel,
+                                    isMyProfile = isMyProfile
+                                )
+
+                                if (isInactive) {
+                                    Box(
+                                        modifier = Modifier
+                                            .align(Alignment.TopEnd)
+                                            .padding(top = 15.dp, end = 20.dp)
+                                            .clip(RoundedCornerShape(10.dp))
+                                            .background(BlackText.copy(0.75f))
+                                            .padding(horizontal = 8.dp, vertical = 6.dp)
+                                    ) {
+                                        Text(
+                                            text = product.status.value,
+                                            style = TextStyle(
+                                                fontFamily = Onest,
+                                                color = when {
+                                                    product.status == ProductStatus.HIDDEN -> WhiteText
+                                                    product.status == ProductStatus.SOLD -> Color.Green
+                                                    (product.status == ProductStatus.SOLD) && !isMyProfile -> Color.Red
+                                                    else -> BlackText
+                                                },
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 14.sp
+                                            ),
+                                            maxLines = 1
+                                        )
                                     }
-                                },
-                                seller = seller,
-                                viewModel = likedViewModel,
-                                isMyProfile = isMyProfile
-                            )
+                                }
+                            }
                         }
                     }
                 }

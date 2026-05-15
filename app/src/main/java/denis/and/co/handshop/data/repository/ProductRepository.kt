@@ -61,11 +61,15 @@ class ProductRepository {
 
     suspend fun saveProduct(product: Product): Result<Unit> {
         return try {
-            if (product.id.isNotEmpty()) {
-                productsCollection.document(product.id).set(product).await()
+            val docRef = if (product.id.isNotEmpty()) {
+                productsCollection.document(product.id)
             } else {
-                productsCollection.add(product).await()
+                productsCollection.document()
             }
+
+            val finalProduct = product.copy(id = docRef.id)
+            docRef.set(finalProduct).await()
+
             Result.success(Unit)
         } catch (ex: Exception) {
             Log.e("FIREBASE_SAVE_ERROR", "Ошибка сохранения товара", ex)
@@ -209,5 +213,45 @@ class ProductRepository {
             Log.e("FIREBASE_MAP_ERROR", "Ошибка маппинга: ", ex)
             emptyList()
         }
+    }
+
+    fun logAllProductsData() {
+
+        productsCollection
+            .get()
+            .addOnSuccessListener { documents ->
+
+                if (documents.isEmpty) {
+                    Log.d("FIREBASE_PRODUCTS", "Коллекция products пуста")
+                    return@addOnSuccessListener
+                }
+
+                Log.d("FIREBASE_PRODUCTS", "========== PRODUCTS START ==========")
+
+                documents.forEachIndexed { index, document ->
+
+                    val builder = StringBuilder()
+
+                    builder.appendLine("----- PRODUCT ${index + 1} -----")
+                    builder.appendLine("Document ID: ${document.id}")
+
+                    document.data.forEach { (key, value) ->
+                        builder.appendLine("$key: $value")
+                    }
+
+                    builder.appendLine("----------------------------")
+
+                    Log.d("FIREBASE_PRODUCTS", builder.toString())
+                }
+
+                Log.d("FIREBASE_PRODUCTS", "=========== PRODUCTS END ===========")
+            }
+            .addOnFailureListener { exception ->
+                Log.e(
+                    "FIREBASE_PRODUCTS",
+                    "Ошибка при получении products",
+                    exception
+                )
+            }
     }
 }

@@ -176,7 +176,15 @@ class MetricsViewModel(
 
             val competitors = categoryProducts
                 .filter { it.sellerId != selectedProduct.sellerId }
-                .filter { SimilarityUtils.calculateSimilarity(selectedProduct.title, it.title) > 0.35 }
+                .filter { other ->
+                    val similarity = SimilarityUtils.calculateSimilarity(
+                        selectedProduct.title,
+                        other.title,
+                        selectedProduct.tags,
+                        other.tags
+                    )
+                    similarity > 0.25
+                }
 
             val competitorCosts = competitors.mapNotNull { it.cost?.toFloat() }.sorted()
 

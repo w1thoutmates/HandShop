@@ -26,6 +26,7 @@ import com.patrykandpatrick.vico.compose.common.component.rememberTextComponent
 import com.patrykandpatrick.vico.compose.common.of
 import com.patrykandpatrick.vico.compose.common.shader.color
 import com.patrykandpatrick.vico.compose.common.shape.rounded
+import com.patrykandpatrick.vico.core.cartesian.axis.AxisItemPlacer
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
 import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
 import com.patrykandpatrick.vico.core.common.Dimensions
@@ -174,7 +175,9 @@ fun ProfileClicksMetricScreen(
                                     )
                                 ),
 
-                                startAxis = rememberStartAxis(),
+                                startAxis = rememberStartAxis(
+                                    itemPlacer = AxisItemPlacer.Vertical.step(step = { 1f })
+                                ),
 
                                 bottomAxis = rememberBottomAxis(
                                     valueFormatter = { value, _, _ ->
@@ -189,21 +192,21 @@ fun ProfileClicksMetricScreen(
                                     },
                                 ),
                             ),
-                            marker = rememberDefaultCartesianMarker(
-                                label = rememberTextComponent(
-                                    color = Color.White,
-                                    background = rememberShapeComponent(
-                                        color = Accent,
-                                        shape = Shape.rounded(6.dp)
-                                    ),
-                                    padding = Dimensions.of(
-                                        horizontal = 8.dp,
-                                        vertical = 4.dp
-                                    ),
-                                    textSize = 14.sp,
-                                    textAlignment = Layout.Alignment.ALIGN_CENTER
-                                )
-                            ),
+//                            marker = rememberDefaultCartesianMarker(
+//                                label = rememberTextComponent(
+//                                    color = Color.White,
+//                                    background = rememberShapeComponent(
+//                                        color = Accent,
+//                                        shape = Shape.rounded(6.dp)
+//                                    ),
+//                                    padding = Dimensions.of(
+//                                        horizontal = 8.dp,
+//                                        vertical = 4.dp
+//                                    ),
+//                                    textSize = 14.sp,
+//                                    textAlignment = Layout.Alignment.ALIGN_CENTER
+//                                )
+//                            ),
                             modelProducer = modelProducer,
                             modifier = Modifier
                                 .fillMaxSize()
