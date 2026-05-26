@@ -7,7 +7,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.auth.api.identity.Identity
-import com.google.firebase.Firebase
 import com.google.firebase.auth.*
 import denis.and.co.handshop.data.repository.SellerRepository
 import denis.and.co.handshop.ui.navigation.CreateProfileRoute

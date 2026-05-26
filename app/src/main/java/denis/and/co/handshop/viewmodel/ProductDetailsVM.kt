@@ -1,11 +1,8 @@
 package denis.and.co.handshop.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.firestore
 import denis.and.co.handshop.data.model.Product
 import denis.and.co.handshop.data.model.Seller
 import denis.and.co.handshop.data.repository.ProductRepository

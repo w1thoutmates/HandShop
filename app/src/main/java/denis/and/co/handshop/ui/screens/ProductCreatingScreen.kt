@@ -400,7 +400,7 @@ fun ProductCreatingScreen(
                                 text = status.value,
                                 fontFamily = Comfortaa,
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                fontSize = 14.sp
+                                fontSize = 12.sp
                             )
                         }
                     }

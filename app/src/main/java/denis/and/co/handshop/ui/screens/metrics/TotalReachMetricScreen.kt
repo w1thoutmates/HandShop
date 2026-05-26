@@ -66,9 +66,7 @@ import denis.and.co.handshop.data.enums.TimePeriod
 import denis.and.co.handshop.ui.components.AppFooter
 import denis.and.co.handshop.ui.theme.Accent
 import denis.and.co.handshop.ui.theme.BlackText
-import denis.and.co.handshop.ui.theme.HardBack
 import denis.and.co.handshop.ui.theme.Onest
-import denis.and.co.handshop.ui.theme.SoftBack
 import denis.and.co.handshop.viewmodel.MetricsViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter

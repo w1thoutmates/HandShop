@@ -5,7 +5,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import denis.and.co.handshop.data.model.Product
-import denis.and.co.handshop.data.model.Seller
 import denis.and.co.handshop.data.repository.ImageRepository
 import denis.and.co.handshop.data.repository.ProductRepository
 import denis.and.co.handshop.data.repository.SellerRepository

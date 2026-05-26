@@ -90,7 +90,6 @@ import denis.and.co.handshop.ui.navigation.ReviewsRoute
 import denis.and.co.handshop.ui.theme.Accent
 import denis.and.co.handshop.ui.theme.BlackText
 import denis.and.co.handshop.ui.theme.Comfortaa
-import denis.and.co.handshop.ui.theme.LowAlphaBlackText
 import denis.and.co.handshop.ui.theme.Onest
 import denis.and.co.handshop.ui.theme.StarEmpty
 import denis.and.co.handshop.ui.theme.StarFilled

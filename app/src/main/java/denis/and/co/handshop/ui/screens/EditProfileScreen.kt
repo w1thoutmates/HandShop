@@ -46,7 +46,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toColorLong
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -238,20 +237,6 @@ fun EditProfileScreen(
                        },
                     contentAlignment = Alignment.Center
                 ) {
-//                    if (localCoverUri.isNotBlank()) {
-//                        AsyncImage(
-//                            model = localCoverUri ?: initialSeller?.coverImageUrl,
-//                            contentDescription = null,
-//                            contentScale = ContentScale.Crop,
-//                            modifier = Modifier.fillMaxSize()
-//                        )
-//                    } else {
-//                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-//                            Icon(Icons.Outlined.Add, contentDescription = null, tint = LowAlphaBlackText)
-//                            Text("Изменить обложку", color = LowAlphaBlackText, fontFamily = Comfortaa, fontSize = 12.sp)
-//                        }
-//                    }
-
                     AsyncImage(
                         model = localCoverUri ?: seller?.coverImageUrl,
                         contentDescription = null,
@@ -277,16 +262,6 @@ fun EditProfileScreen(
                         },
                     contentAlignment = Alignment.Center
                 ) {
-//                    if (profileImage.isNotBlank()) {
-//                        AsyncImage(
-//                            model = localAvatarUri ?: initialSeller?.profileImage,
-//                            contentDescription = null,
-//                            contentScale = ContentScale.Crop,
-//                            modifier = Modifier.fillMaxSize()
-//                        )
-//                    } else {
-//                        Icon(Icons.Outlined.Add, contentDescription = null, tint = LowAlphaBlackText)
-//                    }
 
                     AsyncImage(
                         model = localAvatarUri ?: seller?.profileImage,

@@ -23,7 +23,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import denis.and.co.handshop.data.model.Product
-import denis.and.co.handshop.di.AppDependencies
+import denis.and.co.handshop.data.AppDependencies
 import denis.and.co.handshop.ui.navigation.AddedToLikedMetricRoute
 import denis.and.co.handshop.ui.navigation.CTRMetricRoute
 import denis.and.co.handshop.ui.navigation.ClicksOnContactsMetricRoute

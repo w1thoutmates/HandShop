@@ -1,4 +1,4 @@
-package denis.and.co.handshop.di
+package denis.and.co.handshop.data
 
 import android.content.Context
 import denis.and.co.handshop.data.repository.ImageRepository

@@ -1,6 +1,5 @@
 package denis.and.co.handshop.ui.screens.metrics
 
-import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -30,7 +29,6 @@ import com.patrykandpatrick.vico.compose.common.shader.verticalGradient
 import com.patrykandpatrick.vico.core.cartesian.DefaultPointConnector
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
 import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
-import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
 import com.patrykandpatrick.vico.core.common.shader.DynamicShader
 import denis.and.co.handshop.data.enums.TimePeriod
 import denis.and.co.handshop.ui.components.AppFooter

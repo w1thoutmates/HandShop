@@ -18,11 +18,10 @@ class ImageRepository(private val context: Context) {
             val config = mapOf(
                 "cloud_name" to "djwpsxmpe",
                 "api_key" to "343896696952399",
-                "api_secret" to "M58GHKyU0M3Qy5SIqD37ieZndX8" // убрать
+                "api_secret" to "M58GHKyU0M3Qy5SIqD37ieZndX8"
             )
             MediaManager.init(context, config)
-        } catch (e: Exception) {
-            // Уже инициализирован
+        } catch (ex: Exception) {
         }
     }
 

@@ -1,17 +1,14 @@
 package denis.and.co.handshop.data.repository
 
 import android.util.Log
-import android.widget.Toast
 import com.google.firebase.*
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
-import denis.and.co.handshop.MainActivity
 import denis.and.co.handshop.data.enums.ProductStatus
 import denis.and.co.handshop.data.model.Product
 import denis.and.co.handshop.utils.SearchIndexer
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.tasks.await
 
 class ProductRepository {

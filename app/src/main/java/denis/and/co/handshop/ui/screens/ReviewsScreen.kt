@@ -57,7 +57,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -71,16 +70,13 @@ import denis.and.co.handshop.data.model.Review
 import denis.and.co.handshop.data.model.Seller
 import denis.and.co.handshop.ui.components.ReviewsRateAnalyticalCard
 import denis.and.co.handshop.ui.navigation.ProfileRoute
-import denis.and.co.handshop.ui.theme.Accent
 import denis.and.co.handshop.ui.theme.BlackText
 import denis.and.co.handshop.ui.theme.Comfortaa
-import denis.and.co.handshop.ui.theme.HardBack
 import denis.and.co.handshop.ui.theme.LowAlphaBlackText
 import denis.and.co.handshop.ui.theme.Onest
 import denis.and.co.handshop.ui.theme.SoftBack
 import denis.and.co.handshop.ui.theme.StarEmpty
 import denis.and.co.handshop.ui.theme.StarFilled
-import denis.and.co.handshop.ui.theme.WhiteText
 import denis.and.co.handshop.utils.getContrastColor
 import denis.and.co.handshop.viewmodel.MetricsViewModel
 import denis.and.co.handshop.viewmodel.ProfileViewModel

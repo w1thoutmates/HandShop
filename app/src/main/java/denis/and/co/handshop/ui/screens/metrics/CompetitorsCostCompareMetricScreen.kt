@@ -20,7 +20,6 @@ import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
 import androidx.navigation.NavController
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
-import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisLabelComponent
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottomAxis
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStartAxis
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
@@ -31,7 +30,6 @@ import com.patrykandpatrick.vico.core.cartesian.DefaultPointConnector
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
 import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
 import com.patrykandpatrick.vico.core.common.shader.DynamicShader
-import denis.and.co.handshop.data.enums.TimePeriod
 import denis.and.co.handshop.ui.components.AppFooter
 import denis.and.co.handshop.ui.theme.BlackText
 import denis.and.co.handshop.ui.theme.Onest
@@ -139,26 +137,6 @@ fun CompetitorsCostCompareMetricScreen(
                             )
                         }
                     }
-
-//                    Row(
-//                        modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
-//                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-//                    ) {
-//                        TimePeriod.entries.forEach { period ->
-//                            FilterChip(
-//                                label = period.label,
-//                                isSelected = days == period.days,
-//                                onClick = {
-//                                    days = period.days
-//                                    selectedProduct?.let {
-//                                        viewModel.selectProduct(it, days)
-//                                        viewModel.loadPriceIndexStats(it, days)
-//                                    }
-//                                },
-//                                seller = currentSeller
-//                            )
-//                        }
-//                    }
                 }
 
                 Card(

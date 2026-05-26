@@ -1,8 +1,6 @@
 package denis.and.co.handshop.data.repository
 
-import android.net.Uri
 import android.util.Log
-import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
@@ -16,7 +14,6 @@ import denis.and.co.handshop.utils.formatToStandard
 import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import java.util.Date
 
 class SellerRepository {
@@ -35,8 +32,8 @@ class SellerRepository {
                 .await()
 
             Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
+        } catch (ex: Exception) {
+            Result.failure(ex)
         }
     }
 
@@ -165,8 +162,8 @@ class SellerRepository {
                 }
             }
             sellersMap
-        } catch (e: Exception) {
-            Log.e("FIREBASE_ERROR", "Ошибка при загрузке продавцов", e)
+        } catch (ex: Exception) {
+            Log.e("FIREBASE_ERROR", "Ошибка при загрузке продавцов", ex)
             emptyMap()
         }
     }

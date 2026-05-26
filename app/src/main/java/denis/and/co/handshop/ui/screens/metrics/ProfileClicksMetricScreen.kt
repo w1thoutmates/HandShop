@@ -1,6 +1,5 @@
 package denis.and.co.handshop.ui.screens.metrics
 
-import android.text.Layout
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,24 +17,17 @@ import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottomAxis
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStartAxis
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineSpec
-import com.patrykandpatrick.vico.compose.cartesian.marker.rememberDefaultCartesianMarker
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
-import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
 import com.patrykandpatrick.vico.compose.common.component.rememberShapeComponent
-import com.patrykandpatrick.vico.compose.common.component.rememberTextComponent
-import com.patrykandpatrick.vico.compose.common.of
 import com.patrykandpatrick.vico.compose.common.shader.color
-import com.patrykandpatrick.vico.compose.common.shape.rounded
 import com.patrykandpatrick.vico.core.cartesian.axis.AxisItemPlacer
 import com.patrykandpatrick.vico.core.cartesian.data.CartesianChartModelProducer
 import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
-import com.patrykandpatrick.vico.core.common.Dimensions
 import com.patrykandpatrick.vico.core.common.shape.Shape
 import denis.and.co.handshop.data.enums.TimePeriod
 import denis.and.co.handshop.ui.components.AppFooter
 import denis.and.co.handshop.ui.theme.Accent
 import denis.and.co.handshop.ui.theme.Onest
-import denis.and.co.handshop.utils.getContrastColor
 import denis.and.co.handshop.viewmodel.MetricsViewModel
 import denis.and.co.handshop.viewmodel.ProfileViewModel
 import java.time.LocalDate

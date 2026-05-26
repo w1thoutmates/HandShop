@@ -6,7 +6,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.animation.with
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -65,7 +64,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import denis.and.co.handshop.R
@@ -442,7 +440,6 @@ fun ProductDetailsScreen(
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-                // карточка с блоком "похожие" ( там будет небольшая подборка товаров с такой же категорией товара )
             }
             DetailsScreenHeader(navController, likedViewModel, product.id, product.sellerId)
         }

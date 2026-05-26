@@ -29,7 +29,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
 import androidx.navigation.NavController
-import co.yml.charts.common.extensions.formatToSinglePrecision
 import co.yml.charts.common.model.PlotType
 import co.yml.charts.ui.piechart.charts.PieChart
 import co.yml.charts.ui.piechart.models.PieChartConfig
@@ -39,7 +38,6 @@ import denis.and.co.handshop.ui.components.AppFooter
 import denis.and.co.handshop.ui.theme.BlackText
 import denis.and.co.handshop.ui.theme.LowAlphaBlackText
 import denis.and.co.handshop.ui.theme.Onest
-import denis.and.co.handshop.ui.theme.SoftBack
 import denis.and.co.handshop.utils.getColorForIndex
 import denis.and.co.handshop.viewmodel.ProfileViewModel
 

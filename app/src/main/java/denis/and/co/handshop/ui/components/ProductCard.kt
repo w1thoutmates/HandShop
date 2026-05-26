@@ -81,7 +81,6 @@ fun ProductListItem(
 
     Card(
         modifier = Modifier
-//            .fillMaxWidth()
             .padding(8.dp)
             .clickable {
                 onClick()
@@ -99,7 +98,6 @@ fun ProductListItem(
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(1f),
-//                    .height(120.dp),
                     error = painterResource(R.drawable.error_picture)
                 )
 

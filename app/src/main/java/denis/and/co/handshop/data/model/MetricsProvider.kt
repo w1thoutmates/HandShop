@@ -7,8 +7,6 @@ import androidx.compose.material.icons.filled.AdsClick
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Preview
-import androidx.compose.material.icons.filled.RateReview
 import androidx.compose.material.icons.filled.RemoveRedEye
 import androidx.compose.material.icons.filled.StarRate
 import denis.and.co.handshop.ui.navigation.AddedToLikedMetricRoute

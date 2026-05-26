@@ -9,9 +9,6 @@ import denis.and.co.handshop.data.model.Product
 import denis.and.co.handshop.data.model.ProductWithSeller
 import denis.and.co.handshop.data.repository.ProductRepository
 import denis.and.co.handshop.data.repository.SellerRepository
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

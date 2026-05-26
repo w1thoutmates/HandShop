@@ -16,7 +16,6 @@ import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisLabelComponent
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottomAxis
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStartAxis
-import com.patrykandpatrick.vico.compose.cartesian.fullWidth
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberColumnCartesianLayer
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
 import com.patrykandpatrick.vico.compose.cartesian.segmented
@@ -35,7 +34,6 @@ import denis.and.co.handshop.ui.components.AppFooter
 import denis.and.co.handshop.ui.theme.*
 import denis.and.co.handshop.viewmodel.ProfileViewModel
 import denis.and.co.handshop.viewmodel.ReviewsViewModel
-import java.util.Locale
 
 @Composable
 fun SellerRateMetricScreen(
