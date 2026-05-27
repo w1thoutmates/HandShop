@@ -29,7 +29,11 @@ data class Seller(
     val selfProfileFooterColor: String = HardBack.toHexString(),
     val selfProfileAccentColor: String = Accent.toHexString(),
     val selfProfileAccentTextColor: String = WhiteText.toHexString(),
-    val selfProfileIconsColor: String = BlackText.toHexString()
+    val selfProfileIconsColor: String = BlackText.toHexString(),
+    val isBanned: Boolean = false,
+    val warningsCount: Int = 0,
+    val role: String = "seller",
+    val ignoredReporterIds: List<String> = emptyList()
 ) {
     init {
         require(rate in 0.0..5.0) { "Рейтинг не может быть ниже 0 и больше 5. Получен рейтинг: $rate" }

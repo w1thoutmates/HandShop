@@ -32,7 +32,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
-import androidx.compose.material.icons.filled.InsertChartOutlined
+import android.widget.Toast
+import androidx.compose.material.icons.outlined.Flag
+import androidx.compose.material.icons.outlined.Shield
+import denis.and.co.handshop.ui.components.ReportDialog
+import denis.and.co.handshop.ui.navigation.ModeratorRoute
+import denis.and.co.handshop.viewmodel.ComplaintViewModel
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Edit
@@ -107,21 +112,31 @@ fun SellerProfileScreen(
     viewModel: ProfileViewModel = viewModel(),
     likedViewModel: LikedViewModel,
     metricsViewModel: MetricsViewModel,
-    authViewModel: AuthViewModel
+    authViewModel: AuthViewModel,
+    complaintViewModel: ComplaintViewModel
 ) {
     val seller by viewModel.seller.collectAsState()
     val isMyProfile = sellerId == null || sellerId == viewModel.currentUid
     val sellerProducts by viewModel.sellerProducts.collectAsState()
 
+    var showReportDialog by remember { mutableStateOf(false) }
+    val isSendingComplaint by complaintViewModel.isSending.collectAsState()
+    val complaintResult by complaintViewModel.sendResult.collectAsState()
+
+    val scrollState = rememberScrollState()
+    val context = LocalContext.current
+    var showMenu by remember { mutableStateOf(false) }
+
     LaunchedEffect(sellerId) {
         viewModel.loadProfile(sellerId)
     }
 
-    val scrollState = rememberScrollState()
-
-    val context = LocalContext.current
-
-    var showMenu by remember { mutableStateOf(false) }
+    LaunchedEffect(complaintResult) {
+        complaintResult?.let {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            complaintViewModel.clearResult()
+        }
+    }
 
     seller?.let {currentSeller ->
         val pagerState = rememberPagerState(pageCount = { currentSeller.workSamples.size })
@@ -230,6 +245,38 @@ fun SellerProfileScreen(
                                         )
                                     }
                                 }
+                            } else {
+                                Box(
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .clip(CircleShape)
+                                        .clickable { showReportDialog = true },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Flag,
+                                        contentDescription = "Пожаловаться",
+                                        tint = Color(0xFFE53935).copy(alpha = 0.7f),
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                }
+                            }
+
+                            if (isMyProfile && currentSeller.role == "moderator") {
+                                Box(
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .clip(CircleShape)
+                                        .clickable { navController.navigate(ModeratorRoute) },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Shield,
+                                        contentDescription = "Модерация",
+                                        tint = Color(currentSeller.selfProfileIconsColor.toColorInt()),
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                }
                             }
                         }
                     }
@@ -262,6 +309,24 @@ fun SellerProfileScreen(
                         }
                     }
 
+                    if (currentSeller.isBanned) {
+                        Box(
+                            modifier = Modifier
+                                .padding(top = 8.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFFE53935))
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = "⛔ Аккаунт заблокирован",
+                                fontFamily = Onest,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp,
+                                color = Color.White
+                            )
+                        }
+                    }
+
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
@@ -279,7 +344,9 @@ fun SellerProfileScreen(
                     modifier = Modifier.padding(15.dp)
                 )
 
-                ContactInfoBlock(currentSeller.contacts, currentSeller, context, viewModel)
+                if (!currentSeller.isBanned) {
+                    ContactInfoBlock(currentSeller.contacts, currentSeller, context, viewModel)
+                }
 
                 HorizontalDivider(
                     thickness = 2.dp,
@@ -484,6 +551,18 @@ fun SellerProfileScreen(
             }
 
             AppFooter(navController, currentSeller)
+        }
+
+        if (showReportDialog) {
+            ReportDialog(
+                sellerName = currentSeller.sellerName,
+                isSending = isSendingComplaint,
+                onDismiss = { showReportDialog = false },
+                onSend = { text ->
+                    complaintViewModel.sendComplaint(currentSeller, text)
+                    showReportDialog = false
+                }
+            )
         }
     } ?: Box(Modifier.fillMaxSize()) { CircularProgressIndicator(Modifier.align(Alignment.Center), color = Accent) }
 }

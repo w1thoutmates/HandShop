@@ -74,6 +74,10 @@ import denis.and.co.handshop.viewmodel.MetricsViewModel
 import denis.and.co.handshop.viewmodel.ProductDetailsVM
 import denis.and.co.handshop.viewmodel.ProfileViewModel
 import denis.and.co.handshop.viewmodel.ReviewsViewModel
+import denis.and.co.handshop.ui.navigation.ModeratorRoute
+import denis.and.co.handshop.ui.screens.ModeratorScreen
+import denis.and.co.handshop.viewmodel.ComplaintViewModel
+import denis.and.co.handshop.viewmodel.ModeratorViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -299,13 +303,25 @@ class MainActivity : ComponentActivity() {
                         }
                     )
 
+                    val complaintVm: ComplaintViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                return ComplaintViewModel(
+                                    AppDependencies.complaintRepository,
+                                    AppDependencies.sellerRepository
+                                ) as T
+                            }
+                        }
+                    )
+
                     SellerProfileScreen(
                         navController = navController,
                         sellerId = route.sellerId,
                         viewModel = profileVm,
                         likedViewModel = likedViewModel,
                         metricsViewModel = metricsVm,
-                        authViewModel = authViewModel
+                        authViewModel = authViewModel,
+                        complaintViewModel = complaintVm
                     )
                 }
                 composable<LikedRoute> {
@@ -813,6 +829,24 @@ class MainActivity : ComponentActivity() {
                         navController = navController,
                         viewModel = metricsVm,
                         profileViewModel = profileVm
+                    )
+                }
+
+                composable<ModeratorRoute> {
+                    val moderatorVm: ModeratorViewModel = viewModel(
+                        factory = object : ViewModelProvider.Factory {
+                            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                                return ModeratorViewModel(
+                                    AppDependencies.complaintRepository,
+                                    AppDependencies.sellerRepository
+                                ) as T
+                            }
+                        }
+                    )
+
+                    ModeratorScreen(
+                        navController = navController,
+                        viewModel = moderatorVm
                     )
                 }
             }
