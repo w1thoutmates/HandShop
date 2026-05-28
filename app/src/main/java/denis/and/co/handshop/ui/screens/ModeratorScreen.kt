@@ -107,11 +107,15 @@ fun ModeratorScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .background(SoftBack)
+                .clip(RoundedCornerShape(bottomStart = 15.dp, bottomEnd = 15.dp))
                 .background(HardBack)
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .background(SoftBack)
+                    .clip(RoundedCornerShape(bottomStart = 15.dp, bottomEnd = 15.dp))
                     .background(HardBack)
                     .windowInsetsPadding(WindowInsets.statusBars)
             ) {
@@ -119,6 +123,8 @@ fun ModeratorScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
+                        .background(SoftBack)
+                        .clip(RoundedCornerShape(bottomStart = 15.dp, bottomEnd = 15.dp))
                         .background(HardBack)
                         .padding(vertical = 16.dp, horizontal = 4.dp)
                 ) {
