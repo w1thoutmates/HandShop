@@ -150,15 +150,12 @@ fun EditProfileScreen(
                 Button(
                     onClick = {
                         val currentUid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: ""
-                        val newSeller = Seller(
+                        val baseSeller = seller ?: Seller(id = currentUid)
+                        val newSeller = baseSeller.copy(
                             id = currentUid,
-                            rate = seller?.rate ?: 0.0,
-                            reviewsCount = seller?.reviewsCount ?: 0,
                             realName = realName,
                             sellerName = sellerName,
                             description = description,
-                            profileImage = seller?.profileImage ?: "",
-                            coverImageUrl = seller?.coverImageUrl ?: "",
                             selfProfileBackground = viewModel.selfProfileBackground,
                             selfProfileTextColor = viewModel.selfProfileTextColor,
                             selfProfileFooterColor = viewModel.selfProfileFooterColor,

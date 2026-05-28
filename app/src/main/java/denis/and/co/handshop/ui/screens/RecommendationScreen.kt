@@ -20,8 +20,10 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -37,10 +39,12 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -102,9 +106,7 @@ fun RecommendationScreen(
     Scaffold(
         topBar = {
             Header(
-                onSearch = { query ->
-                    catalogViewModel.search(query)
-                },
+                onSearch = { query -> catalogViewModel.search(query) },
                 navController = navController
             )
         },
@@ -120,8 +122,7 @@ fun RecommendationScreen(
                 .fillMaxSize()
         ) {
             Row(
-                modifier = Modifier
-                    .padding(start = 15.dp, top = 15.dp),
+                modifier = Modifier.padding(start = 15.dp, top = 15.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
@@ -134,8 +135,7 @@ fun RecommendationScreen(
                         fontSize = 16.sp
                     ),
                     maxLines = 1,
-                    modifier = Modifier
-                        .weight(1f)
+                    modifier = Modifier.weight(1f)
                 )
 
                 Row(
@@ -143,15 +143,9 @@ fun RecommendationScreen(
                     horizontalArrangement = Arrangement.Center,
                     modifier = Modifier
                         .padding(end = 10.dp)
-                        .clickable {
-                            showDialog = true
-                        }
+                        .clickable { showDialog = true }
                 ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Place,
-                        contentDescription = null
-                    )
-
+                    Icon(imageVector = Icons.Outlined.Place, contentDescription = null)
                     Text(
                         text = locationText,
                         style = TextStyle(
@@ -165,12 +159,10 @@ fun RecommendationScreen(
                 }
             }
 
-            Content(
+            RecommendationContent(
                 modifier = Modifier.weight(1f),
                 viewModel = catalogViewModel,
-                onProductClick = { id ->
-                    navController.navigate(ProductDetailsRoute(id))
-                },
+                onProductClick = { id -> navController.navigate(ProductDetailsRoute(id)) },
                 likedViewModel = likedViewModel,
                 metricsViewModel = metricsViewModel
             )
@@ -184,6 +176,133 @@ fun RecommendationScreen(
                     },
                     currentLocation = locationText
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun RecommendationContent(
+    modifier: Modifier = Modifier,
+    viewModel: CatalogViewModel = viewModel(),
+    onProductClick: (String) -> Unit,
+    likedViewModel: LikedViewModel,
+    metricsViewModel: MetricsViewModel
+) {
+    val uiState by viewModel.state.collectAsState()
+    val hasMore by viewModel.hasMore.collectAsState()
+    val isLoadingMore by viewModel.isLoadingMore.collectAsState()
+    val gridState = rememberLazyGridState()
+
+    val shouldLoadMore = remember {
+        derivedStateOf {
+            val layoutInfo = gridState.layoutInfo
+            val totalItems = layoutInfo.totalItemsCount
+            if (totalItems == 0) return@derivedStateOf false
+            val lastVisibleIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: return@derivedStateOf false
+            lastVisibleIndex >= totalItems - 4
+        }
+    }
+
+    LaunchedEffect(shouldLoadMore) {
+        snapshotFlow { shouldLoadMore.value }.collect { reachedEnd ->
+            if (reachedEnd && hasMore && !isLoadingMore) {
+                viewModel.loadMore()
+            }
+        }
+    }
+
+    Box(modifier = modifier.fillMaxSize()) {
+        when (val state = uiState) {
+            is CatalogState.Loading -> {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = Accent
+                )
+            }
+
+            is CatalogState.Success -> {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    contentPadding = PaddingValues(8.dp),
+                    state = gridState,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(SoftBack)
+                ) {
+                    items(state.items) { item ->
+                        ProductListItem(
+                            product = item.product,
+                            onClick = {
+                                onProductClick(item.product.id)
+                                viewModel.updateProductViewsCount(item.product.id)
+                                metricsViewModel.updateProductClickStat(item.product)
+                            },
+                            seller = item.seller,
+                            viewModel = likedViewModel,
+                            catalogViewModel = viewModel
+                        )
+                    }
+
+                    if (isLoadingMore) {
+                        item(span = { GridItemSpan(2) }) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(
+                                    color = Accent,
+                                    modifier = Modifier.size(32.dp),
+                                    strokeWidth = 3.dp
+                                )
+                            }
+                        }
+                    }
+
+                    if (!hasMore && state.items.isNotEmpty()) {
+                        item(span = { GridItemSpan(2) }) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 12.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "Вы просмотрели все ${state.items.size} объявлений",
+                                    style = TextStyle(
+                                        fontFamily = Comfortaa,
+                                        color = LowAlphaBlackText,
+                                        fontSize = 12.sp
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            is CatalogState.Empty -> {
+                Text(
+                    text = "Ничего не найдено",
+                    modifier = Modifier.align(Alignment.Center),
+                    fontFamily = Onest,
+                    color = LowAlphaBlackText,
+                    fontSize = 20.sp
+                )
+            }
+
+            is CatalogState.Error -> {
+                Column(
+                    modifier = Modifier.align(Alignment.Center),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(text = state.message, color = Color.Red)
+                    Button(onClick = { viewModel.loadRecommendations() }) {
+                        Text("Повторить")
+                    }
+                }
             }
         }
     }
@@ -206,7 +325,7 @@ fun Header(
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start,
-            modifier = Modifier.padding(top = 5.dp, bottom = 0.dp, start = 0.dp, end = 0.dp)
+            modifier = Modifier.padding(top = 5.dp, bottom = 0.dp)
         ) {
             Image(
                 painter = painterResource(R.drawable.app_icon),
@@ -219,12 +338,7 @@ fun Header(
                 onClick = { navController.navigate(SearchByCategoryRoute) },
                 shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Accent, contentColor = WhiteText),
-                contentPadding = PaddingValues(
-                    start = 8.dp,
-                    end = 12.dp,
-                    top = 8.dp,
-                    bottom = 8.dp
-                ),
+                contentPadding = PaddingValues(start = 8.dp, end = 12.dp, top = 8.dp, bottom = 8.dp),
                 modifier = Modifier.padding(top = 4.dp)
             ) {
                 Image(
@@ -233,9 +347,7 @@ fun Header(
                     Modifier.padding(start = 0.dp, end = 7.dp).size(20.dp),
                     contentScale = ContentScale.FillBounds
                 )
-
                 Text(text = "Каталог", style = Typography.labelSmall)
-
             }
         }
 
@@ -251,25 +363,19 @@ fun Header(
                     .height(45.dp)
                     .dropShadow(
                         shape = RoundedCornerShape(15.dp),
-                        shadow = Shadow(
-                            radius = 5.dp,
-                            offset = DpOffset(x = 0.dp, y = 3.dp),
-                            alpha = 0.35f
-                        )
+                        shadow = Shadow(radius = 5.dp, offset = DpOffset(x = 0.dp, y = 3.dp), alpha = 0.35f)
                     )
             ) {
                 TextField(
                     value = input,
                     onValueChange = { newValue -> input = newValue },
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(end = 2.dp),
+                    modifier = Modifier.fillMaxSize().padding(end = 2.dp),
                     colors = TextFieldDefaults.colors(
                         focusedTextColor = BlackText,
                         unfocusedTextColor = GreyText,
                         focusedContainerColor = WhiteText,
                         unfocusedContainerColor = WhiteText,
-                        focusedIndicatorColor =  Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
                         focusedLabelColor = GreyText,
                         unfocusedLabelColor = GreyText
@@ -292,18 +398,11 @@ fun Header(
                     onClick = { onSearch(input) },
                     shape = RoundedCornerShape(0.dp, 14.dp, 14.dp, 0.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Accent, contentColor = WhiteText),
-                    contentPadding = PaddingValues(
-                        start = 8.dp,
-                        end = 8.dp,
-                        top = 8.dp,
-                        bottom = 8.dp
-                    ),
+                    contentPadding = PaddingValues(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
                     modifier = Modifier
                         .align(Alignment.CenterEnd)
                         .fillMaxHeight()
-                        .padding()
-                        .width(50.dp)
-                    ,
+                        .width(50.dp),
                 ) {
                     Image(
                         painterResource(R.drawable.search_icon),
@@ -330,18 +429,13 @@ fun Content(
     Box(modifier = modifier.fillMaxSize()) {
         when (val state = uiState) {
             is CatalogState.Loading -> {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center),
-                    color = Accent
-                )
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = Accent)
             }
             is CatalogState.Success -> {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     contentPadding = PaddingValues(8.dp),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(SoftBack)
+                    modifier = Modifier.fillMaxSize().background(SoftBack)
                 ) {
                     items(state.items) { item ->
                         ProductListItem(
@@ -373,9 +467,7 @@ fun Content(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(text = state.message, color = Color.Red)
-                    Button(onClick = { viewModel.loadRecommendations() }) {
-                        Text("Повторить")
-                    }
+                    Button(onClick = { viewModel.loadRecommendations() }) { Text("Повторить") }
                 }
             }
         }
@@ -383,7 +475,7 @@ fun Content(
 }
 
 @Composable
-public fun Footer(navController: NavController) {
+fun Footer(navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
@@ -402,72 +494,49 @@ public fun Footer(navController: NavController) {
             Image(
                 painter = painterResource(R.drawable.home_nav),
                 contentDescription = "Домой навигация",
-                modifier = Modifier
-                    .size(30.dp, 30.dp)
-                    .clickable {
-                        val isAlreadyOnRecommendation = currentDestination?.hasRoute<RecommendationRoute>() == true
-
-                        if (!isAlreadyOnRecommendation) {
-                            navController.navigate(RecommendationRoute) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
+                modifier = Modifier.size(30.dp, 30.dp).clickable {
+                    if (currentDestination?.hasRoute<RecommendationRoute>() != true) {
+                        navController.navigate(RecommendationRoute) {
+                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                    },
+                    }
+                },
                 contentScale = ContentScale.FillBounds
             )
-
             Spacer(Modifier.width(45.dp))
-
             Image(
                 painter = painterResource(R.drawable.search_nav),
                 contentDescription = "Поиск навигация",
-                modifier = Modifier
-                    .size(30.dp, 30.dp)
-                    .clickable { navController.navigate(SearchByCategoryRoute) },
+                modifier = Modifier.size(30.dp).clickable { navController.navigate(SearchByCategoryRoute) },
                 contentScale = ContentScale.FillBounds,
                 alpha = 0.5f
             )
-
             Spacer(Modifier.width(45.dp))
-
             Image(
                 painter = painterResource(R.drawable.add_image),
                 contentDescription = "Создать объявление",
-                modifier = Modifier
-                    .size(30.dp, 30.dp)
-                    .clickable { navController.navigate(CreateProductRoute) },
+                modifier = Modifier.size(30.dp).clickable { navController.navigate(CreateProductRoute) },
                 contentScale = ContentScale.FillBounds,
                 alpha = 0.5f
             )
-
             Spacer(Modifier.width(45.dp))
-
             Image(
                 painter = painterResource(R.drawable.liked_nav),
                 contentDescription = "Избранное навигация",
-                modifier = Modifier
-                    .size(30.dp, 30.dp)
-                    .clickable { navController.navigate(LikedRoute) },
+                modifier = Modifier.size(30.dp).clickable { navController.navigate(LikedRoute) },
                 contentScale = ContentScale.FillBounds,
                 alpha = 0.5f
             )
-
             Spacer(Modifier.width(45.dp))
-
             Image(
                 painter = painterResource(R.drawable.profile_nav),
                 contentDescription = "Профиль навигация",
-                modifier = Modifier
-                    .size(30.dp, 30.dp)
-                    .clickable { navController.navigate(ProfileRoute()) },
+                modifier = Modifier.size(30.dp).clickable { navController.navigate(ProfileRoute()) },
                 contentScale = ContentScale.FillBounds,
                 alpha = 0.5f
             )
-
         }
     }
 }

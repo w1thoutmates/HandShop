@@ -29,6 +29,10 @@ class CatalogViewModel(
     private val sellerRepo: SellerRepository
 ) : ViewModel() {
 
+    companion object {
+        private const val PAGE_SIZE = 20
+    }
+
     private val _state = MutableStateFlow<CatalogState>(CatalogState.Loading)
     val state: StateFlow<CatalogState> = _state.asStateFlow()
 
@@ -40,6 +44,14 @@ class CatalogViewModel(
 
     private val _currentUser = MutableStateFlow<Seller?>(null)
     val currentUser: StateFlow<Seller?> = _currentUser.asStateFlow()
+
+    private var allSortedItems: List<ProductWithSeller> = emptyList()
+
+    private val _hasMore = MutableStateFlow(false)
+    val hasMore: StateFlow<Boolean> = _hasMore.asStateFlow()
+
+    private val _isLoadingMore = MutableStateFlow(false)
+    val isLoadingMore: StateFlow<Boolean> = _isLoadingMore.asStateFlow()
 
     private val trackedImpressions = mutableSetOf<String>()
 
@@ -55,14 +67,12 @@ class CatalogViewModel(
                 if (uid != null) {
                     val result = sellerRepo.getSeller(uid)
                     _currentUser.value = result.getOrNull()
-
                     loadRecommendations()
                 } else {
                     loadRecommendations()
                 }
             } catch (ex: Exception) {
                 Log.e("CATALOG_VM", "Ошибка загрузки профиля пользователя", ex)
-
                 loadRecommendations()
             }
         }
@@ -75,123 +85,34 @@ class CatalogViewModel(
         loadRecommendations()
     }
 
-    fun loadProducts(){
+    fun loadProducts() {
         viewModelScope.launch {
+            resetPagination()
             _state.value = CatalogState.Loading
             try {
                 val products = productRepo.getProducts()
-
                 if (products.isEmpty()) {
-                   _state.value = CatalogState.Empty
+                    _state.value = CatalogState.Empty
                     return@launch
                 }
-
                 val items = coroutineScope {
                     products.map { product ->
                         async {
                             val seller = sellerRepo.getSeller(product.sellerId)
-                            ProductWithSeller(
-                                product = product,
-                                seller = seller.getOrNull()
-                            )
+                            ProductWithSeller(product = product, seller = seller.getOrNull())
                         }
                     }.awaitAll()
                 }
-
-                _state.value = CatalogState.Success(items)
-            } catch (ex : Exception) {
-                _state.value = CatalogState.Error("Ошибка: ${ex.message}")
-            }
-        }
-    }
-
-    fun loadRecommendationsWithoutFilteredByLocation() {
-        viewModelScope.launch {
-            _state.value = CatalogState.Loading
-            try {
-                val currentUser = _currentUser.value
-                val tagStats = currentUser?.userTagStats ?: emptyMap()
-                val selectedLocation = currentUser?.selectedLocation ?: "выбрать город"
-
-                val topTags = tagStats.entries
-                    .sortedByDescending { it.value }
-                    .take(10)
-                    .map { it.key }
-
-                val recommendedItems = if (topTags.isNotEmpty()) {
-                    productRepo.getProductsByTags(topTags)
-                        .filter { product ->
-                            selectedLocation.isEmpty() ||
-                            selectedLocation == "выбрать город" ||
-                            product.targetCity == selectedLocation
-                        }
-                } else {
-                    emptyList()
-                }
-
-                val allActiveItems = productRepo.getProducts()
-                    .filter { product ->
-                        selectedLocation.isEmpty() ||
-                        selectedLocation == "выбрать город" ||
-                        product.targetCity == selectedLocation
-                    }
-
-                val combinedList = (recommendedItems + allActiveItems).distinctBy { it.id }
-
-                val scoredItems = combinedList.map { product ->
-                    val score = product.tags.sumOf { tag ->
-                        tagStats[tag] ?: 0
-                    } / product.tags.size.coerceAtLeast(1)
-                    product to score
-                }
-
-                val sortedProducts = scoredItems
-                    .sortedByDescending { it.second }
-                    .map { it.first }
-
-                val explorationRatio = 0.2f
-                val explorationCount = (sortedProducts.size * explorationRatio).toInt().coerceAtLeast(1)
-
-                val explorationItems = allActiveItems
-                    .filter { product -> product.id !in sortedProducts.take(20).map { it.id } }
-                    .shuffled()
-                    .take(explorationCount)
-
-                val finalList = mutableListOf<Product>()
-                val explorationIterator = explorationItems.iterator()
-
-                sortedProducts.forEachIndexed { index, product ->
-                    finalList.add(product)
-
-                    if (index % 4 == 3 && explorationIterator.hasNext()) {
-                        finalList.add(explorationIterator.next())
-                    }
-                }
-
-                while (explorationIterator.hasNext()) {
-                    finalList.add(explorationIterator.next())
-                }
-
-                if (finalList.isEmpty()) {
-                    _state.value = CatalogState.Empty
-                } else {
-                    val sellerIds = finalList.map { it.sellerId }
-                    val sellersMap = sellerRepo.getSellersByIds(sellerIds)
-
-                    val itemsWithSellers = finalList.map { product ->
-                        ProductWithSeller(product, sellersMap[product.sellerId])
-                    }
-                    _state.value = CatalogState.Success(itemsWithSellers)
-                }
+                applyFirstPage(items)
             } catch (ex: Exception) {
-                Log.e("CATALOG_VM", "Ошибка рекомендаций", ex)
-                _state.value = CatalogState.Error("Ошибка загрузки рекомендаций")
+                _state.value = CatalogState.Error("Ошибка: ${ex.message}")
             }
         }
     }
 
     fun search(query: String) {
         viewModelScope.launch {
+            resetPagination()
             _isSearching.value = true
             _state.value = CatalogState.Loading
             try {
@@ -199,14 +120,11 @@ class CatalogViewModel(
                     loadRecommendations()
                     return@launch
                 }
-
                 val products = productRepo.searchProducts(query)
-
                 if (products.isEmpty()) {
                     _state.value = CatalogState.Empty
                     return@launch
                 }
-
                 val items = coroutineScope {
                     products.map { product ->
                         async {
@@ -215,8 +133,7 @@ class CatalogViewModel(
                         }
                     }.awaitAll()
                 }
-
-                _state.value = CatalogState.Success(items)
+                applyFirstPage(items)
             } catch (ex: Exception) {
                 _state.value = CatalogState.Error("Ошибка поиска")
             }
@@ -235,30 +152,25 @@ class CatalogViewModel(
 
     fun loadProductsByCategory(category: String) {
         viewModelScope.launch {
+            resetPagination()
             _isSearching.value = true
             _state.value = CatalogState.Loading
             try {
                 val products = productRepo.getProductsByCategory(category)
-
                 if (products.isEmpty()) {
                     _state.value = CatalogState.Empty
                     return@launch
                 }
-
                 val items = coroutineScope {
                     products.map { product ->
                         async {
                             val seller = sellerRepo.getSeller(product.sellerId)
-                            ProductWithSeller(
-                                product = product,
-                                seller = seller.getOrNull()
-                            )
+                            ProductWithSeller(product = product, seller = seller.getOrNull())
                         }
                     }.awaitAll()
                 }
-
-                _state.value = CatalogState.Success(items)
-            } catch (ex : Exception) {
+                applyFirstPage(items)
+            } catch (ex: Exception) {
                 _state.value = CatalogState.Error("Ошибка загрузки объявлений по категории \"$category\": ${ex.message}")
             }
         }
@@ -269,9 +181,7 @@ class CatalogViewModel(
             try {
                 val userId = sellerRepo.getCurrentUserId() ?: return@launch
                 sellerRepo.updateSelectedLocation(userId = userId, location = location)
-
                 _currentUser.value = _currentUser.value?.copy(selectedLocation = location)
-
                 loadRecommendations()
             } catch (ex: Exception) {
                 Log.e("UPDATE_SELECTED_LOCATION_ERROR", "Ошибка обновления города: ", ex)
@@ -281,10 +191,15 @@ class CatalogViewModel(
 
     fun loadRecommendations() {
         viewModelScope.launch {
+            resetPagination()
             _state.value = CatalogState.Loading
             try {
                 val currentUser = _currentUser.value
                 val tagStats = currentUser?.userTagStats ?: emptyMap()
+
+                val likedTagBoost = buildLikedTagBoost(currentUser?.likedProductIds ?: emptyList())
+                val combinedTagStats = mergeTagStats(tagStats, likedTagBoost)
+
                 val selectedLocation = currentUser?.selectedLocation ?: ""
 
                 val allActiveItems = productRepo.getProducts()
@@ -304,9 +219,8 @@ class CatalogViewModel(
                 fun scoreProducts(products: List<Product>): List<Product> {
                     return products.map { product ->
                         val score = product.tags.sumOf { tag ->
-                            tagStats[tag] ?: 0
+                            combinedTagStats[tag] ?: 0
                         } / product.tags.size.coerceAtLeast(1)
-
                         product to score
                     }
                         .sortedByDescending { it.second }
@@ -317,39 +231,20 @@ class CatalogViewModel(
                 val sortedGlobal = scoreProducts(globalItems)
 
                 val finalList = mutableListOf<Product>()
-
                 val localIterator = sortedLocal.iterator()
                 val globalIterator = sortedGlobal.iterator()
 
                 while (localIterator.hasNext()) {
-                    repeat(4) {
-                        if (localIterator.hasNext()) {
-                            finalList.add(localIterator.next())
-                        }
-                    }
-
-                    if (globalIterator.hasNext()) {
-                        finalList.add(globalIterator.next())
-                    }
+                    repeat(4) { if (localIterator.hasNext()) finalList.add(localIterator.next()) }
+                    if (globalIterator.hasNext()) finalList.add(globalIterator.next())
                 }
 
-                if (finalList.isEmpty()) {
-                    finalList.addAll(sortedGlobal)
-                }
+                if (finalList.isEmpty()) finalList.addAll(sortedGlobal)
 
                 val explorationRatio = 0.2f
-                val explorationCount = (finalList.size * explorationRatio)
-                    .toInt()
-                    .coerceAtLeast(1)
-
-                val localExploration = localItems
-                    .filter { it.id !in sortedLocal.take(20).map { it.id } }
-                    .shuffled()
-
-                val globalExploration = globalItems
-                    .filter { it.id !in sortedGlobal.take(20).map { it.id } }
-                    .shuffled()
-
+                val explorationCount = (finalList.size * explorationRatio).toInt().coerceAtLeast(1)
+                val localExploration = localItems.filter { it.id !in sortedLocal.take(20).map { it.id } }.shuffled()
+                val globalExploration = globalItems.filter { it.id !in sortedGlobal.take(20).map { it.id } }.shuffled()
                 val explorationItems = (
                         localExploration.take(explorationCount / 2) +
                                 globalExploration.take(explorationCount / 2)
@@ -357,32 +252,26 @@ class CatalogViewModel(
 
                 val explorationIterator = explorationItems.iterator()
                 val enrichedList = mutableListOf<Product>()
-
                 finalList.forEachIndexed { index, product ->
                     enrichedList.add(product)
-
                     if (index % 5 == 4 && explorationIterator.hasNext()) {
                         enrichedList.add(explorationIterator.next())
                     }
                 }
-
-                while (explorationIterator.hasNext()) {
-                    enrichedList.add(explorationIterator.next())
-                }
+                while (explorationIterator.hasNext()) enrichedList.add(explorationIterator.next())
 
                 if (enrichedList.isEmpty()) {
                     _state.value = CatalogState.Empty
-                } else {
-                    val sellerIds = enrichedList.map { it.sellerId }
-                    val sellersMap = sellerRepo.getSellersByIds(sellerIds)
-
-                    val itemsWithSellers = enrichedList.map { product ->
-                        ProductWithSeller(product, sellersMap[product.sellerId])
-                    }
-
-                    _state.value = CatalogState.Success(itemsWithSellers)
+                    return@launch
                 }
 
+                val sellerIds = enrichedList.map { it.sellerId }
+                val sellersMap = sellerRepo.getSellersByIds(sellerIds)
+                val itemsWithSellers = enrichedList.map { product ->
+                    ProductWithSeller(product, sellersMap[product.sellerId])
+                }
+
+                applyFirstPage(itemsWithSellers)
             } catch (ex: Exception) {
                 Log.e("CATALOG_VM", "Ошибка рекомендаций", ex)
                 _state.value = CatalogState.Error("Ошибка загрузки рекомендаций")
@@ -390,9 +279,67 @@ class CatalogViewModel(
         }
     }
 
+    fun loadMore() {
+        if (_isLoadingMore.value || !_hasMore.value) return
+        val currentItems = (_state.value as? CatalogState.Success)?.items ?: return
+
+        viewModelScope.launch {
+            _isLoadingMore.value = true
+            val nextStart = currentItems.size
+            val nextEnd = minOf(nextStart + PAGE_SIZE, allSortedItems.size)
+            if (nextStart >= allSortedItems.size) {
+                _hasMore.value = false
+                _isLoadingMore.value = false
+                return@launch
+            }
+            val nextPage = allSortedItems.subList(nextStart, nextEnd)
+            _state.value = CatalogState.Success(currentItems + nextPage)
+            _hasMore.value = nextEnd < allSortedItems.size
+            _isLoadingMore.value = false
+        }
+    }
+
+    private fun applyFirstPage(items: List<ProductWithSeller>) {
+        allSortedItems = items
+        val firstPage = items.take(PAGE_SIZE)
+        _state.value = CatalogState.Success(firstPage)
+        _hasMore.value = items.size > PAGE_SIZE
+    }
+
+    private fun resetPagination() {
+        allSortedItems = emptyList()
+        _hasMore.value = false
+        _isLoadingMore.value = false
+    }
+
+
+    private suspend fun buildLikedTagBoost(likedProductIds: List<String>): Map<String, Long> {
+        if (likedProductIds.isEmpty()) return emptyMap()
+        return try {
+            val likedProducts = productRepo.getLikedProducts(likedProductIds.take(20))
+            val tagBoost = mutableMapOf<String, Long>()
+            likedProducts.forEach { product ->
+                product.tags.forEach { tag ->
+                    tagBoost[tag] = (tagBoost[tag] ?: 0L) + 3L
+                }
+            }
+            tagBoost
+        } catch (ex: Exception) {
+            emptyMap()
+        }
+    }
+
+    private fun mergeTagStats(base: Map<String, Long>, boost: Map<String, Long>): Map<String, Long> {
+        if (boost.isEmpty()) return base
+        val merged = base.toMutableMap()
+        boost.forEach { (tag, value) ->
+            merged[tag] = (merged[tag] ?: 0L) + value
+        }
+        return merged
+    }
+
     fun registerImpressionOnSession(product: Product) {
         if (trackedImpressions.contains(product.id)) return
-
         viewModelScope.launch {
             trackedImpressions.add(product.id)
             productRepo.updateImpressionsCount(product.id)
@@ -402,25 +349,18 @@ class CatalogViewModel(
 
     suspend fun getCostRecommendation(inputProduct: Product): String {
         val allProducts = productRepo.getProducts()
-
         val similarProducts = allProducts
             .filter { it.category == inputProduct.category && it.id != inputProduct.id }
             .map { candidate ->
                 val titleSim = SimilarityUtils.calculateSimilarity(
-                    inputProduct.title,
-                    candidate.title,
-                    inputProduct.tags,
-                    candidate.tags
+                    inputProduct.title, candidate.title,
+                    inputProduct.tags, candidate.tags
                 )
-
                 val descSim = SimilarityUtils.calculateSimilarity(
-                    inputProduct.description,
-                    candidate.description,
-                    emptyList(),
-                    emptyList()
+                    inputProduct.description, candidate.description,
+                    emptyList(), emptyList()
                 )
-                val totalScore = (titleSim * 0.8) + (descSim * 0.2)
-                candidate to totalScore
+                candidate to (titleSim * 0.8 + descSim * 0.2)
             }
             .filter { it.second > 0.4 }
             .sortedByDescending { it.second }
@@ -437,7 +377,6 @@ class CatalogViewModel(
 
         val userCost = inputProduct.cost?.toDouble() ?: 0.0
         val threshold = 0.15
-
         return when {
             userCost < medianCost * (1 - threshold) -> "Цена ниже рынка"
             userCost > medianCost * (1 + threshold) -> "Цена выше рынка"
@@ -448,5 +387,4 @@ class CatalogViewModel(
     fun logAllProductsData() {
         productRepo.logAllProductsData()
     }
-
 }

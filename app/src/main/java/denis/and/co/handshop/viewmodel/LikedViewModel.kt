@@ -18,7 +18,7 @@ import kotlin.collections.emptyList
 class LikedViewModel(
     private val productRepo: ProductRepository,
     private val sellerRepo: SellerRepository
-): ViewModel() {
+) : ViewModel() {
 
     private val _state = MutableStateFlow<CatalogState>(CatalogState.Loading)
     val state: StateFlow<CatalogState> = _state.asStateFlow()
@@ -28,7 +28,6 @@ class LikedViewModel(
     val currentUserId = sellerRepo.getCurrentUserId()
 
     private var originalItems: List<ProductWithSeller> = emptyList()
-
     private var referenceIds: List<String> = emptyList()
 
     init {
@@ -38,11 +37,9 @@ class LikedViewModel(
     fun loadLikedProducts() {
         viewModelScope.launch {
             _state.value = CatalogState.Loading
-
             try {
                 val userId = currentUserId ?: return@launch
                 val sellerResult = sellerRepo.getSeller(userId).getOrNull()
-
                 referenceIds = sellerResult?.likedProductIds ?: emptyList()
 
                 if (referenceIds.isEmpty()) {
@@ -51,17 +48,13 @@ class LikedViewModel(
                 }
 
                 val products = productRepo.getLikedProducts(referenceIds)
-
                 val sellerIds = products.map { it.sellerId }
                 val sellersMap = sellerRepo.getSellersByIds(sellerIds)
-
-
                 val items = products.map { product ->
                     ProductWithSeller(product, sellersMap[product.sellerId])
                 }
 
                 originalItems = items
-
                 sortLikedProducts("Сначала новые")
             } catch (ex: Exception) {
                 Log.e("VIEWMODEL_ERROR", "Ошибка в liked view model: ", ex)
@@ -75,6 +68,11 @@ class LikedViewModel(
             try {
                 val userId = currentUserId ?: return@launch
                 sellerRepo.addToLiked(userId = userId, productId = productId, ownerId = ownerId)
+
+                val product = productRepo.getProductById(productId).getOrNull()
+                if (product != null && product.tags.isNotEmpty()) {
+                    productRepo.updateTagStats(userId, product.tags)
+                }
             } catch (ex: Exception) {
                 Log.e("ADD_TO_LIKED_ERROR", "Ошибка добавления в избранное: ", ex)
             }
@@ -86,7 +84,6 @@ class LikedViewModel(
             try {
                 val userId = currentUserId ?: return@launch
                 sellerRepo.deleteFromLiked(userId = userId, productId = productId, ownerId = ownerId)
-
                 loadLikedProducts()
             } catch (ex: Exception) {
                 Log.e("DELETE_FROM_LIKED_ERROR", "Ошибка удаления: ", ex)
@@ -99,40 +96,35 @@ class LikedViewModel(
             _state.value = CatalogState.Success(originalItems)
             return
         }
-
         val filtered = originalItems.filter { item ->
             item.product.title.contains(query, ignoreCase = true) ||
                     item.product.description.contains(query, ignoreCase = true)
         }
-
         _state.value = if (filtered.isEmpty()) CatalogState.Empty else CatalogState.Success(filtered)
     }
 
     suspend fun isProductExistInLiked(productId: String): Boolean {
-       return try {
-           val userId = currentUserId ?: return false
-           sellerRepo.isProductLikedBySellerId(userId, productId)
-       } catch (ex: Exception) {
-           Log.e("CHECK_LIKED_ERROR", "Ошибка проверки нахождения объявления в избранном: ", ex)
-           false
-       }
+        return try {
+            val userId = currentUserId ?: return false
+            sellerRepo.isProductLikedBySellerId(userId, productId)
+        } catch (ex: Exception) {
+            Log.e("CHECK_LIKED_ERROR", "Ошибка проверки нахождения объявления в избранном: ", ex)
+            false
+        }
     }
 
     fun sortLikedProducts(option: String) {
         val sortedList = when (option) {
             "Дороже" -> originalItems.sortedByDescending { it.product.cost }
             "Дешевле" -> originalItems.sortedBy { it.product.cost }
-            "Сначала новые" -> {
-                originalItems.sortedByDescending { item ->
-                    referenceIds.indexOf(item.product.id)
-                }
+            "Сначала новые" -> originalItems.sortedByDescending { item ->
+                referenceIds.indexOf(item.product.id)
             }
             "Скрытые" -> originalItems.filter { it.product.status == ProductStatus.HIDDEN }
             "Проданные" -> originalItems.filter { it.product.status == ProductStatus.SOLD }
             "Только активные" -> originalItems.filter { it.product.status == ProductStatus.ACTIVE }
             else -> originalItems
         }
-
         _state.value = CatalogState.Success(sortedList)
     }
 }
