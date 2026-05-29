@@ -39,6 +39,8 @@ class EditProfileViewModel(
     var selfProfileIconsColor by mutableStateOf(BlackText.toHexString())
         private set
 
+    val imageRepository = imageRepo;
+
     fun setSelfProfileBackgroundColor(color: Color) {
         selfProfileBackground = color.toHexString()
     }

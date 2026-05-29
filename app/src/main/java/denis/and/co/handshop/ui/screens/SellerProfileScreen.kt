@@ -82,9 +82,11 @@ import coil.compose.AsyncImage
 import denis.and.co.handshop.R
 import denis.and.co.handshop.data.enums.ProductStatus
 import denis.and.co.handshop.data.model.Seller
+import denis.and.co.handshop.data.model.WorkSample
 import denis.and.co.handshop.ui.components.AppFooter
 import denis.and.co.handshop.ui.components.ProductListItem
 import denis.and.co.handshop.ui.components.WorkSampleCard
+import denis.and.co.handshop.ui.components.WorkSampleDetailsDialog
 import denis.and.co.handshop.ui.navigation.EditProductRoute
 import denis.and.co.handshop.ui.navigation.EditProfileRoute
 import denis.and.co.handshop.ui.navigation.ExpandedPublishedProductsRoute
@@ -126,6 +128,7 @@ fun SellerProfileScreen(
     val scrollState = rememberScrollState()
     val context = LocalContext.current
     var showMenu by remember { mutableStateOf(false) }
+    var detailsWorkSample by remember { mutableStateOf<WorkSample?>(null) }
 
     LaunchedEffect(sellerId) {
         viewModel.loadProfile(sellerId)
@@ -364,13 +367,20 @@ fun SellerProfileScreen(
                         fontFamily = Comfortaa
                     )
 
-                    HorizontalPager(
-                        state = pagerState,
+                    Spacer(Modifier.height(4.dp))
+
+                    LazyRow(
                         contentPadding = PaddingValues(horizontal = 16.dp),
-                        pageSpacing = 12.dp,
-                        modifier = Modifier.padding(top = 10.dp).fillMaxWidth()
-                    ) { page ->
-                        WorkSampleCard(workSample = currentSeller.workSamples[page])
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(currentSeller.workSamples) { sample ->
+                            Box(Modifier.width(280.dp)) {
+                                WorkSampleCard(
+                                    workSample = sample,
+                                    onClick = { detailsWorkSample = sample }
+                                )
+                            }
+                        }
                     }
 
                     HorizontalDivider(
@@ -565,6 +575,16 @@ fun SellerProfileScreen(
             )
         }
     } ?: Box(Modifier.fillMaxSize()) { CircularProgressIndicator(Modifier.align(Alignment.Center), color = Accent) }
+
+    seller?.let { currentSeller ->
+        detailsWorkSample?.let { sample ->
+            WorkSampleDetailsDialog(
+                workSample = sample,
+                onDismiss = { detailsWorkSample = null },
+                seller = currentSeller
+            )
+        }
+    }
 }
 
 @Composable

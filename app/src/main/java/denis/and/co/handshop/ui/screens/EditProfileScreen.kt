@@ -4,11 +4,13 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -20,13 +22,19 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -49,6 +57,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
@@ -65,6 +74,10 @@ import denis.and.co.handshop.ui.theme.SoftBack
 import denis.and.co.handshop.ui.theme.WhiteText
 import denis.and.co.handshop.viewmodel.EditProfileViewModel
 import androidx.core.graphics.ColorUtils
+import denis.and.co.handshop.data.model.WorkSample
+import denis.and.co.handshop.ui.components.AddWorkSampleDialog
+import denis.and.co.handshop.ui.components.WorkSampleCard
+import denis.and.co.handshop.ui.components.WorkSampleDetailsDialog
 import denis.and.co.handshop.ui.navigation.CreateProfileRoute
 import denis.and.co.handshop.ui.navigation.RecommendationRoute
 import denis.and.co.handshop.ui.theme.Onest
@@ -106,6 +119,12 @@ fun EditProfileScreen(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri -> localAvatarUri = uri }
     )
+
+    var workSamples by remember { mutableStateOf(seller?.workSamples ?: emptyList()) }
+    var showAddWorkSampleDialog by remember { mutableStateOf(false) }
+
+    var editingWorkSample by remember { mutableStateOf<WorkSample?>(null) }
+    var detailsWorkSample by remember { mutableStateOf<WorkSample?>(null) }
 
     LaunchedEffect(seller) {
         viewModel.initColorsFromSeller(seller)
@@ -167,7 +186,7 @@ fun EditProfileScreen(
                                 "Почта" to email,
                                 "Телеграм" to telegram
                             ).filterValues { it.isNotBlank() },
-                            workSamples = seller?.workSamples ?: emptyList()
+                            workSamples = workSamples
                         )
 
                         viewModel.saveProfile(newSeller, localAvatarUri, localCoverUri) {
@@ -292,6 +311,156 @@ fun EditProfileScreen(
             ProfileTextField(value = phone, onValueChange = { phone = it }, label = "Номер телефона")
             ProfileTextField(value = email, onValueChange = { email = it }, label = "Электронная почта")
             ProfileTextField(value = telegram, onValueChange = { telegram = it }, label = "Телеграм (@username)")
+
+            Text(
+                text = "Портфолио",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = BlackText,
+                fontFamily = Comfortaa
+            )
+
+            if (workSamples.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(HardBack)
+                        .padding(24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Добавьте примеры своих работ,\nчтобы привлечь больше покупателей",
+                        fontFamily = Comfortaa,
+                        fontSize = 14.sp,
+                        color = BlackText.copy(alpha = 0.5f),
+                        textAlign = TextAlign.Center,
+                        lineHeight = 20.sp
+                    )
+                }
+            }
+
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(horizontal = 4.dp)
+            ) {
+                items(workSamples, key = { it.id }) { sample ->
+                    Box(modifier = Modifier.width(240.dp)) {
+                        WorkSampleCard(
+                            workSample = sample,
+                            onClick = { detailsWorkSample = sample }
+                        )
+
+                        Row(
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .padding(8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(CircleShape)
+                                    .background(Color.Black.copy(alpha = 0.55f))
+                                    .clickable { editingWorkSample = sample },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Edit,
+                                    contentDescription = "Редактировать",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0xFFE53935).copy(alpha = 0.75f))
+                                    .clickable { workSamples = workSamples - sample },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Close,
+                                    contentDescription = "Удалить",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                item {
+                    Box(
+                        modifier = Modifier
+                            .size(120.dp, 160.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Accent.copy(alpha = 0.12f))
+                            .border(
+                                width = 1.5.dp,
+                                color = Accent.copy(alpha = 0.3f),
+                                shape = RoundedCornerShape(16.dp)
+                            )
+                            .clickable { showAddWorkSampleDialog = true },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Add,
+                                contentDescription = null,
+                                tint = Accent,
+                                modifier = Modifier.size(28.dp)
+                            )
+                            Text(
+                                text = "Добавить",
+                                fontFamily = Comfortaa,
+                                fontWeight = FontWeight.Bold,
+                                color = Accent,
+                                fontSize = 13.sp
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (showAddWorkSampleDialog) {
+                AddWorkSampleDialog(
+                    onDismiss = { showAddWorkSampleDialog = false },
+                    onAdd = { newSample ->
+                        workSamples = workSamples + newSample
+                    },
+                    imageRepo = viewModel.imageRepository
+                )
+            }
+
+            editingWorkSample?.let { sampleToEdit ->
+                AddWorkSampleDialog(
+                    existingSample = sampleToEdit,
+                    onDismiss = { editingWorkSample = null },
+                    onAdd = { updatedSample ->
+                        workSamples = workSamples.map {
+                            if (it.id == updatedSample.id) updatedSample else it
+                        }
+                        editingWorkSample = null
+                    },
+                    imageRepo = viewModel.imageRepository
+                )
+            }
+
+            seller?.let { currentSeller ->
+                detailsWorkSample?.let { sample ->
+                    WorkSampleDetailsDialog(
+                        workSample = sample,
+                        onDismiss = { detailsWorkSample = null },
+                        seller = currentSeller
+                    )
+                }
+            }
 
             Text(
                 text = "Цветовая палитра профиля",
