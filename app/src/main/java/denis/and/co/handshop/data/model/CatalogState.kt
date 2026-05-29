@@ -5,6 +5,7 @@ sealed class CatalogState {
     data class Success(val items: List<ProductWithSeller>) : CatalogState()
     data class Error(val message: String) : CatalogState()
     object Empty : CatalogState()
+    object SearchEmpty : CatalogState()
 }
 
 data class ProductWithSeller(

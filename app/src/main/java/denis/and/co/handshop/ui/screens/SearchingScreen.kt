@@ -323,14 +323,54 @@ fun SearchResultsContent(
         }
 
         is CatalogState.Empty -> {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(
-                    text = "Ничего не найдено",
-                    modifier = Modifier.align(Alignment.Center),
-                    fontFamily = Onest,
-                    color = LowAlphaBlackText,
-                    fontSize = 20.sp
-                )
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.nothing_found),
+                        contentDescription = "Ничего не найдено",
+                        modifier = Modifier.size(200.dp),
+                        contentScale = ContentScale.Crop
+                    )
+                    Text(
+                        text = "Ничего не найдено",
+                        modifier = Modifier.padding(top = 16.dp),
+                        fontFamily = Comfortaa,
+                        color = LowAlphaBlackText,
+                        fontSize = 18.sp
+                    )
+                }
+            }
+        }
+
+        is CatalogState.SearchEmpty -> {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.nothing_found),
+                        contentDescription = "Ничего не найдено",
+                        modifier = Modifier.size(200.dp),
+                        contentScale = ContentScale.Crop
+                    )
+                    Text(
+                        text = "Ничего не найдено",
+                        modifier = Modifier.padding(top = 16.dp),
+                        fontFamily = Comfortaa,
+                        color = LowAlphaBlackText,
+                        fontSize = 18.sp
+                    )
+                }
             }
         }
 

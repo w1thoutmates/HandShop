@@ -1,5 +1,6 @@
 package denis.and.co.handshop.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -32,12 +33,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
 import androidx.navigation.NavController
+import denis.and.co.handshop.R
 import denis.and.co.handshop.data.enums.ProductStatus
 import denis.and.co.handshop.data.model.CatalogState
 import denis.and.co.handshop.data.model.Seller
@@ -48,6 +52,7 @@ import denis.and.co.handshop.ui.navigation.ProductDetailsRoute
 import denis.and.co.handshop.ui.theme.Accent
 import denis.and.co.handshop.ui.theme.BlackText
 import denis.and.co.handshop.ui.theme.Comfortaa
+import denis.and.co.handshop.ui.theme.LowAlphaBlackText
 import denis.and.co.handshop.ui.theme.Onest
 import denis.and.co.handshop.ui.theme.WhiteText
 import denis.and.co.handshop.viewmodel.CatalogViewModel
@@ -247,6 +252,26 @@ fun Content(
                     color = Color(seller.selfProfileTextColor.toColorInt()).copy(0.66f),
                     fontSize = 20.sp
                 )
+            }
+            is CatalogState.SearchEmpty -> {
+                Column(
+                    modifier = Modifier.align(Alignment.Center),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.nothing_found),
+                        contentDescription = "Ничего не найдено",
+                        modifier = Modifier.size(200.dp),
+                        contentScale = ContentScale.Crop
+                    )
+                    Text(
+                        text = "Ничего не найдено",
+                        modifier = Modifier.padding(top = 16.dp),
+                        fontFamily = Comfortaa,
+                        color = LowAlphaBlackText,
+                        fontSize = 18.sp
+                    )
+                }
             }
             is CatalogState.Error -> {
                 Column(

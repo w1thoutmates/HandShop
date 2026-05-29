@@ -51,6 +51,7 @@ import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.shadow.Shadow
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -180,14 +181,44 @@ fun LikedScreenContent(
                 }
             }
             is CatalogState.Empty -> {
-                // картинку разбитого сердца или пустой корзины над текстом поместить
-                Text(
-                    text = "В избранном пока пусто",
+                Column(
                     modifier = Modifier.align(Alignment.Center),
-                    fontFamily = Onest,
-                    color = LowAlphaBlackText,
-                    fontSize = 18.sp
-                )
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.empty_cart),
+                        contentDescription = "В избранном пока пусто",
+                        modifier = Modifier.size(300.dp),
+                        contentScale = ContentScale.Crop
+                    )
+                    Text(
+                        text = "В избранном пока пусто",
+                        modifier = Modifier.padding(top = 16.dp),
+                        fontFamily = Comfortaa,
+                        color = LowAlphaBlackText,
+                        fontSize = 18.sp
+                    )
+                }
+            }
+            is CatalogState.SearchEmpty -> {
+                Column(
+                    modifier = Modifier.align(Alignment.Center),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.nothing_found),
+                        contentDescription = "Ничего не найдено",
+                        modifier = Modifier.size(200.dp),
+                        contentScale = ContentScale.Crop
+                    )
+                    Text(
+                        text = "Ничего не найдено",
+                        modifier = Modifier.padding(top = 16.dp),
+                        fontFamily = Onest,
+                        color = LowAlphaBlackText,
+                        fontSize = 18.sp
+                    )
+                }
             }
             is CatalogState.Error -> {
                 Column(

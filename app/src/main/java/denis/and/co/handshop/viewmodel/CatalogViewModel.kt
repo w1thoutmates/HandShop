@@ -92,7 +92,7 @@ class CatalogViewModel(
             try {
                 val products = productRepo.getProducts()
                 if (products.isEmpty()) {
-                    _state.value = CatalogState.Empty
+                    _state.value = CatalogState.SearchEmpty
                     return@launch
                 }
                 val items = coroutineScope {
@@ -122,7 +122,7 @@ class CatalogViewModel(
                 }
                 val products = productRepo.searchProducts(query)
                 if (products.isEmpty()) {
-                    _state.value = CatalogState.Empty
+                    _state.value = CatalogState.SearchEmpty
                     return@launch
                 }
                 val items = coroutineScope {
@@ -158,7 +158,7 @@ class CatalogViewModel(
             try {
                 val products = productRepo.getProductsByCategory(category)
                 if (products.isEmpty()) {
-                    _state.value = CatalogState.Empty
+                    _state.value = CatalogState.SearchEmpty
                     return@launch
                 }
                 val items = coroutineScope {
@@ -261,7 +261,7 @@ class CatalogViewModel(
                 while (explorationIterator.hasNext()) enrichedList.add(explorationIterator.next())
 
                 if (enrichedList.isEmpty()) {
-                    _state.value = CatalogState.Empty
+                    _state.value = CatalogState.SearchEmpty
                     return@launch
                 }
 

@@ -79,11 +79,12 @@ fun AppFooter(navController: NavController, seller: Seller? = null) {
                     } else {
                         navController.navigate(RecommendationRoute) {
                             popUpTo(navController.graph.startDestinationId) {
-                                saveState = true
+                                saveState = false
                             }
                             launchSingleTop = true
                             restoreState = false
                         }
+                        globalCatalogViewModel?.refreshAndScroll()
                     }
                 },
                 seller = seller

@@ -92,15 +92,26 @@ class LikedViewModel(
     }
 
     fun searchInLiked(query: String) {
+        if (originalItems.isEmpty()) {
+            _state.value = CatalogState.Empty
+            return
+        }
+
         if (query.isBlank()) {
             _state.value = CatalogState.Success(originalItems)
             return
         }
+
         val filtered = originalItems.filter { item ->
             item.product.title.contains(query, ignoreCase = true) ||
                     item.product.description.contains(query, ignoreCase = true)
         }
-        _state.value = if (filtered.isEmpty()) CatalogState.Empty else CatalogState.Success(filtered)
+
+        _state.value = if (filtered.isEmpty()) {
+            CatalogState.SearchEmpty
+        } else {
+            CatalogState.Success(filtered)
+        }
     }
 
     suspend fun isProductExistInLiked(productId: String): Boolean {

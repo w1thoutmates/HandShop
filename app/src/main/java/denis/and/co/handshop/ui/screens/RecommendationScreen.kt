@@ -95,13 +95,25 @@ fun RecommendationScreen(
     }
     var showDialog by remember { mutableStateOf(false) }
 
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val isCurrentDestination = navBackStackEntry?.destination?.hasRoute<RecommendationRoute>() == true
+
+    LaunchedEffect(isCurrentDestination) {
+        if (isCurrentDestination) {
+            catalogViewModel.refreshAndScroll()
+        }
+    }
+
     LaunchedEffect(catalogViewModel.scrollTrigger) {
         if (catalogViewModel.scrollTrigger > 0) {
             listState.animateScrollToItem(0)
         }
     }
 
-    catalogViewModel.logAllProductsData()
+    /**
+     * Логирование всех объявлений в logcat при открытии экрана рекоммендаций для отладки
+        catalogViewModel.logAllProductsData()
+    */
 
     Scaffold(
         topBar = {
@@ -293,6 +305,27 @@ fun RecommendationContent(
                 )
             }
 
+            is CatalogState.SearchEmpty -> {
+                Column(
+                    modifier = Modifier.align(Alignment.Center),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.nothing_found),
+                        contentDescription = "Ничего не найдено",
+                        modifier = Modifier.size(200.dp),
+                        contentScale = ContentScale.Crop
+                    )
+                    Text(
+                        text = "Ничего не найдено",
+                        modifier = Modifier.padding(top = 16.dp),
+                        fontFamily = Onest,
+                        color = LowAlphaBlackText,
+                        fontSize = 18.sp
+                    )
+                }
+            }
+
             is CatalogState.Error -> {
                 Column(
                     modifier = Modifier.align(Alignment.Center),
@@ -460,6 +493,26 @@ fun Content(
                     color = LowAlphaBlackText,
                     fontSize = 20.sp
                 )
+            }
+            is CatalogState.SearchEmpty -> {
+                Column(
+                    modifier = Modifier.align(Alignment.Center),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.nothing_found),
+                        contentDescription = "Ничего не найдено",
+                        modifier = Modifier.size(200.dp),
+                        contentScale = ContentScale.Crop
+                    )
+                    Text(
+                        text = "Ничего не найдено",
+                        modifier = Modifier.padding(top = 16.dp),
+                        fontFamily = Comfortaa,
+                        color = LowAlphaBlackText,
+                        fontSize = 18.sp
+                    )
+                }
             }
             is CatalogState.Error -> {
                 Column(

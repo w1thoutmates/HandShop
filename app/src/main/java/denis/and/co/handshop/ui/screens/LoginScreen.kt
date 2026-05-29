@@ -163,12 +163,12 @@ fun LoginScreen(onAuthSuccess: () -> Unit) {
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        SecondaryLoginButton(text = "По номеру телефона", Icons.Outlined.Phone)
-        Spacer(modifier = Modifier.height(8.dp))
-        SecondaryLoginButton(text = "Через почту", Icons.Outlined.Email)
-
+//        Spacer(modifier = Modifier.height(12.dp))
+//
+//        SecondaryLoginButton(text = "По номеру телефона", Icons.Outlined.Phone)
+//        Spacer(modifier = Modifier.height(8.dp))
+//        SecondaryLoginButton(text = "Через почту", Icons.Outlined.Email)
+//
         Spacer(modifier = Modifier.height(40.dp))
     }
 }
@@ -199,88 +199,5 @@ fun SecondaryLoginButton(text: String, icon: ImageVector) {
             color = LowAlphaBlackText.copy(alpha = 0.4f),
             fontSize = 14.sp
         )
-    }
-}
-
-@Composable
-@Preview(showBackground = true)
-fun LoginPreview() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(SoftBack)
-            .padding(horizontal = 30.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(modifier = Modifier.weight(1f))
-
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(24.dp)),
-            contentAlignment = Alignment.Center
-        ) {
-            Image(
-                painter = painterResource(R.drawable.app_icon),
-                contentDescription = null,
-                modifier = Modifier.size(200.dp)
-            )
-
-            Text(
-                text = "Доска объявлений уникальных\nвещей ручной работы",
-                style = TextStyle(
-                    fontFamily = Comfortaa,
-                    color = LowAlphaBlackText,
-                    fontSize = 14.sp,
-                    textAlign = TextAlign.Center
-                ),
-                modifier = Modifier.padding(top = 125.dp)
-            )
-        }
-
-
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        Text(
-            text = "Авторизуйтесь, чтобы продолжить",
-            fontFamily = Comfortaa,
-            fontSize = 14.sp,
-            color = BlackText.copy(alpha = 0.6f),
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-
-        Button(
-            onClick = {},
-            shape = RoundedCornerShape(16.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Accent),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-
-                Image(
-                    painter = painterResource(R.drawable.google_image),
-                    contentDescription = null,
-                    modifier = Modifier.padding(end = 10.dp).size(25.dp),
-                    colorFilter = ColorFilter.tint(Color.Black.copy(alpha = 0.55f))
-                )
-
-                Text(
-                    "Войти через Google",
-                    fontFamily = Comfortaa,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        SecondaryLoginButton(text = "По номеру телефона", Icons.Outlined.Phone)
-        Spacer(modifier = Modifier.height(8.dp))
-        SecondaryLoginButton(text = "Через почту", Icons.Outlined.Email)
-
-        Spacer(modifier = Modifier.height(40.dp))
     }
 }
