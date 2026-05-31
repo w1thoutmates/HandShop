@@ -4,18 +4,19 @@ object SearchIndexer {
     fun createIndex(title: String, description: String, category: String, tags: List<String>): List<String> {
         val input = "$title $description $category ${tags.joinToString(" ")}".lowercase()
         val cleanText = input.filter { it.isLetterOrDigit() || it.isWhitespace() }
-        val words = cleanText.split(" ").filter { it.length >= 2 }
+        val words = cleanText.split("\\s+".toRegex()).filter { it.length >= 2 }
 
-        val trigrams = mutableSetOf<String>()
+        val ngrams = mutableSetOf<String>()
         for (word in words) {
-            if (word.length == 2) {
-                trigrams.add(word)
-            } else {
+            for (i in 0..word.length - 2) {
+                ngrams.add(word.substring(i, i + 2))
+            }
+            if (word.length >= 3) {
                 for (i in 0..word.length - 3) {
-                    trigrams.add(word.substring(i, i + 3))
+                    ngrams.add(word.substring(i, i + 3))
                 }
             }
         }
-        return trigrams.toList()
+        return ngrams.toList()
     }
 }

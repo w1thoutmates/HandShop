@@ -33,6 +33,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -54,6 +55,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.window.core.layout.WindowSizeClass
 import denis.and.co.handshop.R
 import denis.and.co.handshop.data.model.CatalogState
 import denis.and.co.handshop.data.model.CategoryProvider
@@ -293,6 +295,14 @@ fun SearchResultsContent(
     likedViewModel: LikedViewModel,
     metricsViewModel: MetricsViewModel
 ) {
+    val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
+
+    val columns = when {
+        windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND) -> 4
+        windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND) -> 3
+        else -> 2
+    }
+
     when (state) {
         is CatalogState.Loading -> {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -302,7 +312,7 @@ fun SearchResultsContent(
 
         is CatalogState.Success -> {
             LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
+                columns = GridCells.Fixed(columns),
                 contentPadding = PaddingValues(8.dp),
                 modifier = Modifier.fillMaxSize()
             ) {

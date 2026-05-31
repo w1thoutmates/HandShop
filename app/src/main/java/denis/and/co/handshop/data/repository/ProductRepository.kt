@@ -95,21 +95,22 @@ class ProductRepository {
     }
 
     suspend fun searchProducts(query: String): List<Product> {
-        if (query.length < 2) return getProducts()
+        if (query.isBlank()) return emptyList()
 
-        val trigrams = SearchIndexer.createIndex(query, "", "", emptyList())
+        val ngrams = SearchIndexer.createIndex(query, "", "", emptyList())
+        if (ngrams.isEmpty()) return emptyList()
 
         return try {
             val snapshot = productsCollection
-                .whereEqualTo("status", ProductStatus.ACTIVE)
-                .whereArrayContainsAny("searchIndex", trigrams.take(10))
+                .whereArrayContainsAny("searchIndex", ngrams.take(10))
                 .get()
                 .await()
 
             snapshot.documents.mapNotNull {
                 it.toObject(Product::class.java)?.copy(id = it.id)
-            }
+            }.filter { it.status == ProductStatus.ACTIVE }
         } catch (ex: Exception) {
+            Log.e("FIREBASE_SEARCH_ERROR", "Ошибка поиска по индексу: ${ex.message}", ex)
             emptyList()
         }
     }

@@ -36,6 +36,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -63,6 +64,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.window.core.layout.WindowSizeClass
 import denis.and.co.handshop.R
 import denis.and.co.handshop.data.model.CatalogState
 import denis.and.co.handshop.ui.components.AppFooter
@@ -225,6 +227,14 @@ fun RecommendationContent(
     }
 
     Box(modifier = modifier.fillMaxSize()) {
+        val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
+
+        val columns = when {
+            windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND) -> 4
+            windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND) -> 3
+            else -> 2
+        }
+
         when (val state = uiState) {
             is CatalogState.Loading -> {
                 CircularProgressIndicator(
@@ -235,7 +245,7 @@ fun RecommendationContent(
 
             is CatalogState.Success -> {
                 LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
+                    columns = GridCells.Fixed(columns),
                     contentPadding = PaddingValues(8.dp),
                     state = gridState,
                     modifier = Modifier

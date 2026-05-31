@@ -348,10 +348,18 @@ class CatalogViewModel(
     }
 
     suspend fun getCostRecommendation(inputProduct: Product): String {
-        val allProducts = productRepo.getProducts()
-        val similarProducts = allProducts
-            .filter { it.category == inputProduct.category && it.id != inputProduct.id }
-            .map { candidate ->
+        return try {
+            val userCost = inputProduct.cost?.toDouble() ?: 0.0
+            if (userCost <= 0) return "Недостаточно данных для оценки"
+
+            val allProducts = productRepo.getProducts()
+            val categoryProducts = allProducts.filter {
+                it.category == inputProduct.category && it.id != inputProduct.id
+            }
+
+            if (categoryProducts.isEmpty()) return "Недостаточно данных для оценки"
+
+            val scoredProducts = categoryProducts.map { candidate ->
                 val titleSim = SimilarityUtils.calculateSimilarity(
                     inputProduct.title, candidate.title,
                     inputProduct.tags, candidate.tags
@@ -361,26 +369,36 @@ class CatalogViewModel(
                     emptyList(), emptyList()
                 )
                 candidate to (titleSim * 0.8 + descSim * 0.2)
+            }.sortedByDescending { it.second }
+
+            val productsForAnalysis = scoredProducts
+                .filter { it.second > 0.15 }
+                .take(15)
+                .map { it.first }
+                .ifEmpty { categoryProducts.take(15) }
+
+            val costs = productsForAnalysis
+                .mapNotNull { it.cost?.toDouble() }
+                .filter { it > 0 }
+                .sorted()
+
+            if (costs.isEmpty()) return "Недостаточно данных для оценки"
+
+            val medianCost = if (costs.size % 2 == 0) {
+                (costs[costs.size / 2] + costs[costs.size / 2 - 1]) / 2.0
+            } else {
+                costs[costs.size / 2]
             }
-            .filter { it.second > 0.4 }
-            .sortedByDescending { it.second }
-            .take(15)
 
-        if (similarProducts.isEmpty()) return "Недостаточно данных для оценки"
-
-        val costs = similarProducts.map { it.first.cost?.toDouble() ?: 0.0 }.sorted()
-        val medianCost = if (costs.size % 2 == 0) {
-            (costs[costs.size / 2] + costs[costs.size / 2 - 1]) / 2
-        } else {
-            costs[costs.size / 2]
-        }
-
-        val userCost = inputProduct.cost?.toDouble() ?: 0.0
-        val threshold = 0.15
-        return when {
-            userCost < medianCost * (1 - threshold) -> "Цена ниже рынка"
-            userCost > medianCost * (1 + threshold) -> "Цена выше рынка"
-            else -> "Средняя цена по рынку"
+            val threshold = 0.15
+            when {
+                userCost < medianCost * (1 - threshold) -> "Цена ниже рынка"
+                userCost > medianCost * (1 + threshold) -> "Цена выше рынка"
+                else -> "Средняя цена по рынку"
+            }
+        } catch (ex: Exception) {
+            Log.e("PRICE_ANALYTICS", "Ошибка аналитики цены", ex)
+            "Недостаточно данных для оценки"
         }
     }
 
