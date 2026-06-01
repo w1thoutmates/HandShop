@@ -76,7 +76,7 @@ fun ReportDialog(
                         .width(40.dp)
                         .height(3.dp)
                         .clip(RoundedCornerShape(10.dp))
-                        .background(Color(0xFFE53935).copy(alpha = 0.4f))
+                        .background(Color(0xFFE53935))
                 )
             }
         },

@@ -112,11 +112,6 @@ fun RecommendationScreen(
         }
     }
 
-    /**
-     * Логирование всех объявлений в logcat при открытии экрана рекоммендаций для отладки
-        catalogViewModel.logAllProductsData()
-    */
-
     Scaffold(
         topBar = {
             Header(
